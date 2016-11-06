@@ -1,0 +1,7 @@
+{
+  "globalDependencies": {
+    "d3": "github:DefinitelyTyped/DefinitelyTyped/d3/d3.d.ts#1c05872e7811235f43780b8b596bfd26fe8e7760",
+    "jquery": "registry:dt/jquery#1.10.0+20160929162922",
+    "lodash": "registry:dt/lodash#4.14.0+20161004174455"
+  }
+}
