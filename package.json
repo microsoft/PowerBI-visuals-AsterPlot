@@ -45,7 +45,9 @@
     "typings": "1.4.0"
   },
   "dependencies": {
+    "@powerbi-visuals-utils/converterhelper": "git+https://github.com/uve/powerbi-visuals-utils-converterhelper.git",
     "@powerbi-visuals-utils/datacolorpalette": "git+https://github.com/vtkalek/powerbi-visuals-utils-datacolorpalette.git",
-    "@powerbi-visuals-utils/enumtype": "git+https://github.com/uve/powerbi-visuals-utils-enumtype.git"
+    "@powerbi-visuals-utils/enumtype": "git+https://github.com/uve/powerbi-visuals-utils-enumtype.git",
+    "@powerbi-visuals-utils/settingsparser": "git+https://github.com/ignatvilesov/powerbi-visuals-utils-settingsparser.git"
   }
 }

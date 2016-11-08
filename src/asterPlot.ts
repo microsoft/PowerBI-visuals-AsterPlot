@@ -24,9 +24,9 @@
  *  THE SOFTWARE.
  */
 
-module powerbi.visuals.samples {
+module powerbi.extensibility.visual {
     // d3
-    import ArcDescriptor = D3.Layout.ArcDescriptor;
+    import ArcDescriptor = d3.svg.arc.Arc;
 
     // jsCommon
     import ClassAndSelector = jsCommon.CssConstants.ClassAndSelector;
@@ -54,9 +54,9 @@ module powerbi.visuals.samples {
     import IVisual = powerbi.extensibility.IVisual;
     import IDataColorPalette = powerbi.extensibility.IColorPalette;
     import DataViewScopeIdentity = powerbi.DataViewScopeIdentity;
-    import IVisualHostServices = powerbi.IVisualHostServices;
-    import VisualInitOptions = powerbi.VisualInitOptions;
-    import VisualUpdateOptions = powerbi.VisualUpdateOptions;
+    import IVisualHostServices = powerbi.extensibility.IVisualHost;
+    import VisualInitOptions = powerbi.extensibility.VisualConstructorOptions;
+    import VisualUpdateOptions = powerbi.extensibility.VisualUpdateOptions;
     import TextProperties = powerbi.TextProperties;
     import TextMeasurementService = powerbi.TextMeasurementService;
     import DataLabelManager = powerbi.DataLabelManager;
@@ -64,7 +64,7 @@ module powerbi.visuals.samples {
     import VisualDataRoleKind = powerbi.VisualDataRoleKind;
 
     // powerbi.data
-    import DataViewObjectPropertyTypeDescriptor = powerbi.data.DataViewObjectPropertyTypeDescriptor;
+    //import DataViewObjectPropertyTypeDescriptor = powerbi.data.DataViewObjectPropertyTypeDescriptor;
 
     // powerbi.visuals
     import ValueFormatter = powerbi.visuals.valueFormatter;
@@ -76,7 +76,7 @@ module powerbi.visuals.samples {
     import IInteractiveBehavior = powerbi.visuals.IInteractiveBehavior;
     import ISelectionHandler = powerbi.visuals.ISelectionHandler;
     import IMargin = powerbi.visuals.IMargin;
-    import ObjectEnumerationBuilder = powerbi.visuals.ObjectEnumerationBuilder;
+    //import ObjectEnumerationBuilder = powerbi.visuals.ObjectEnumerationBuilder;
     import LegendPosition = powerbi.visuals.LegendPosition;
     import dataLabelUtils = powerbi.visuals.dataLabelUtils;
     import converterHelper = powerbi.visuals.converterHelper;
@@ -84,7 +84,7 @@ module powerbi.visuals.samples {
     import ColorHelper = powerbi.visuals.ColorHelper;
     import valueFormatter = powerbi.visuals.valueFormatter;
     import TooltipBuilder = powerbi.visuals.TooltipBuilder;
-    import SelectionId = powerbi.visuals.SelectionId;
+    import SelectionId = powerbi.extensibility.ISelectionId;
     import LegendIcon = powerbi.visuals.LegendIcon;
     import ILegend = powerbi.visuals.ILegend;
     import appendClearCatcher = powerbi.visuals.appendClearCatcher;
@@ -139,15 +139,15 @@ module powerbi.visuals.samples {
     }
 
     export interface AsterPlotBehaviorOptions {
-        selection: D3.Selection;
-        clearCatcher: D3.Selection;
+        selection: d3.Selection<any>;
+        clearCatcher: d3.Selection<any>;
         interactivityService: IInteractivityService;
         hasHighlights: boolean;
     }
 
     class AsterPlotWebBehavior implements IInteractiveBehavior {
-        private selection: D3.Selection;
-        private clearCatcher: D3.Selection;
+        private selection: d3.Selection<any>;
+        private clearCatcher: d3.Selection<any>;
         private interactivityService: IInteractivityService;
         private hasHighlights: boolean;
 
@@ -303,8 +303,8 @@ module powerbi.visuals.samples {
 
     class Helpers {
         public static setAttrThroughTransitionIfNotResized(
-            element: D3.Selection,
-            setTransision: (t: D3.Transition.Transition) => D3.Transition.Transition,
+            element: d3.Selection<any>,
+            setTransision: (t: d3.Transition<any>) => d3.Transition<any>,
             attrName: string,
             attrValue: (data: any, index: number) => any,
             attrTransitionValue: (data: any, index: number) => any,
@@ -316,7 +316,7 @@ module powerbi.visuals.samples {
             }
         }
 
-        public static interpolateArc(arc: D3.Svg.Arc) {
+        public static interpolateArc(arc: d3.svg.Arc<AsterArcDescriptor>) {
             return function (data) {
                 if (!this.oldData) {
                     this.oldData = data;
@@ -335,129 +335,7 @@ module powerbi.visuals.samples {
             };
         }
     }
-
-    export class AsterPlotSettings {
-        public static get Default() {
-            return new this();
-        }
-
-        public static parse(dataView: DataView, capabilities: VisualCapabilities) {
-            var settings = new this();
-            if (!dataView || !dataView.metadata || !dataView.metadata.objects) {
-                return settings;
-            }
-
-            var properties = this.getProperties(capabilities);
-            for (var objectKey in capabilities.objects) {
-                for (var propKey in capabilities.objects[objectKey].properties) {
-                    if (!settings[objectKey] || !_.has(settings[objectKey], propKey)) {
-                        continue;
-                    }
-
-                    var type = capabilities.objects[objectKey].properties[propKey].type;
-                    var getValueFn = this.getValueFnByType(type);
-                    settings[objectKey][propKey] = getValueFn(
-                        dataView.metadata.objects,
-                        properties[objectKey][propKey],
-                        settings[objectKey][propKey]);
-                }
-            }
-
-            return settings;
-        }
-
-        public static getProperties(capabilities: VisualCapabilities):
-            { [i: string]: { [i: string]: DataViewObjectPropertyIdentifier } } & {
-                general: { formatString: DataViewObjectPropertyIdentifier },
-                dataPoint: { fill: DataViewObjectPropertyIdentifier }
-            } {
-            var objects = _.merge({
-                general: { properties: { formatString: {} } }
-            }, capabilities.objects);
-            var properties = <any>{};
-            for (var objectKey in objects) {
-                properties[objectKey] = {};
-                for (var propKey in objects[objectKey].properties) {
-                    properties[objectKey][propKey] = <DataViewObjectPropertyIdentifier>{
-                        objectName: objectKey,
-                        propertyName: propKey
-                    };
-                }
-            }
-
-            return properties;
-        }
-
-        public static createEnumTypeFromEnum(type: any): IEnumType {
-            var even: any = false;
-            return createEnumType(Object.keys(type)
-                .filter((key, i) => ((!!(i % 2)) === even && type[key] === key
-                    && !void (even = !even)) || (!!(i % 2)) !== even)
-                .map(x => <IEnumMember>{ value: x, displayName: x }));
-        }
-
-        private static getValueFnByType(type: DataViewObjectPropertyTypeDescriptor) {
-            switch (_.keys(type)[0]) {
-                case "fill":
-                    return DataViewObjects.getFillColor;
-                default:
-                    return DataViewObjects.getValue;
-            }
-        }
-
-        public static enumerateObjectInstances(
-            settings = new this(),
-            options: EnumerateVisualObjectInstancesOptions): ObjectEnumerationBuilder {
-
-            var enumeration = new ObjectEnumerationBuilder();
-            var object = settings && settings[options.objectName];
-            if (!object) {
-                return enumeration;
-            }
-
-            var instance = <VisualObjectInstance>{
-                objectName: options.objectName,
-                selector: null,
-                properties: {}
-            };
-
-            for (var key in object) {
-                if (_.has(object, key)) {
-                    instance.properties[key] = object[key];
-                }
-            }
-
-            enumeration.pushInstance(instance);
-            return enumeration;
-        }
-
-        public originalSettings: AsterPlotSettings;
-        public createOriginalSettings(): void {
-            this.originalSettings = _.cloneDeep(this);
-        }
-
-        //Default Settings
-        public legend = {
-            show: false,
-            position: LegendPosition[LegendPosition.Top],
-            showTitle: true,
-            titleText: "",
-            labelColor: LegendData.DefaultLegendLabelFillColor,
-            fontSize: 8,
-        };
-        public labels = {
-            show: false,
-            color: dataLabelUtils.defaultLabelColor,
-            displayUnits: 0,
-            precision: dataLabelUtils.defaultLabelPrecision,
-            fontSize: dataLabelUtils.DefaultFontSizeInPt,
-        };
-        public outerLine = {
-            show: false,
-            thickness: 1,
-        };
-    }
-
+    
     export class AsterPlotColumns<T> {
         public static Roles = Object.freeze(
             _.mapValues(new AsterPlotColumns<string>(), (x, i) => i));
@@ -529,6 +407,7 @@ module powerbi.visuals.samples {
         private static CenterLabelClass: ClassAndSelector = createClassAndSelector("centerLabel");
         private static CenterTextFontHeightCoefficient = 0.4;
         private static CenterTextFontWidthCoefficient = 1.9;
+        private visualHost: IVisualHost;
 
         public static converter(dataView: DataView, colors: IDataColorPalette): AsterPlotData {
             var categorical = AsterPlotColumns.getCategoricalColumns(dataView);
@@ -540,16 +419,15 @@ module powerbi.visuals.samples {
                 || _.isEmpty(categorical.Y[0].values)) {
                 return;
             }
-
-            var settings = AsterPlot.parseSettings(dataView, categorical.Category.source);
-            var properties = AsterPlotSettings.getProperties(AsterPlot.capabilities);
+            var settings = AsterPlot.parseSettings(dataView);
+            //var properties = AsterPlotSettings.getProperties(AsterPlot.capabilities);
 
             var dataPoints: AsterDataPoint[] = [];
             var highlightedDataPoints: AsterDataPoint[] = [];
             var legendData = <LegendData>{
                 dataPoints: [],
                 title: null,
-                fontSize: AsterPlotSettings.Default.legend.fontSize,
+                fontSize: settings.legend.fontSize,
                 labelColor: LegendData.DefaultLegendLabelFillColor
             };
 
@@ -606,12 +484,11 @@ module powerbi.visuals.samples {
                     identity.key);
 
                 sliceWidth = Math.max(0, categorical.Y.length > 1 ? <number>categorical.Y[1].values[i] : 1);
-
-                var selectionId: SelectionId = SelectionId.createWithIdAndMeasureAndCategory(
-                    identity,
-                    identity.key,
-                    categorical.Category.source.queryName);
-
+                var visualHost: IVisualHost;
+                var selectionId: SelectionId = visualHost.createSelectionIdBuilder()
+                    .withMeasure(categorical.Category.source.queryName)
+                    .createSelectionId();
+            
                 if (sliceWidth > 0) {
                     dataPoints.push({
                         sliceHeight: <number>categorical.Y[0].values[i] - minValue,
@@ -639,7 +516,10 @@ module powerbi.visuals.samples {
 
                 // Handle highlights
                 if (hasHighlights) {
-                    var highlightIdentity: SelectionId = SelectionId.createWithHighlight(selectionId);
+                    var highlightIdentity: SelectionId = //SelectionId.createWithHighlight(selectionId);
+                    visualHost.createSelectionIdBuilder()
+                        .withMeasure(categorical.Category.source.queryName)
+                        .createSelectionId();
                     var notNull: boolean = categorical.Y[0].highlights[i] != null;
                     currentValue = notNull ? <number>categorical.Y[0].highlights[i] : 0;
 
@@ -692,25 +572,42 @@ module powerbi.visuals.samples {
             };
         }
 
-        private static parseSettings(dataView: DataView, categorySource: DataViewMetadataColumn): AsterPlotSettings {
-            var settings = AsterPlotSettings.parse(dataView, AsterPlot.capabilities);
-            settings.labels.precision = Math.min(17, Math.max(0, settings.labels.precision));
-            settings.outerLine.thickness = Math.min(300, Math.max(1, settings.outerLine.thickness));
-            settings.createOriginalSettings();
-            if (_.isEmpty(settings.legend.titleText)) {
-                settings.legend.titleText = categorySource.displayName;
-            }
+        //private static parseSettings(dataView: DataView, categorySource: DataViewMetadataColumn): AsterPlotSettings {
+        //    var settings = AsterPlotSettings.parse(dataView, AsterPlot.capabilities);
+        //    settings.labels.precision = Math.min(17, Math.max(0, settings.labels.precision));
+        //    settings.outerLine.thickness = Math.min(300, Math.max(1, settings.outerLine.thickness));
+        //    settings.createOriginalSettings();
+        //    if (_.isEmpty(settings.legend.titleText)) {
+        //        settings.legend.titleText = categorySource.displayName;
+        //    }
+
+        //    return settings;
+        //}
+
+        private static parseSettings(dataView: DataView): AsterPlotSettings {
+            let settings: AsterPlotSettings = AsterPlotSettings.parse<AsterPlotSettings>(dataView);
+
+            //settings.size.charge = Math.min(
+            //    Math.max(settings.size.charge, ForceGraph.MinCharge),
+            //    ForceGraph.MaxCharge);
+
+            //settings.links.decimalPlaces = settings.links.decimalPlaces
+            //    && Math.min(
+            //        Math.max(settings.links.decimalPlaces, ForceGraph.MinDecimalPlaces),
+            //        ForceGraph.MaxDecimalPlaces);
 
             return settings;
         }
 
+
+
         private layout: VisualLayout;
-        private svg: D3.Selection;
-        private mainGroupElement: D3.Selection;
-        private mainLabelsElement: D3.Selection;
-        private slicesElement: D3.Selection;
-        private centerText: D3.Selection;
-        private clearCatcher: D3.Selection;
+        private svg: d3.Selection<any>;
+        private mainGroupElement: d3.Selection<any>;
+        private mainLabelsElement: d3.Selection<any>;
+        private slicesElement: d3.Selection<any>;
+        private centerText: d3.Selection<any>;
+        private clearCatcher: d3.Selection<any>;
         private colors: IDataColorPalette;
         private hostServices: IVisualHostServices;
         private interactivityService: IInteractivityService;
@@ -727,7 +624,7 @@ module powerbi.visuals.samples {
 
             this.layout = new VisualLayout(options.viewport, { top: 10, right: 10, bottom: 15, left: 10 });
             var element: JQuery = options.element;
-            var svg: D3.Selection = this.svg = d3.select(element.get(0))
+            var svg: d3.Selection = this.svg = d3.select(element.get(0))
                 .append("svg")
                 .classed(AsterPlotVisualClassName, true)
                 .style("position", "absolute");
@@ -805,13 +702,13 @@ module powerbi.visuals.samples {
             }
         }
 
-        private renderArcsAndLabels(duration: number, isHighlight: boolean = false): D3.UpdateSelection {
+        private renderArcsAndLabels(duration: number, isHighlight: boolean = false): d3.UpdateSelection {
             var viewportRadius: number = Math.min(this.layout.viewportIn.width, this.layout.viewportIn.height) / 2,
                 innerRadius: number = 0.3 * (this.settings.labels.show ? viewportRadius * AsterRadiusRatio : viewportRadius),
                 maxScore: number = d3.max(this.data.dataPoints, d => d.sliceHeight),
                 totalWeight: number = d3.sum(this.data.dataPoints, d => d.sliceWidth);
 
-            var pie: D3.Layout.PieLayout = d3.layout.pie()
+            var pie: d3.layout.Pie<AsterDataPoint> = d3.layout.pie<AsterDataPoint>()
                 .sort(null)
                 .value((dataPoint: AsterDataPoint) => {
                     if (!totalWeight || !dataPoint || isNaN(dataPoint.sliceWidth)) {
@@ -821,9 +718,9 @@ module powerbi.visuals.samples {
                     return dataPoint.sliceWidth / totalWeight;
                 });
 
-            var arc: D3.Svg.Arc = d3.svg.arc()
+            var arc: d3.svg.Arc<AsterArcDescriptor> = d3.svg.arc<AsterArcDescriptor>()
                 .innerRadius(innerRadius)
-                .outerRadius((arcDescriptor: AsterArcDescriptor) => {
+                .outerRadius((arcDescriptor: AsterArcDescriptor, i:number) => {
                     var height: number = 0;
 
                     if (maxScore) {
@@ -846,7 +743,7 @@ module powerbi.visuals.samples {
                     return Math.max(heightIsLabelsOn, innerRadius);
                 });
 
-            var arcDescriptorDataPoints: AsterArcDescriptor[] = pie(isHighlight ? this.data.highlightedDataPoints : this.data.dataPoints);
+            var arcDescriptorDataPoints: d3.layout.pie.Arc<AsterDataPoint>[] = pie(isHighlight ? this.data.highlightedDataPoints : this.data.dataPoints);
 
             var classSelector: ClassAndSelector = isHighlight
                 ? AsterPlot.AsterHighlightedSlice
@@ -858,7 +755,7 @@ module powerbi.visuals.samples {
                 arcDescriptorDataPoints,
                 (d: AsterArcDescriptor, i: number) => {
                     return d.data
-                        ? d.data.identity.getKey()
+                        ? (d.data.identity as powerbi.visuals.ISelectionId).getKey()
                         : i;
                 });
 
@@ -892,7 +789,7 @@ module powerbi.visuals.samples {
                     var height: number = viewportRadius * (d && !isNaN(d.sliceHeight) ? d.sliceHeight : 1) / maxScore + innerRadius;
                     return Math.max(height, innerRadius);
                 };
-                var labelArc = d3.svg.arc()
+                var labelArc = d3.svg.arc<AsterArcDescriptor>()
                     .innerRadius(d => labelRadCalc(d.data))
                     .outerRadius(d => labelRadCalc(d.data));
 
@@ -901,7 +798,7 @@ module powerbi.visuals.samples {
                     height = innerRadius + height * AsterRadiusRatio;
                     return Math.max(height, innerRadius);
                 };
-                var outlineArc = d3.svg.arc()
+                var outlineArc = d3.svg.arc<AsterArcDescriptor>()
                     .innerRadius(d => lineRadCalc(d.data))
                     .outerRadius(d => lineRadCalc(d.data));
 
@@ -927,7 +824,7 @@ module powerbi.visuals.samples {
             return selection;
         }
 
-        private getLabelLayout(arc: D3.Svg.Arc, viewport: IViewport): ILabelLayout {
+        private getLabelLayout(arc: d3.Svg.Arc, viewport: IViewport): ILabelLayout {
             var midAngle = function (d: ArcDescriptor) { return d.startAngle + (d.endAngle - d.startAngle) / 2; };
             var textProperties: TextProperties = {
                 fontFamily: dataLabelUtils.StandardFontFamily,
@@ -976,11 +873,11 @@ module powerbi.visuals.samples {
         }
 
         private drawLabels(data: ArcDescriptor[],
-            context: D3.Selection,
+            context: d3.Selection<AsterArcDescriptor>,
             layout: ILabelLayout,
             viewport: IViewport,
-            outlineArc: D3.Svg.Arc,
-            labelArc: D3.Svg.Arc): void {
+            outlineArc: d3.svg.Arc<AsterArcDescriptor>,
+            labelArc: d3.svg.Arc<AsterArcDescriptor>): void {
 
             // Hide and reposition labels that overlap
             var dataLabelManager = new DataLabelManager();

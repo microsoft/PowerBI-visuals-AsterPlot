@@ -38,6 +38,9 @@
     "node_modules/@powerbi-visuals-utils/datalabelutils/lib/index.d.ts",
     "node_modules/@powerbi-visuals-utils/textmeasurementservice/lib/index.d.ts",
     "node_modules/@powerbi-visuals-utils/datalabelmanager/lib/index.d.ts",
+    "node_modules/@powerbi-visuals-utils/converterhelper/lib/index.d.ts",
+    "node_modules/@powerbi-visuals-utils/settingsparser/lib/index.d.ts",
+    "src/settings.ts",
     "src/asterPlot.ts"
   ]
 }
