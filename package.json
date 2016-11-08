@@ -45,6 +45,7 @@
     "typings": "1.4.0"
   },
   "dependencies": {
+    "@powerbi-visuals-utils/animatorcommon": "git+https://github.com/vtkalek/powerbi-visuals-utils-animatorcommon.git",
     "@powerbi-visuals-utils/converterhelper": "git+https://github.com/uve/powerbi-visuals-utils-converterhelper.git",
     "@powerbi-visuals-utils/datacolorpalette": "git+https://github.com/vtkalek/powerbi-visuals-utils-datacolorpalette.git",
     "@powerbi-visuals-utils/enumtype": "git+https://github.com/uve/powerbi-visuals-utils-enumtype.git",
