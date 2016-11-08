@@ -62,6 +62,7 @@ module powerbi.extensibility.visual {
     import DataLabelManager = powerbi.DataLabelManager;
     import VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnumerationObject;
     import VisualDataRoleKind = powerbi.VisualDataRoleKind;
+    import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 
     // powerbi.data
     //import DataViewObjectPropertyTypeDescriptor = powerbi.data.DataViewObjectPropertyTypeDescriptor;
@@ -158,7 +159,7 @@ module powerbi.extensibility.visual {
             this.hasHighlights = options.hasHighlights;
 
             this.selection.on("click", (d, i: number) => {
-                selectionHandler.handleSelection(d.data, d3.event.ctrlKey);
+                selectionHandler.handleSelection(d.data, (d3.event as MouseEvent).ctrlKey);
             });
 
             this.clearCatcher.on("click", () => {
@@ -316,7 +317,7 @@ module powerbi.extensibility.visual {
             }
         }
 
-        public static interpolateArc(arc: d3.svg.Arc<AsterArcDescriptor>) {
+        public static interpolateArc(arc: any) {
             return function (data) {
                 if (!this.oldData) {
                     this.oldData = data;
@@ -409,6 +410,28 @@ module powerbi.extensibility.visual {
         private static CenterTextFontWidthCoefficient = 1.9;
         private visualHost: IVisualHost;
 
+
+        constructor(options: VisualConstructorOptions) {
+            this.hostServices = options.host;
+
+            this.layout = new VisualLayout(null, { top: 10, right: 10, bottom: 15, left: 10 });
+            var svg: d3.Selection<any> = this.svg = d3.select(options.element)
+                .append("svg")
+                .classed(AsterPlotVisualClassName, true)
+                .style("position", "absolute");
+
+            this.colors = options.host.colorPalette;
+            this.mainGroupElement = svg.append("g");
+            this.mainLabelsElement = svg.append("g");
+            this.behavior = new AsterPlotWebBehavior();
+            this.clearCatcher = appendClearCatcher(this.mainGroupElement);
+            this.slicesElement = this.mainGroupElement.append("g").classed(AsterPlot.AsterSlices.class, true);
+
+            this.interactivityService = createInteractivityService(options.host);
+            this.legend = createLegend($(options.element), options.host && false, this.interactivityService, true);
+            
+        }
+
         public static converter(dataView: DataView, colors: IDataColorPalette): AsterPlotData {
             var categorical = AsterPlotColumns.getCategoricalColumns(dataView);
             var catValues = AsterPlotColumns.getCategoricalValues(dataView);
@@ -437,20 +460,20 @@ module powerbi.extensibility.visual {
 
             var maxValue: number = Math.max(d3.min(<number[]>categorical.Y[0].values));
             var minValue: number = Math.min(0, d3.min(<number[]>categorical.Y[0].values));
-            var labelFormatter: IValueFormatter = ValueFormatter.create({
-                format: ValueFormatter.getFormatString(categorical.Y[0].source, properties.general.formatString),
-                precision: settings.labels.precision,
-                value: (settings.labels.displayUnits === 0) && (maxValue != null) ? maxValue : settings.labels.displayUnits,
-            });
-            var categorySourceFormatString = valueFormatter.getFormatString(categorical.Category.source, properties.general.formatString);
+            //var labelFormatter: IValueFormatter = ValueFormatter.create({
+            //    format: ValueFormatter.getFormatString(categorical.Y[0].source, properties.general.formatString),
+            //    precision: settings.labels.precision,
+            //    value: (settings.labels.displayUnits === 0) && (maxValue != null) ? maxValue : settings.labels.displayUnits,
+            //});
+            //var categorySourceFormatString = valueFormatter.getFormatString(categorical.Category.source, properties.general.formatString);
             var fontSizeInPx: string = PixelConverter.fromPoint(settings.labels.fontSize);
 
             for (var i = 0; i < catValues.Category.length; i++) {
-                var formattedCategoryValue = valueFormatter.format(catValues.Category[i], categorySourceFormatString);
+                var formattedCategoryValue = catValues.Category[i];// valueFormatter.format(, categorySourceFormatString);
                 var currentValue = <number>categorical.Y[0].values[i];
 
                 var tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(
-                    properties.general.formatString,
+                    null,//properties.general.formatString,
                     dataView.categorical,
                     formattedCategoryValue,
                     currentValue,
@@ -460,7 +483,7 @@ module powerbi.extensibility.visual {
 
                 if (categorical.Y.length > 1) {
                     var toolTip: TooltipDataItem = TooltipBuilder.createTooltipInfo(
-                        properties.general.formatString,
+                        null, //properties.general.formatString,
                         dataView.categorical,
                         formattedCategoryValue,
                         categorical.Y[1].values[i],
@@ -493,7 +516,7 @@ module powerbi.extensibility.visual {
                     dataPoints.push({
                         sliceHeight: <number>categorical.Y[0].values[i] - minValue,
                         sliceWidth: sliceWidth,
-                        label: labelFormatter.format(currentValue),
+                        label: <any>currentValue,
                         color: color,
                         identity: selectionId,
                         selected: false,
@@ -524,7 +547,7 @@ module powerbi.extensibility.visual {
                     currentValue = notNull ? <number>categorical.Y[0].highlights[i] : 0;
 
                     tooltipInfo = TooltipBuilder.createTooltipInfo(
-                        properties.general.formatString,
+                        null,//properties.general.formatString,
                         dataView.categorical,
                         formattedCategoryValue,
                         currentValue,
@@ -534,7 +557,7 @@ module powerbi.extensibility.visual {
 
                     if (categorical.Y.length > 1) {
                         var toolTip: TooltipDataItem = TooltipBuilder.createTooltipInfo(
-                            properties.general.formatString,
+                            null,//properties.general.formatString,
                             dataView.categorical,
                             formattedCategoryValue,
                             categorical.Y[1].highlights[i],
@@ -550,7 +573,7 @@ module powerbi.extensibility.visual {
                     highlightedDataPoints.push({
                         sliceHeight: notNull ? <number>categorical.Y[0].highlights[i] - minValue : null,
                         sliceWidth: Math.max(0, (categorical.Y.length > 1 && categorical.Y[1].highlights[i] !== null) ? <number>categorical.Y[1].highlights[i] : sliceWidth),
-                        label: labelFormatter.format(currentValue),
+                        label: <any>currentValue,
                         color: color,
                         identity: highlightIdentity,
                         selected: false,
@@ -567,7 +590,7 @@ module powerbi.extensibility.visual {
                 hasHighlights: hasHighlights,
                 legendData: legendData,
                 highlightedDataPoints: highlightedDataPoints,
-                labelFormatter: labelFormatter,
+                labelFormatter: null,//labelFormatter,
                 centerText: categorical.Category.source.displayName
             };
         }
@@ -605,7 +628,7 @@ module powerbi.extensibility.visual {
         private svg: d3.Selection<any>;
         private mainGroupElement: d3.Selection<any>;
         private mainLabelsElement: d3.Selection<any>;
-        private slicesElement: d3.Selection<any>;
+        private slicesElement: d3.Selection<AsterPlotData>;
         private centerText: d3.Selection<any>;
         private clearCatcher: d3.Selection<any>;
         private colors: IDataColorPalette;
@@ -619,36 +642,14 @@ module powerbi.extensibility.visual {
 
         private behavior: IInteractiveBehavior;
 
-        public init(options: VisualInitOptions): void {
-            this.hostServices = options.host;
-
-            this.layout = new VisualLayout(options.viewport, { top: 10, right: 10, bottom: 15, left: 10 });
-            var element: JQuery = options.element;
-            var svg: d3.Selection = this.svg = d3.select(element.get(0))
-                .append("svg")
-                .classed(AsterPlotVisualClassName, true)
-                .style("position", "absolute");
-
-            this.colors = options.style.colorPalette.dataColors;
-            this.mainGroupElement = svg.append("g");
-            this.mainLabelsElement = svg.append("g");
-            this.behavior = new AsterPlotWebBehavior();
-            this.clearCatcher = appendClearCatcher(this.mainGroupElement);
-            this.slicesElement = this.mainGroupElement.append("g").classed(AsterPlot.AsterSlices.class, true);
-
-            var interactivity = options.interactivity;
-            this.interactivityService = createInteractivityService(this.hostServices);
-            this.legend = createLegend(element, interactivity && interactivity.isInteractiveLegend, this.interactivityService, true);
-        }
-
-        public update(options: VisualUpdateOptions) {
-            if (!options || !options.dataViews || !options.dataViews[0]) {
+        public update(options: VisualUpdateOptions):void {
+            if (!options) {
                 return; // or clear the view, display an error, etc.
             }
 
-            this.layout.viewport = options.viewport;
+            //this.layout.viewport = options.viewport;
 
-            var duration = options.suppressAnimations ? 0 : MinervaAnimationDuration;
+            var duration = MinervaAnimationDuration; //options.suppressAnimations ? 0 :
             var data = AsterPlot.converter(options.dataViews[0], this.colors);
 
             if (!data) {
@@ -666,7 +667,7 @@ module powerbi.extensibility.visual {
             this.renderLegend();
             this.updateViewPortAccordingToLegend();
 
-            this.svg.attr(this.layout.viewport);
+            //this.svg.attr(this.layout.viewport);
 
             var transformX: number = (this.layout.viewportIn.width + this.layout.margin.right) / 2;
             var transformY: number = (this.layout.viewportIn.height + this.layout.margin.bottom) / 2;
@@ -702,7 +703,7 @@ module powerbi.extensibility.visual {
             }
         }
 
-        private renderArcsAndLabels(duration: number, isHighlight: boolean = false): d3.UpdateSelection {
+        private renderArcsAndLabels(duration: number, isHighlight: boolean = false): any {
             var viewportRadius: number = Math.min(this.layout.viewportIn.width, this.layout.viewportIn.height) / 2,
                 innerRadius: number = 0.3 * (this.settings.labels.show ? viewportRadius * AsterRadiusRatio : viewportRadius),
                 maxScore: number = d3.max(this.data.dataPoints, d => d.sliceHeight),
@@ -743,7 +744,7 @@ module powerbi.extensibility.visual {
                     return Math.max(heightIsLabelsOn, innerRadius);
                 });
 
-            var arcDescriptorDataPoints: d3.layout.pie.Arc<AsterDataPoint>[] = pie(isHighlight ? this.data.highlightedDataPoints : this.data.dataPoints);
+            var arcDescriptorDataPoints: d3.svg.Arc<AsterArcDescriptor>[] = pie(isHighlight ? this.data.highlightedDataPoints : this.data.dataPoints);
 
             var classSelector: ClassAndSelector = isHighlight
                 ? AsterPlot.AsterHighlightedSlice
