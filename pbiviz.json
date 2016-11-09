@@ -3,7 +3,7 @@
     "name": "AsterPlot",
     "displayName": "AsterPlot Chart",
     "guid": "RadarChart1446119667566",
-    "visualClassName": "AsterPlotChart",
+    "visualClassName": "AsterPlot",
     "version": "0.5.4",
     "description": "Aster plot.",
     "supportUrl": "http://community.powerbi.com",
