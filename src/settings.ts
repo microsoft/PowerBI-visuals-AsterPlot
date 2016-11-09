@@ -25,6 +25,10 @@
  */
 
 module powerbi.extensibility.visual {
+    // powerbi.visuals
+    import LegendPosition = powerbi.visuals.LegendPosition;
+
+    // powerbi.extensibility.visual
     import SettingsParser = powerbi.extensibility.visual.settingsParser.SettingsParser;
 
     export class AsterPlotSettings extends SettingsParser {
@@ -34,24 +38,24 @@ module powerbi.extensibility.visual {
     }
 
     export class LabelsSettings {
-            public show:boolean = false;
-            public color:string = "#777777";
-            public displayUnits:number = 0;
-            public precision:number = undefined;
-            public fontSize: number = 9;1
+        public show: boolean = false;
+        public color: string = "#777777";
+        public displayUnits: number = 0;
+        public precision: number = undefined;
+        public fontSize: number = 9;
     }
 
     export class LegendSettings {
-        public show:boolean = false;
-        public position:powerbi.visuals.LegendPosition = LegendPosition.Top;
-        public showTitle:boolean = true;
-        public titleText:string = "";
+        public show: boolean = false;
+        public position: string = LegendPosition[LegendPosition.Top];
+        public showTitle: boolean = true;
+        public titleText: string = "";
         public labelColor: string = '#666666';
-        public fontSize:number = 8;
+        public fontSize: number = 8;
     }
 
     export class OuterLineSettings {
-        public show:boolean = false;
-        public thickness:number = 1;
+        public show: boolean = false;
+        public thickness: number = 1;
     }
 }

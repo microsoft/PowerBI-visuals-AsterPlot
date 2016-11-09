@@ -26,7 +26,8 @@
 
 module powerbi.extensibility.visual {
     // d3
-    import ArcDescriptor = d3.svg.arc.Arc;
+    import ArcDescriptor = d3.layout.pie.Arc;
+    import SvgArc = d3.svg.Arc;
 
     // jsCommon
     import ClassAndSelector = jsCommon.CssConstants.ClassAndSelector;
@@ -35,7 +36,7 @@ module powerbi.extensibility.visual {
     import IStringResourceProvider = jsCommon.IStringResourceProvider;
 
     // powerbi
-   // import IVisualWarning = powerbi.IVisualWarning;
+    // import IVisualWarning = powerbi.IVisualWarning;
     //import IVisualErrorMessage = powerbi.IVisualErrorMessage;
     import IViewport = powerbi.IViewport;
     import DataView = powerbi.DataView;
@@ -56,13 +57,16 @@ module powerbi.extensibility.visual {
     import DataViewScopeIdentity = powerbi.DataViewScopeIdentity;
     import IVisualHostServices = powerbi.extensibility.IVisualHost;
     import VisualInitOptions = powerbi.extensibility.VisualConstructorOptions;
-    import VisualUpdateOptions = powerbi.extensibility.VisualUpdateOptions;
+
     import TextProperties = powerbi.TextProperties;
     import TextMeasurementService = powerbi.TextMeasurementService;
     import DataLabelManager = powerbi.DataLabelManager;
     import VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnumerationObject;
     import VisualDataRoleKind = powerbi.VisualDataRoleKind;
+
+    // powerbi.extensibility.visual
     import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
+    import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 
     // powerbi.data
     //import DataViewObjectPropertyTypeDescriptor = powerbi.data.DataViewObjectPropertyTypeDescriptor;
@@ -85,7 +89,7 @@ module powerbi.extensibility.visual {
     import ColorHelper = powerbi.visuals.ColorHelper;
     import valueFormatter = powerbi.visuals.valueFormatter;
     import TooltipBuilder = powerbi.visuals.TooltipBuilder;
-    import SelectionId = powerbi.extensibility.ISelectionId;
+    import ISelectionId = powerbi.visuals.ISelectionId;
     import LegendIcon = powerbi.visuals.LegendIcon;
     import ILegend = powerbi.visuals.ILegend;
     import appendClearCatcher = powerbi.visuals.appendClearCatcher;
@@ -103,7 +107,7 @@ module powerbi.extensibility.visual {
     var AsterRadiusRatio: number = 0.9;
     var AsterConflictRatio = 0.9;
 
-     export interface IVisualErrorMessage {
+    export interface IVisualErrorMessage {
         message: string;
         title: string;
         detail: string;
@@ -124,7 +128,7 @@ module powerbi.extensibility.visual {
         centerText: string;
     }
 
-    export interface AsterArcDescriptor extends ArcDescriptor {
+    export interface AsterArcDescriptor extends ArcDescriptor<AsterDataPoint> {
         isLabelHasConflict?: boolean;
         data: AsterDataPoint;
     }
@@ -336,7 +340,7 @@ module powerbi.extensibility.visual {
             };
         }
     }
-    
+
     export class AsterPlotColumns<T> {
         public static Roles = Object.freeze(
             _.mapValues(new AsterPlotColumns<string>(), (x, i) => i));
@@ -429,7 +433,7 @@ module powerbi.extensibility.visual {
 
             this.interactivityService = createInteractivityService(options.host);
             this.legend = createLegend($(options.element), options.host && false, this.interactivityService, true);
-            
+
         }
 
         public static converter(dataView: DataView, colors: IDataColorPalette): AsterPlotData {
@@ -508,10 +512,10 @@ module powerbi.extensibility.visual {
 
                 sliceWidth = Math.max(0, categorical.Y.length > 1 ? <number>categorical.Y[1].values[i] : 1);
                 var visualHost: IVisualHost;
-                var selectionId: SelectionId = visualHost.createSelectionIdBuilder()
+                var selectionId: ISelectionId = visualHost.createSelectionIdBuilder()
                     .withMeasure(categorical.Category.source.queryName)
                     .createSelectionId();
-            
+
                 if (sliceWidth > 0) {
                     dataPoints.push({
                         sliceHeight: <number>categorical.Y[0].values[i] - minValue,
@@ -539,10 +543,10 @@ module powerbi.extensibility.visual {
 
                 // Handle highlights
                 if (hasHighlights) {
-                    var highlightIdentity: SelectionId = //SelectionId.createWithHighlight(selectionId);
-                    visualHost.createSelectionIdBuilder()
-                        .withMeasure(categorical.Category.source.queryName)
-                        .createSelectionId();
+                    var highlightIdentity: ISelectionId = //SelectionId.createWithHighlight(selectionId);
+                        visualHost.createSelectionIdBuilder()
+                            .withMeasure(categorical.Category.source.queryName)
+                            .createSelectionId();
                     var notNull: boolean = categorical.Y[0].highlights[i] != null;
                     currentValue = notNull ? <number>categorical.Y[0].highlights[i] : 0;
 
@@ -642,7 +646,7 @@ module powerbi.extensibility.visual {
 
         private behavior: IInteractiveBehavior;
 
-        public update(options: VisualUpdateOptions):void {
+        public update(options: VisualUpdateOptions): void {
             if (!options) {
                 return; // or clear the view, display an error, etc.
             }
@@ -721,7 +725,7 @@ module powerbi.extensibility.visual {
 
             var arc: d3.svg.Arc<AsterArcDescriptor> = d3.svg.arc<AsterArcDescriptor>()
                 .innerRadius(innerRadius)
-                .outerRadius((arcDescriptor: AsterArcDescriptor, i:number) => {
+                .outerRadius((arcDescriptor: AsterArcDescriptor, i: number) => {
                     var height: number = 0;
 
                     if (maxScore) {
@@ -744,7 +748,9 @@ module powerbi.extensibility.visual {
                     return Math.max(heightIsLabelsOn, innerRadius);
                 });
 
-            var arcDescriptorDataPoints: d3.svg.Arc<AsterArcDescriptor>[] = pie(isHighlight ? this.data.highlightedDataPoints : this.data.dataPoints);
+            var arcDescriptorDataPoints: ArcDescriptor<AsterDataPoint>[] = pie(isHighlight
+                ? this.data.highlightedDataPoints
+                : this.data.dataPoints);
 
             var classSelector: ClassAndSelector = isHighlight
                 ? AsterPlot.AsterHighlightedSlice
@@ -754,10 +760,10 @@ module powerbi.extensibility.visual {
                 .selectAll(classSelector.selector)
                 .data(
                 arcDescriptorDataPoints,
-                (d: AsterArcDescriptor, i: number) => {
-                    return d.data
+                (d: ArcDescriptor<AsterDataPoint>, i: number) => {
+                    return (d.data
                         ? (d.data.identity as powerbi.visuals.ISelectionId).getKey()
-                        : i;
+                        : i) as any; // TODO: check it.
                 });
 
             selection
@@ -819,14 +825,14 @@ module powerbi.extensibility.visual {
             // Draw center text and outline once for original data points
             if (!isHighlight) {
                 this.drawCenterText(innerRadius);
-                this.drawOuterLine(innerRadius, _.max(arcDescriptorDataPoints.map(d => arc.outerRadius()(d))), arcDescriptorDataPoints);
+                this.drawOuterLine(innerRadius, _.max(arcDescriptorDataPoints.map(d => arc.outerRadius()(d, undefined))), arcDescriptorDataPoints); // TODO: check it `arc.outerRadius()(d, undefined)`
             }
 
             return selection;
         }
 
-        private getLabelLayout(arc: d3.Svg.Arc, viewport: IViewport): ILabelLayout {
-            var midAngle = function (d: ArcDescriptor) { return d.startAngle + (d.endAngle - d.startAngle) / 2; };
+        private getLabelLayout(arc: SvgArc<AsterArcDescriptor>, viewport: IViewport): ILabelLayout {
+            var midAngle = function (d: ArcDescriptor<AsterDataPoint>) { return d.startAngle + (d.endAngle - d.startAngle) / 2; };
             var textProperties: TextProperties = {
                 fontFamily: dataLabelUtils.StandardFontFamily,
                 fontSize: PixelConverter.fromPoint(this.settings.labels.fontSize),
@@ -873,7 +879,7 @@ module powerbi.extensibility.visual {
             };
         }
 
-        private drawLabels(data: ArcDescriptor[],
+        private drawLabels(data: ArcDescriptor<AsterDataPoint>[],
             context: d3.Selection<AsterArcDescriptor>,
             layout: ILabelLayout,
             viewport: IViewport,
@@ -895,7 +901,9 @@ module powerbi.extensibility.visual {
 
             var labels = context
                 .select(AsterPlot.labelGraphicsContextClass.selector)
-                .selectAll(".data-labels").data(filteredData, (d: ArcDescriptor) => d.data.identity.getKey());
+                .selectAll(".data-labels").data<LabelEnabledDataPoint>(
+                filteredData,
+                (d: ArcDescriptor<AsterDataPoint>) => (d.data.identity as ISelectionId).getKey());
 
             labels.enter().append("text").classed("data-labels", true);
 
@@ -905,7 +913,7 @@ module powerbi.extensibility.visual {
             labels
                 .attr({ x: (d: LabelEnabledDataPoint) => d.labelX, y: (d: LabelEnabledDataPoint) => d.labelY, dy: ".35em" })
                 .text((d: LabelEnabledDataPoint) => d.labeltext)
-                .style(layout.style);
+                .style(layout.style as any);
 
             labels
                 .exit()
@@ -916,33 +924,38 @@ module powerbi.extensibility.visual {
                 context.append("g").classed(AsterPlot.linesGraphicsContextClass.class, true);
 
             // Remove lines for null and zero values
-            filteredData = _.filter(filteredData, (d: ArcDescriptor) => d.data.sliceHeight !== null && d.data.sliceHeight !== 0);
+            filteredData = _.filter(filteredData, (d: ArcDescriptor<AsterDataPoint>) => d.data.sliceHeight !== null && d.data.sliceHeight !== 0);
 
-            var lines = context.select(AsterPlot.linesGraphicsContextClass.selector).selectAll("polyline")
-                .data(filteredData, (d: ArcDescriptor) => d.data.identity.getKey());
+            var lines = context
+                .select(AsterPlot.linesGraphicsContextClass.selector)
+                .selectAll("polyline")
+                .data<LabelEnabledDataPoint>(
+                filteredData,
+                (d: ArcDescriptor<AsterDataPoint>) => (d.data.identity as ISelectionId).getKey());
 
             var labelLinePadding = 4;
             var chartLinePadding = 1.02;
 
-            var midAngle = function (d: ArcDescriptor) { return d.startAngle + (d.endAngle - d.startAngle) / 2; };
+            var midAngle = function (d: ArcDescriptor<AsterDataPoint>) { return d.startAngle + (d.endAngle - d.startAngle) / 2; };
 
             lines.enter()
                 .append("polyline")
                 .classed("line-label", true);
 
             lines
-                .attr("points", function (d) {
+                .attr("points", (d) => {
                     var textPoint = [d.labelX, d.labelY];
-                    textPoint[0] = textPoint[0] + ((midAngle(d) < Math.PI ? -1 : 1) * labelLinePadding);
-                    var chartPoint = outlineArc.centroid(d);
+                    textPoint[0] = textPoint[0] + ((midAngle(d as any) < Math.PI ? -1 : 1) * labelLinePadding);
+                    var chartPoint = outlineArc.centroid(d as any);
                     chartPoint[0] *= chartLinePadding;
                     chartPoint[1] *= chartLinePadding;
-                    return [chartPoint, textPoint];
+
+                    return [chartPoint, textPoint] as any; // TODO: check it
                 }).
                 style({
                     "opacity": 0.5,
                     "fill-opacity": 0,
-                    "stroke": (d: ArcDescriptor) => this.settings.labels.color,
+                    "stroke": () => this.settings.labels.color,
                 });
 
             lines
@@ -992,7 +1005,7 @@ module powerbi.extensibility.visual {
             }
         }
 
-        private drawOuterLine(innerRadius: number, radius: number, data: ArcDescriptor[]): void {
+        private drawOuterLine(innerRadius: number, radius: number, data: ArcDescriptor<AsterDataPoint>[]): void {
             var mainGroup = this.mainGroupElement;
             var outlineArc = d3.svg.arc()
                 .innerRadius(innerRadius)
@@ -1005,7 +1018,7 @@ module powerbi.extensibility.visual {
                     .attr({
                         "stroke": "#333",
                         "stroke-width": OuterThickness,
-                        "d": outlineArc
+                        "d": outlineArc as SvgArc<any> // TODO: check it.
                     })
                     .style("opacity", 1)
                     .classed(AsterPlot.OuterLine.class, true);
@@ -1057,15 +1070,13 @@ module powerbi.extensibility.visual {
                 this.interactivityService.clearSelection();
         }
 
-        // This function retruns the values to be displayed in the property pane for each object.
+        // This function returns the values to be displayed in the property pane for each object.
         // Usually it is a bind pass of what the property pane gave you, but sometimes you may want to do
         // validation and return other values/defaults
-        public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstanceEnumerationObject {
-            var instances = AsterPlotSettings.enumerateObjectInstances(
-                this.settings && this.settings.originalSettings,
+        public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstanceEnumeration {
+            return AsterPlotSettings.enumerateObjectInstances(
+                this.settings && AsterPlotSettings.getDefault(),
                 options);
-
-            return instances.complete();
         }
     }
 
