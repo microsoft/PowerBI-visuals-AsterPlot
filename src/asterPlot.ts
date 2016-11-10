@@ -342,9 +342,6 @@ module powerbi.extensibility.visual {
     }
 
     export class AsterPlotColumns<T> {
-        public static Roles = Object.freeze(
-            _.mapValues(new AsterPlotColumns<string>(), (x, i) => i));
-
         public static getColumnSources(dataView: DataView) {
             return this.getColumnSourcesT<DataViewMetadataColumn>(dataView);
         }
