@@ -414,7 +414,7 @@ module powerbi.extensibility.visual {
 
         constructor(options: VisualConstructorOptions) {
             this.hostServices = options.host;
-
+            
             this.layout = new VisualLayout(null, { top: 10, right: 10, bottom: 15, left: 10 });
             var svg: d3.Selection<any> = this.svg = d3.select(options.element)
                 .append("svg")
@@ -433,7 +433,7 @@ module powerbi.extensibility.visual {
 
         }
 
-        public static converter(dataView: DataView, colors: IDataColorPalette): AsterPlotData {
+        public static converter(dataView: DataView, colors: IDataColorPalette, hostServices: IVisualHost): AsterPlotData {
             var categorical = AsterPlotColumns.getCategoricalColumns(dataView);
             var catValues = AsterPlotColumns.getCategoricalValues(dataView);
             if (!categorical
@@ -508,9 +508,11 @@ module powerbi.extensibility.visual {
                     identity.key);
 
                 sliceWidth = Math.max(0, categorical.Y.length > 1 ? <number>categorical.Y[1].values[i] : 1);
+                
                 var visualHost: IVisualHost;
-                var selectionId: ISelectionId = visualHost.createSelectionIdBuilder()
-                    .withMeasure(categorical.Category.source.queryName)
+                var selectionId: ISelectionId = hostServices.createSelectionIdBuilder()
+                    .withCategory(categorical[i], i)
+                    .withMeasure(categorical.Category.values[i] == null ? "" : categorical.Category.values[i].toString())
                     .createSelectionId();
 
                 if (sliceWidth > 0) {
@@ -633,7 +635,7 @@ module powerbi.extensibility.visual {
         private centerText: d3.Selection<any>;
         private clearCatcher: d3.Selection<any>;
         private colors: IDataColorPalette;
-        private hostServices: IVisualHostServices;
+        private hostServices: IVisualHost;
         private interactivityService: IInteractivityService;
         private legend: ILegend;
         private data: AsterPlotData;
@@ -648,11 +650,11 @@ module powerbi.extensibility.visual {
                 return; // or clear the view, display an error, etc.
             }
 
-            //this.layout.viewport = options.viewport;
+            this.layout.viewport = options.viewport;
 
             var duration = MinervaAnimationDuration; //options.suppressAnimations ? 0 :
-            var data = AsterPlot.converter(options.dataViews[0], this.colors);
-
+            var data = AsterPlot.converter(options.dataViews[0], this.colors, this.hostServices);
+            debugger;
             if (!data) {
                 this.clear();
                 return;
