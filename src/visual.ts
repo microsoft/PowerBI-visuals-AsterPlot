@@ -205,6 +205,13 @@ module powerbi.extensibility.visual {
                     dataView.metadata.columns[0],
                     true),
             });
+
+            let labelFormatter2: IValueFormatter = null;
+            labelFormatter = valueFormatter.create({
+                format: valueFormatter.getFormatStringByColumn(
+                    categorical.Y[0].source,
+                    true),
+            });
           
             let categorySourceFormatString = valueFormatter.getFormatStringByColumn(
                 categorical.Category.source,
@@ -260,7 +267,7 @@ module powerbi.extensibility.visual {
                     dataPoints.push({
                         sliceHeight: <number>categorical.Y[0].values[i] - minValue,
                         sliceWidth: sliceWidth,
-                        label: <any>currentValue,
+                        label: labelFormatter.format(<any>currentValue),
                         color: color,
                         identity: selectionId,
                         selected: false,
@@ -316,7 +323,7 @@ module powerbi.extensibility.visual {
                     highlightedDataPoints.push({
                         sliceHeight: notNull ? <number>categorical.Y[0].highlights[i] - minValue : null,
                         sliceWidth: Math.max(0, (categorical.Y.length > 1 && categorical.Y[1].highlights[i] !== null) ? <number>categorical.Y[1].highlights[i] : sliceWidth),
-                        label: <any>currentValue,
+                        label: labelFormatter.format(<any>currentValue),
                         color: color,
                         identity: selectionId,
                         selected: false,
