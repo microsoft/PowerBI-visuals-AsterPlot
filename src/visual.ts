@@ -40,7 +40,6 @@ module powerbi.extensibility.visual {
     import DataView = powerbi.DataView;
     import DataViewObjectPropertyIdentifier = powerbi.DataViewObjectPropertyIdentifier;
     import IEnumType = powerbi.IEnumType;
-    import createEnumType = powerbi.createEnumType;
     import IEnumMember = powerbi.IEnumMember;
     import DataViewObjects = powerbi.DataViewObjects;
     import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
@@ -180,7 +179,7 @@ module powerbi.extensibility.visual {
                 || _.isEmpty(categorical.Y[0].values)) {
                 return;
             }
-            let settings = AsterPlot.parseSettings(dataView);
+            let settings: AsterPlotSettings = AsterPlot.parseSettings(dataView, categorical.Category.source);
             //let properties = AsterPlotSettings.getProperties(AsterPlot.capabilities);
 
             let dataPoints: AsterDataPoint[] = [];
@@ -335,36 +334,18 @@ module powerbi.extensibility.visual {
                 : null;
         }
 
-        //private static parseSettings(dataView: DataView, categorySource: DataViewMetadataColumn): AsterPlotSettings {
-        //    let settings = AsterPlotSettings.parse(dataView, AsterPlot.capabilities);
-        //    settings.labels.precision = Math.min(17, Math.max(0, settings.labels.precision));
-        //    settings.outerLine.thickness = Math.min(300, Math.max(1, settings.outerLine.thickness));
-        //    settings.createOriginalSettings();
-        //    if (_.isEmpty(settings.legend.titleText)) {
-        //        settings.legend.titleText = categorySource.displayName;
-        //    }
-
-        //    return settings;
-        //}
-
-        private static parseSettings(dataView: DataView): AsterPlotSettings {
+        private static parseSettings(dataView: DataView, categorySource: DataViewMetadataColumn): AsterPlotSettings {
             let settings: AsterPlotSettings = AsterPlotSettings.parse<AsterPlotSettings>(dataView);
 
-            //settings.size.charge = Math.min(
-            //    Math.max(settings.size.charge, ForceGraph.MinCharge),
-            //    ForceGraph.MaxCharge);
+            settings.labels.precision = Math.min(17, Math.max(0, settings.labels.precision));
+            settings.outerLine.thickness = Math.min(300, Math.max(1, settings.outerLine.thickness));
 
-            //settings.links.decimalPlaces = settings.links.decimalPlaces
-            //    && Math.min(
-            //        Math.max(settings.links.decimalPlaces, ForceGraph.MinDecimalPlaces),
-            //        ForceGraph.MaxDecimalPlaces);
+            if (_.isEmpty(settings.legend.titleText)) {
+                settings.legend.titleText = categorySource.displayName;
+            }
 
             return settings;
         }
-
-
-
-
 
         public update(options: VisualUpdateOptions): void {
             if (!options) {
@@ -703,8 +684,9 @@ module powerbi.extensibility.visual {
         }
 
         private updateViewPortAccordingToLegend(): void {
-            if (!this.settings.legend.show)
+            if (!this.settings.legend.show) {
                 return;
+            }
 
             let legendMargins: IViewport = this.legend.getMargins();
             let legendPosition: LegendPosition = LegendPosition[this.settings.legend.position];
@@ -790,16 +772,18 @@ module powerbi.extensibility.visual {
         }
 
         public onClearSelection(): void {
-            if (this.interactivityService)
+            if (this.interactivityService) {
                 this.interactivityService.clearSelection();
+            }
         }
 
-        // This function returns the values to be displayed in the property pane for each object.
-        // Usually it is a bind pass of what the property pane gave you, but sometimes you may want to do
-        // validation and return other values/defaults
+        /* This function returns the values to be displayed in the property pane for each object.
+         * Usually it is a bind pass of what the property pane gave you, but sometimes you may want to do
+         * validation and return other values/defaults
+         */
         public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstanceEnumeration {
             return AsterPlotSettings.enumerateObjectInstances(
-                this.settings && AsterPlotSettings.getDefault(),
+                this.settings || AsterPlotSettings.getDefault(),
                 options);
         }
     }

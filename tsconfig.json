@@ -13,7 +13,6 @@
     "node_modules/@powerbi-visuals-utils/imargin/lib/index.d.ts",
     "node_modules/@powerbi-visuals-utils/cssconstants/lib/index.d.ts",
     "node_modules/@powerbi-visuals-utils/pixelconverter/lib/index.d.ts",
-    "node_modules/@powerbi-visuals-utils/enumtype/lib/index.d.ts",
     "node_modules/@powerbi-visuals-utils/displayunitsystemtype/lib/index.d.ts",
     "node_modules/@powerbi-visuals-utils/displayunitsystem/lib/index.d.ts",
     "node_modules/@powerbi-visuals-utils/stringextensions/lib/index.d.ts",
