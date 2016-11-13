@@ -494,7 +494,6 @@ module powerbi.extensibility.visual {
                 .remove();
 
             TooltipManager.addTooltip(selection, (tooltipEvent: TooltipEvent) => tooltipEvent.data.data.tooltipInfo);
-
             // Draw data labels only if they are on and there are no highlights or there are highlights and this is the highlighted data labels
             if (this.settings.labels.show && (!this.data.hasHighlights || (this.data.hasHighlights && isHighlight))) {
                 let labelRadCalc = (d: AsterDataPoint) => {
@@ -575,7 +574,7 @@ module powerbi.extensibility.visual {
                         return yPos;
                     },
                 },
-                filter: (d: AsterArcDescriptor) => (d != null && !_.isEmpty(d.data.label)),
+                filter: (d: AsterArcDescriptor) => (d != null && !_.isEmpty(d.data.label + "")),
                 style: {
                     "fill": this.settings.labels.color,
                     "font-size": textProperties.fontSize,
@@ -590,7 +589,6 @@ module powerbi.extensibility.visual {
             viewport: IViewport,
             outlineArc: d3.svg.Arc<AsterArcDescriptor>,
             labelArc: d3.svg.Arc<AsterArcDescriptor>): void {
-
             // Hide and reposition labels that overlap
             let dataLabelManager = new DataLabelManager();
             let filteredData = dataLabelManager.hideCollidedLabels(viewport, data, layout, true /* addTransform */);
