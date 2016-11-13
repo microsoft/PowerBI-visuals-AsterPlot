@@ -197,12 +197,18 @@ module powerbi.extensibility.visual {
 
             let maxValue: number = Math.max(d3.min(<number[]>categorical.Y[0].values));
             let minValue: number = Math.min(0, d3.min(<number[]>categorical.Y[0].values));
-            //let labelFormatter: IValueFormatter = ValueFormatter.create({
-            //    format: ValueFormatter.getFormatString(categorical.Y[0].source, properties.general.formatString),
-            //    precision: settings.labels.precision,
-            //    value: (settings.labels.displayUnits === 0) && (maxValue != null) ? maxValue : settings.labels.displayUnits,
-            //});
-            //let categorySourceFormatString = valueFormatter.getFormatString(categorical.Category.source, properties.general.formatString);
+
+
+            let labelFormatter: IValueFormatter = null;
+            labelFormatter = valueFormatter.create({
+                format: valueFormatter.getFormatStringByColumn(
+                    dataView.metadata.columns[0],
+                    true),
+            });
+          
+            let categorySourceFormatString = valueFormatter.getFormatStringByColumn(
+                categorical.Category.source,
+                true);
             let fontSizeInPx: string = PixelConverter.fromPoint(settings.labels.fontSize);
 
             for (let i = 0; i < catValues.Category.length; i++) {
@@ -328,7 +334,7 @@ module powerbi.extensibility.visual {
                     hasHighlights,
                     legendData,
                     highlightedDataPoints,
-                    labelFormatter: null,//labelFormatter,
+                    labelFormatter: labelFormatter,
                     centerText: categorical.Category.source.displayName
                 }
                 : null;
