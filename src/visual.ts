@@ -205,14 +205,16 @@ module powerbi.extensibility.visual {
                     dataView.metadata.columns[0],
                     true),
             });
-
+            debugger;
             let labelFormatter2: IValueFormatter = null;
             labelFormatter = valueFormatter.create({
                 format: valueFormatter.getFormatStringByColumn(
                     categorical.Y[0].source,
                     true),
+                precision: settings.labels.precision,
+                value: (settings.labels.displayUnits === 0) && (maxValue != null) ? maxValue : settings.labels.displayUnits,
             });
-          
+            
             let categorySourceFormatString = valueFormatter.getFormatStringByColumn(
                 categorical.Category.source,
                 true);
@@ -351,7 +353,7 @@ module powerbi.extensibility.visual {
             let settings: AsterPlotSettings = AsterPlotSettings.parse<AsterPlotSettings>(dataView);
 
             settings.labels.precision = Math.min(17, Math.max(0, settings.labels.precision));
-            settings.outerLine.thickness = Math.min(300, Math.max(1, settings.outerLine.thickness));
+            settings.outerLine.thickness = Math.min(25, Math.max(1, settings.outerLine.thickness));
 
             if (_.isEmpty(settings.legend.titleText)) {
                 settings.legend.titleText = categorySource.displayName;

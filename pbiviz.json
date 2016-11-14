@@ -2,7 +2,7 @@
   "visual": {
     "name": "AsterPlot",
     "displayName": "AsterPlot Chart",
-    "guid": "AsterPlot14461196677777",
+    "guid": "AsterPlot1443303142064",
     "visualClassName": "AsterPlot",
     "version": "0.5.4",
     "description": "Aster plot.",
@@ -24,6 +24,7 @@
     "node_modules/d3/d3.js",
     "node_modules/moment/min/moment.min.js",
     "node_modules/globalize/lib/globalize.js",
+    "node_modules/@powerbi-visuals-utils/regexpextensions/lib/index.js",
     "node_modules/globalize/lib/cultures/globalize.culture.en-US.js",
     "node_modules/@powerbi-visuals-utils/stringextensions/lib/index.js",
     "node_modules/@powerbi-visuals-utils/cssconstants/lib/index.js",
@@ -50,7 +51,7 @@
     "node_modules/@powerbi-visuals-utils/datalabelutils/lib/index.js",
     "node_modules/@powerbi-visuals-utils/datalabelmanager/lib/index.js",
     "node_modules/@powerbi-visuals-utils/settingsparser/lib/index.js",
-    "node_modules/@powerbi-visuals-utils/animatorcommon/lib/index.js"
+    "node_modules/@powerbi-visuals-utils/animatorcommon/lib/index.js"   
   ],
   "style": "style/asterPlot.less",
   "capabilities": "capabilities.json"

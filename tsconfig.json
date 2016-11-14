@@ -39,6 +39,7 @@
     "node_modules/@powerbi-visuals-utils/converterhelper/lib/index.d.ts",
     "node_modules/@powerbi-visuals-utils/settingsparser/lib/index.d.ts",
     "node_modules/@powerbi-visuals-utils/animatorcommon/lib/index.d.ts",
+    "node_modules/@powerbi-visuals-utils/regexpextensions/lib/index.d.ts",
     "src/dataInterfaces.ts",
     "src/utils.ts",
     "src/helpers.ts",
