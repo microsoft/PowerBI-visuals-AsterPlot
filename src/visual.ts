@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  Power BI Visualizations
  *
  *  Copyright (c) Microsoft Corporation
@@ -205,7 +205,6 @@ module powerbi.extensibility.visual {
                     dataView.metadata.columns[0],
                     true),
             });
-            debugger;
             let labelFormatter2: IValueFormatter = null;
             labelFormatter = valueFormatter.create({
                 format: valueFormatter.getFormatStringByColumn(
@@ -691,7 +690,7 @@ module powerbi.extensibility.visual {
                 LegendData.update(this.data.legendData, <any>legendObject);
                 this.legend.changeOrientation(LegendPosition[this.settings.legend.position]);
             }
-
+            
             this.legend.drawLegend(this.data.legendData, this.layout.viewportCopy);
             Legend.positionChartArea(this.svg, this.legend);
         }
