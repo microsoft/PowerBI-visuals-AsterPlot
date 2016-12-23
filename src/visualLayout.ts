@@ -28,8 +28,8 @@ module powerbi.extensibility.visual {
     // powerbi
     import IViewport = powerbi.IViewport;
 
-    // powerbi.visuals
-    import IMargin = powerbi.visuals.IMargin;
+    // powerbi.extensibility.utils.svg
+    import IMargin = powerbi.extensibility.utils.svg.IMargin;
 
     export class VisualLayout {
         private marginValue: IMargin;
@@ -55,7 +55,7 @@ module powerbi.extensibility.visual {
             return _.clone(this.viewport);
         }
 
-        //Returns viewport minus margin
+        // Returns viewport minus margin
         public get viewportIn(): IViewport {
             return this.viewportInValue || this.viewport;
         }
@@ -84,7 +84,7 @@ module powerbi.extensibility.visual {
             this.setUpdateObject(value, v => this.marginValue = v, VisualLayout.restrictToMinMax);
         }
 
-        //Returns true if viewport has updated after last change.
+        // Returns true if viewport has updated after last change.
         public get viewportChanged(): boolean {
             return !!this.originalViewportValue && (!this.previousOriginalViewportValue
                 || this.previousOriginalViewportValue.height !== this.originalViewportValue.height

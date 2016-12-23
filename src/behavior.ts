@@ -28,10 +28,10 @@ module powerbi.extensibility.visual {
     // d3
     import Selection = d3.Selection;
 
-    // powerbi.visuals
-    import IInteractivityService = powerbi.visuals.IInteractivityService;
-    import IInteractiveBehavior = powerbi.visuals.IInteractiveBehavior;
-    import ISelectionHandler = powerbi.visuals.ISelectionHandler;
+    // powerbi.extensibility.utils.interactivity
+    import ISelectionHandler = powerbi.extensibility.utils.interactivity.ISelectionHandler;
+    import IInteractiveBehavior = powerbi.extensibility.utils.interactivity.IInteractiveBehavior;
+    import IInteractivityService = powerbi.extensibility.utils.interactivity.IInteractivityService;
 
     export interface AsterPlotBehaviorOptions {
         selection: Selection<AsterPlotData>;

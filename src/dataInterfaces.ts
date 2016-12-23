@@ -28,11 +28,14 @@ module powerbi.extensibility.visual {
     // d3
     import ArcDescriptor = d3.layout.pie.Arc;
 
-    // powerbi.visuals
-    import LegendData = powerbi.visuals.LegendData;
-    import IValueFormatter = powerbi.visuals.IValueFormatter;
-    import SelectableDataPoint = powerbi.visuals.SelectableDataPoint;
-    import TooltipDataItem = powerbi.visuals.TooltipDataItem;
+    // powerbi.extensibility.utils.chart
+    import LegendData = powerbi.extensibility.utils.chart.legend.LegendData;
+
+    // powerbi.extensibility.utils.formatting
+    import IValueFormatter = powerbi.extensibility.utils.formatting.IValueFormatter;
+
+    // powerbi.extensibility.utils.interactivity
+    import SelectableDataPoint = powerbi.extensibility.utils.interactivity.SelectableDataPoint;
 
     export interface AsterPlotData {
         dataPoints: AsterDataPoint[];
@@ -55,7 +58,7 @@ module powerbi.extensibility.visual {
         sliceWidth: number;
         label: string;
         highlight?: boolean;
-        tooltipInfo: TooltipDataItem[];
+        tooltipInfo: VisualTooltipDataItem[];
         labelFontSize: string;
     }
 }

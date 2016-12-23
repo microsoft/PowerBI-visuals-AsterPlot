@@ -25,13 +25,13 @@
  */
 
 module powerbi.extensibility.visual {
-    // powerbi.visuals
-    import LegendPosition = powerbi.visuals.LegendPosition;
+    // powerbi.extensibility.utils.chart
+    import LegendPosition = powerbi.extensibility.utils.chart.legend.LegendPosition;
 
-    // powerbi.extensibility.visual
-    import SettingsParser = powerbi.extensibility.visual.settingsParser.SettingsParser;
+    // powerbi.extensibility.utils.dataview
+    import DataViewObjectsParser = powerbi.extensibility.utils.dataview.DataViewObjectsParser;
 
-    export class AsterPlotSettings extends SettingsParser {
+    export class AsterPlotSettings extends DataViewObjectsParser {
         public labels: LabelsSettings = new LabelsSettings();
         public legend: LegendSettings = new LegendSettings();
         public outerLine: OuterLineSettings = new OuterLineSettings();
