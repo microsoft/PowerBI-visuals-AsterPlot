@@ -362,10 +362,10 @@ module powerbi.extensibility.visual {
         }
 
         public update(options: VisualUpdateOptions): void {
-            if (!options) {
-                return; // or clear the view, display an error, etc.
-            }
 
+            if (!options || options.dataViews === undefined || options.dataViews === null || options.dataViews.length < 1 || options.dataViews[0] === null) {
+                return;
+            }
             this.layout.viewport = options.viewport;
 
             let duration = MinervaAnimationDuration; //options.suppressAnimations ? 0 :
