@@ -29,12 +29,6 @@ module powerbi.extensibility.visual {
     import ArcDescriptor = d3.layout.pie.Arc;
     import SvgArc = d3.svg.Arc;
 
-    // jsCommon
-    import ClassAndSelector = jsCommon.CssConstants.ClassAndSelector;
-    import createClassAndSelector = jsCommon.CssConstants.createClassAndSelector;
-    import PixelConverter = jsCommon.PixelConverter;
-    import IStringResourceProvider = jsCommon.IStringResourceProvider;
-
     // powerbi
     import IViewport = powerbi.IViewport;
     import DataView = powerbi.DataView;
@@ -54,52 +48,71 @@ module powerbi.extensibility.visual {
     import DataViewScopeIdentity = powerbi.DataViewScopeIdentity;
     import IVisualHostServices = powerbi.extensibility.IVisualHost;
     import VisualInitOptions = powerbi.extensibility.VisualConstructorOptions;
-
-    import TextProperties = powerbi.TextProperties;
-    import TextMeasurementService = powerbi.TextMeasurementService;
-    import DataLabelManager = powerbi.DataLabelManager;
     import VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnumerationObject;
     import VisualDataRoleKind = powerbi.VisualDataRoleKind;
 
     // powerbi.extensibility.visual
-    import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
     import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
+    import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 
     // powerbi.visuals
-    import ValueFormatter = powerbi.visuals.valueFormatter;
-    import LegendData = powerbi.visuals.LegendData;
-    import IValueFormatter = powerbi.visuals.IValueFormatter;
-    import SelectableDataPoint = powerbi.visuals.SelectableDataPoint;
-    import TooltipDataItem = powerbi.visuals.TooltipDataItem;
-    import IInteractivityService = powerbi.visuals.IInteractivityService;
-    import IInteractiveBehavior = powerbi.visuals.IInteractiveBehavior;
-    import ISelectionHandler = powerbi.visuals.ISelectionHandler;
-    import IMargin = powerbi.visuals.IMargin;
-    import LegendPosition = powerbi.visuals.LegendPosition;
-    import dataLabelUtils = powerbi.visuals.dataLabelUtils;
-    import legendPosition = powerbi.visuals.legendPosition;
-    import ColorHelper = powerbi.visuals.ColorHelper;
-    import valueFormatter = powerbi.visuals.valueFormatter;
-    import TooltipBuilder = powerbi.visuals.TooltipBuilder;
     import ISelectionId = powerbi.visuals.ISelectionId;
-    import LegendIcon = powerbi.visuals.LegendIcon;
-    import ILegend = powerbi.visuals.ILegend;
-    import appendClearCatcher = powerbi.visuals.appendClearCatcher;
-    import createInteractivityService = powerbi.visuals.createInteractivityService;
-    import createLegend = powerbi.visuals.createLegend;
-    import MinervaAnimationDuration = powerbi.visuals.AnimatorCommon.MinervaAnimationDuration;
-    import SVGUtil = powerbi.visuals.SVGUtil;
-    import TooltipManager = powerbi.visuals.TooltipManager;
-    import TooltipEvent = powerbi.visuals.TooltipEvent;
-    import ILabelLayout = powerbi.visuals.ILabelLayout;
-    import LabelEnabledDataPoint = powerbi.visuals.LabelEnabledDataPoint;
-    import Legend = powerbi.visuals.Legend;
+
+    // powerbi.extensibility.utils.svg
+    import IMargin = powerbi.extensibility.utils.svg.IMargin;
+    import translate = powerbi.extensibility.utils.svg.translate;
+    import ClassAndSelector = powerbi.extensibility.utils.svg.CssConstants.ClassAndSelector;
+    import createClassAndSelector = powerbi.extensibility.utils.svg.CssConstants.createClassAndSelector;
+
+    // powerbi.extensibility.utils.type
+    import PixelConverter = powerbi.extensibility.utils.type.PixelConverter;
+
+    // powerbi.extensibility.utils.formatting
+    import TextProperties = powerbi.extensibility.utils.formatting.TextProperties;
+    import ValueFormatter = powerbi.extensibility.utils.formatting.valueFormatter;
+    import valueFormatter = powerbi.extensibility.utils.formatting.valueFormatter;
+    import IValueFormatter = powerbi.extensibility.utils.formatting.IValueFormatter;
+    import textMeasurementService = powerbi.extensibility.utils.formatting.textMeasurementService;
+
+    // powerbi.extensibility.utils.chart
+    import ILegend = powerbi.extensibility.utils.chart.legend.ILegend;
+    import LegendData = powerbi.extensibility.utils.chart.legend.LegendData;
+    import LegendDataModule = powerbi.extensibility.utils.chart.legend.data;
+    import LegendIcon = powerbi.extensibility.utils.chart.legend.LegendIcon;
+    import dataLabelUtils = powerbi.extensibility.utils.chart.dataLabel.utils;
+    import legendPosition = powerbi.extensibility.utils.chart.legend.position;
+    import createLegend = powerbi.extensibility.utils.chart.legend.createLegend;
+    import ILabelLayout = powerbi.extensibility.utils.chart.dataLabel.ILabelLayout;
+    import LegendPosition = powerbi.extensibility.utils.chart.legend.LegendPosition;
+    import positionChartArea = powerbi.extensibility.utils.chart.legend.positionChartArea;
+    import DataLabelManager = powerbi.extensibility.utils.chart.dataLabel.DataLabelManager;
+    import LabelEnabledDataPoint = powerbi.extensibility.utils.chart.dataLabel.LabelEnabledDataPoint;
+
+    // powerbi.extensibility.utils.interactivity
+    import appendClearCatcher = powerbi.extensibility.utils.interactivity.appendClearCatcher;
+    import SelectableDataPoint = powerbi.extensibility.utils.interactivity.SelectableDataPoint;
+    import createInteractivityService = powerbi.extensibility.utils.interactivity.createInteractivityService;
+
+    // powerbi.extensibility.utils.interactivity
+    import IInteractivityService = powerbi.extensibility.utils.interactivity.IInteractivityService;
+    import IInteractiveBehavior = powerbi.extensibility.utils.interactivity.IInteractiveBehavior;
+    import ISelectionHandler = powerbi.extensibility.utils.interactivity.ISelectionHandler;
+
+    // powerbi.extensibility.utils.color
+    import ColorHelper = powerbi.extensibility.utils.color.ColorHelper;
+
+    // powerbi.extensibility.utils.tooltip
+    import TooltipEventArgs = powerbi.extensibility.utils.tooltip.TooltipEventArgs;
+    import ITooltipServiceWrapper = powerbi.extensibility.utils.tooltip.ITooltipServiceWrapper;
+    import createTooltipServiceWrapper = powerbi.extensibility.utils.tooltip.createTooltipServiceWrapper;
 
     let AsterPlotVisualClassName: string = "asterPlot";
     let AsterRadiusRatio: number = 0.9;
     let AsterConflictRatio = 0.9;
 
     export class AsterPlot implements IVisual {
+        private static AnimationDuration: number = 250;
+
         private static AsterSlices: ClassAndSelector = createClassAndSelector("asterSlices");
         private static AsterSlice: ClassAndSelector = createClassAndSelector("asterSlice");
         private static AsterHighlightedSlice: ClassAndSelector = createClassAndSelector("asterHighlightedSlice");
@@ -134,8 +147,14 @@ module powerbi.extensibility.visual {
 
         private behavior: IInteractiveBehavior;
 
+        private tooltipServiceWrapper: ITooltipServiceWrapper;
+
         constructor(options: VisualConstructorOptions) {
             this.visualHost = options.host;
+
+            this.tooltipServiceWrapper = createTooltipServiceWrapper(
+                this.visualHost.tooltipService,
+                options.element);
 
             this.layout = new VisualLayout(null, {
                 top: 10,
@@ -179,8 +198,8 @@ module powerbi.extensibility.visual {
                 || _.isEmpty(categorical.Y[0].values)) {
                 return;
             }
+
             let settings: AsterPlotSettings = AsterPlot.parseSettings(dataView, categorical.Category.source);
-            //let properties = AsterPlotSettings.getProperties(AsterPlot.capabilities);
 
             let dataPoints: AsterDataPoint[] = [];
             let highlightedDataPoints: AsterDataPoint[] = [];
@@ -188,7 +207,7 @@ module powerbi.extensibility.visual {
                 dataPoints: [],
                 title: null,
                 fontSize: settings.legend.fontSize,
-                labelColor: LegendData.DefaultLegendLabelFillColor
+                labelColor: LegendDataModule.DefaultLegendLabelFillColor
             };
 
             let colorHelper: ColorHelper = new ColorHelper(colors);
@@ -213,33 +232,27 @@ module powerbi.extensibility.visual {
                 precision: settings.labels.precision,
                 value: (settings.labels.displayUnits === 0) && (maxValue != null) ? maxValue : settings.labels.displayUnits,
             });
-            
+
             let categorySourceFormatString = valueFormatter.getFormatStringByColumn(
                 categorical.Category.source,
                 true);
             let fontSizeInPx: string = PixelConverter.fromPoint(settings.labels.fontSize);
 
             for (let i = 0; i < catValues.Category.length; i++) {
-                let formattedCategoryValue = catValues.Category[i];// valueFormatter.format(, categorySourceFormatString);
-                let currentValue = <number>categorical.Y[0].values[i];
+                let formattedCategoryValue = catValues.Category[i],
+                    currentValue = <number>categorical.Y[0].values[i];
 
-                let tooltipInfo: TooltipDataItem[] = TooltipBuilder.createTooltipInfo(
-                    null,//properties.general.formatString,
+                let tooltipInfo: VisualTooltipDataItem[] = tooltipBuilder.createTooltipInfo(
                     dataView.categorical,
                     formattedCategoryValue,
                     currentValue,
-                    null,
-                    null,
                     0);
 
                 if (categorical.Y.length > 1) {
-                    let toolTip: TooltipDataItem = TooltipBuilder.createTooltipInfo(
-                        null, //properties.general.formatString,
+                    let toolTip: VisualTooltipDataItem = tooltipBuilder.createTooltipInfo(
                         dataView.categorical,
                         formattedCategoryValue,
                         categorical.Y[1].values[i],
-                        null,
-                        null,
                         1)[1];
 
                     if (toolTip) {
@@ -297,26 +310,22 @@ module powerbi.extensibility.visual {
                         ? categorical.Y[0].highlights[i] as number
                         : 0;
 
-                    tooltipInfo = TooltipBuilder.createTooltipInfo(
-                        null,//properties.general.formatString,
+                    tooltipInfo = tooltipBuilder.createTooltipInfo(
                         dataView.categorical,
                         formattedCategoryValue,
                         currentValue,
-                        null,
-                        null,
                         0);
 
                     if (categorical.Y.length > 1) {
-                        let toolTip: TooltipDataItem = TooltipBuilder.createTooltipInfo(
-                            null,//properties.general.formatString,
+                        let toolTip: VisualTooltipDataItem = tooltipBuilder.createTooltipInfo(
                             dataView.categorical,
                             formattedCategoryValue,
                             categorical.Y[1].highlights[i],
-                            null,
-                            null,
                             1)[1];
-                        if (toolTip)
+
+                        if (toolTip) {
                             tooltipInfo.push(toolTip);
+                        }
 
                         currentValue += categorical.Y[1].highlights[i] !== null ? <number>categorical.Y[1].highlights[i] : 0;
                     }
@@ -368,7 +377,6 @@ module powerbi.extensibility.visual {
             }
             this.layout.viewport = options.viewport;
 
-            let duration = MinervaAnimationDuration; //options.suppressAnimations ? 0 :
             let data = AsterPlot.converter(options.dataViews[0], this.colors, this.visualHost);
 
             if (!data) {
@@ -395,18 +403,18 @@ module powerbi.extensibility.visual {
             let transformX: number = (this.layout.viewportIn.width + this.layout.margin.right) / 2;
             let transformY: number = (this.layout.viewportIn.height + this.layout.margin.bottom) / 2;
 
-            this.mainGroupElement.attr("transform", SVGUtil.translate(transformX, transformY));
-            this.mainLabelsElement.attr("transform", SVGUtil.translate(transformX, transformY));
+            this.mainGroupElement.attr("transform", translate(transformX, transformY));
+            this.mainLabelsElement.attr("transform", translate(transformX, transformY));
 
             // Move back the clearCatcher
-            this.clearCatcher.attr("transform", SVGUtil.translate(-transformX, -transformY));
+            this.clearCatcher.attr("transform", translate(-transformX, -transformY));
 
             dataLabelUtils.cleanDataLabels(this.mainLabelsElement, true);
 
-            this.renderArcsAndLabels(duration);
+            this.renderArcsAndLabels(AsterPlot.AnimationDuration);
 
             if (this.data.hasHighlights) {
-                this.renderArcsAndLabels(duration, true);
+                this.renderArcsAndLabels(AsterPlot.AnimationDuration, true);
             } else {
                 this.slicesElement.selectAll(AsterPlot.AsterHighlightedSlice.selector).remove();
             }
@@ -460,7 +468,7 @@ module powerbi.extensibility.visual {
                         height = radius * sliceHeight / maxScore;
                     }
 
-                    //The chart should shrink if data labels are on
+                    // The chart should shrink if data labels are on
                     let heightIsLabelsOn = innerRadius + (this.settings.labels.show ? height * AsterRadiusRatio : height);
 
                     // Prevent from data to be inside the inner radius
@@ -507,7 +515,10 @@ module powerbi.extensibility.visual {
                 .exit()
                 .remove();
 
-            TooltipManager.addTooltip(selection, (tooltipEvent: TooltipEvent) => tooltipEvent.data.data.tooltipInfo);
+            this.tooltipServiceWrapper.addTooltip(selection, (tooltipEvent: TooltipEventArgs<ArcDescriptor<AsterDataPoint>>) => {
+                return tooltipEvent.data.data.tooltipInfo;
+            });
+
             // Draw data labels only if they are on and there are no highlights or there are highlights and this is the highlighted data labels
             if (this.settings.labels.show && (!this.data.hasHighlights || (this.data.hasHighlights && isHighlight))) {
                 let labelRadCalc = (d: AsterDataPoint) => {
@@ -559,9 +570,9 @@ module powerbi.extensibility.visual {
             let isLabelsHasConflict = function (d: AsterArcDescriptor) {
                 let pos = arc.centroid(d);
                 textProperties.text = d.data.label;
-                let textWidth = TextMeasurementService.measureSvgTextWidth(textProperties);
+                let textWidth = textMeasurementService.measureSvgTextWidth(textProperties);
                 let horizontalSpaceAvaliableForLabels = viewport.width / 2 - Math.abs(pos[0]);
-                let textHeight = TextMeasurementService.estimateSvgTextHeight(textProperties);
+                let textHeight = textMeasurementService.estimateSvgTextHeight(textProperties);
                 let verticalSpaceAvaliableForLabels = viewport.height / 2 - Math.abs(pos[1]);
                 d.isLabelHasConflict = textWidth > horizontalSpaceAvaliableForLabels || textHeight > verticalSpaceAvaliableForLabels;
                 return d.isLabelHasConflict;
@@ -573,7 +584,7 @@ module powerbi.extensibility.visual {
                     let pos = arc.centroid(d);
                     let xPos = isLabelsHasConflict(d) ? pos[0] * AsterConflictRatio : pos[0];
                     let spaceAvaliableForLabels = viewport.width / 2 - Math.abs(xPos);
-                    return TextMeasurementService.getTailoredTextOrDefault(textProperties, spaceAvaliableForLabels);
+                    return textMeasurementService.getTailoredTextOrDefault(textProperties, spaceAvaliableForLabels);
                 },
                 labelLayout: {
                     x: (d: AsterArcDescriptor) => {
@@ -687,12 +698,12 @@ module powerbi.extensibility.visual {
                 // Force update for title text
                 let legendObject = _.clone(this.settings.legend);
                 legendObject.labelColor = <any>{ solid: { color: legendObject.labelColor } };
-                LegendData.update(this.data.legendData, <any>legendObject);
+                LegendDataModule.update(this.data.legendData, <any>legendObject);
                 this.legend.changeOrientation(LegendPosition[this.settings.legend.position]);
             }
-            
+
             this.legend.drawLegend(this.data.legendData, this.layout.viewportCopy);
-            Legend.positionChartArea(this.svg, this.legend);
+            positionChartArea(this.svg, this.legend);
         }
 
         private updateViewPortAccordingToLegend(): void {
@@ -773,7 +784,7 @@ module powerbi.extensibility.visual {
                     "dy": "0.35em",
                     "text-anchor": "middle"
                 })
-                .text(TextMeasurementService.getTailoredTextOrDefault(centerTextProperties, innerRadius * AsterPlot.CenterTextFontWidthCoefficient));
+                .text(textMeasurementService.getTailoredTextOrDefault(centerTextProperties, innerRadius * AsterPlot.CenterTextFontWidthCoefficient));
         }
 
         private clear(): void {

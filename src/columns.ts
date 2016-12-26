@@ -25,8 +25,8 @@
  */
 
 module powerbi.extensibility.visual {
-    // powerbi.visuals
-    import converterHelper = powerbi.visuals.converterHelper;
+    // powerbi.extensibility.utils.dataview
+    import converterHelper = powerbi.extensibility.utils.dataview.converterHelper;
 
     export class AsterPlotColumns<T> {
         public static getColumnSources(dataView: DataView) {
@@ -80,7 +80,7 @@ module powerbi.extensibility.visual {
                 new this<T>(), (n, i) => columns.filter(x => x.roles && x.roles[i])[0]);
         }
 
-        //Data Roles
+        // Data Roles
         public Category: T = null;
         public Y: T = null;
     }
