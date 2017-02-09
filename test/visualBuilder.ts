@@ -31,13 +31,12 @@ module powerbi.extensibility.visual.test {
     import VisualBuilderBase = powerbi.extensibility.utils.test.VisualBuilderBase;
 
     // AsterPlot1443303142064
-    import VisualPlugin = powerbi.visuals.plugins.AsterPlot1443303142064;
     import VisualClass = powerbi.extensibility.visual.AsterPlot1443303142064.AsterPlot;
     import AsterPlotData = powerbi.extensibility.visual.AsterPlot1443303142064.AsterPlotData;
 
     export class AsterPlotBuilder extends VisualBuilderBase<VisualClass> {
         constructor(width: number, height: number) {
-            super(width, height, VisualPlugin.name);
+            super(width, height, "AsterPlot1443303142064");
         }
 
         protected build(options: VisualConstructorOptions): VisualClass {
