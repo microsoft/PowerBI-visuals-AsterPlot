@@ -132,13 +132,26 @@
         "label": {
             "displayName": "Center Label",
             "properties": {
-                "fill": {
-                    "displayName": "Fill",
+                "show": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "color": {
+                    "displayName": "Color",
                     "type": {
                         "fill": {
                             "solid": {
                                 "color": true
                             }
+                        }
+                    }
+                },                
+                "fontSize": {
+                    "displayName": "Text Size",
+                    "type": {
+                        "formatting": {
+                            "fontSize": true
                         }
                     }
                 }
