@@ -66,6 +66,19 @@ module powerbi.extensibility.visual.test {
         });
 
         describe("DOM tests", () => {
+            let labelColor: string = "red";
+            let labelFontSize: number = 11;
+
+            beforeEach(() => {
+                    dataView.metadata.objects = {
+                        label: {
+                            show: true,
+                            color: labelColor,
+                            fontSize: labelFontSize
+                        }
+                    };
+                });
+
             it("Should create svg element", () => {
                 expect(visualBuilder.mainElement[0]).toBeInDOM();
             });
@@ -91,6 +104,17 @@ module powerbi.extensibility.visual.test {
                 const centerText: JQuery = $(".asterPlot .centerLabel");
 
                 expect(centerText.length).toBe(0);
+            });
+
+            it("Should add center label with resized text", () => {
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                const centerText: JQuery = $(".asterPlot .centerLabel");
+
+                expect(centerText).toBeInDOM();
+                expect(centerText[0].getBBox().height).toBeCloseTo(12, 10);
+                expect(centerText[0].style.fontSize).toBe(labelFontSize + "px");
+                expect(centerText[0].style.fill).toBe(labelColor);
             });
 
             describe("Data Labels", () => {

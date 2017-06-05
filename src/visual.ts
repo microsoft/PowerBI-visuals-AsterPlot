@@ -758,7 +758,7 @@ module powerbi.extensibility.visual {
         }
 
         private drawCenterText(innerRadius: number): void {
-            if (_.isEmpty(this.data.centerText)) {
+            if (_.isEmpty(this.data.centerText) || !this.settings.label.show) {
                 this.mainGroupElement.select(AsterPlot.CenterLabelClass.selector).remove();
                 return;
             }
@@ -766,7 +766,7 @@ module powerbi.extensibility.visual {
             let centerTextProperties: TextProperties = {
                 fontFamily: dataLabelUtils.StandardFontFamily,
                 fontWeight: "bold",
-                fontSize: PixelConverter.toString(innerRadius * AsterPlot.CenterTextFontHeightCoefficient),
+                fontSize: PixelConverter.toString(this.settings.label.fontSize),
                 text: this.data.centerText
             };
 
@@ -777,8 +777,8 @@ module powerbi.extensibility.visual {
                 .style({
                     "line-height": 1,
                     "font-weight": centerTextProperties.fontWeight,
-                    "font-size": centerTextProperties.fontSize,
-                    "fill": this.settings.labels.color
+                    "font-size": this.settings.label.fontSize,
+                    "fill": this.settings.label.color
                 })
                 .attr({
                     "dy": "0.35em",

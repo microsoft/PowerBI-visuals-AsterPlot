@@ -33,8 +33,15 @@ module powerbi.extensibility.visual {
 
     export class AsterPlotSettings extends DataViewObjectsParser {
         public labels: LabelsSettings = new LabelsSettings();
+        public label: CentralLabelsSettings = new CentralLabelsSettings();
         public legend: LegendSettings = new LegendSettings();
         public outerLine: OuterLineSettings = new OuterLineSettings();
+    }
+
+    export class CentralLabelsSettings {
+        public show: boolean = false;
+        public color: string = "rgb(119, 119, 119)";
+        public fontSize: number = 9;
     }
 
     export class LabelsSettings {
