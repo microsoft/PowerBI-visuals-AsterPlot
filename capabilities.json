@@ -1,12 +1,14 @@
 {
     "dataRoles": [
         {
-            "displayName": "Category",
+          "displayName": "Category",
+          "displayNameKey": "Visual_Category",
             "name": "Category",
             "kind": "Grouping"
         },
         {
-            "displayName": "Y Axis",
+          "displayName": "Y Axis",
+          "displayNameKey": "Visual_YAxis",
             "name": "Y",
             "kind": "Measure"
         }
@@ -46,11 +48,13 @@
     ],
     "objects": {
         "legend": {
-            "displayName": "Legend",
+          "displayName": "Legend",
+          "displayNameKey": "Visual_Legend",
             "description": "Display legend options",
             "properties": {
                 "show": {
-                    "displayName": "Show",
+                  "displayName": "Show",
+                  "displayNameKey": "Visual_Show",
                     "type": {
                         "bool": true
                     }
@@ -59,50 +63,61 @@
                     "type": {
                         "enumeration": [
                             {
-                                "value": "Top",
-                                "displayName": "Top"
+                              "value": "Top",
+                              "displayNameKey": "Visual_Top",
+                              "displayName": "Top"
                             },
                             {
-                                "value": "Bottom",
+                              "value": "Bottom",
+                              "displayNameKey": "Visual_Bottom",
                                 "displayName": "Bottom"
                             },
                             {
-                                "value": "Left",
+                              "value": "Left",
+                              "displayNameKey": "Visual_Left",
                                 "displayName": "Left"
                             },
                             {
-                                "value": "Right",
+                              "value": "Right",
+                              "displayNameKey": "Visual_Right",
                                 "displayName": "Right"
                             },
                             {
-                                "value": "TopCenter",
+                              "value": "TopCenter",
+                              "displayNameKey": "Visual_TopCenter",
                                 "displayName": "Top Center"
                             },
                             {
-                                "value": "BottomCenter",
+                              "value": "BottomCenter",
+                              "displayNameKey": "Visual_BottomCenter",
                                 "displayName": "Bottom Center"
                             },
                             {
-                                "value": "LeftCenter",
+                              "value": "LeftCenter",
+                              "displayNameKey": "Visual_LeftCenter",
                                 "displayName": "Left Center"
                             },
                             {
-                                "value": "RightCenter",
+                              "value": "RightCenter",
+                              "displayNameKey": "Visual_RightCenter",
                                 "displayName": "Right Center"
                             }
                         ]
                     },
-                    "displayName": "Position"
+                  "displayName": "Position",
+                  "displayNameKey": "Visual_Position"
                 },
                 "showTitle": {
-                    "displayName": "Title",
+                  "displayName": "Title",
+                  "displayNameKey": "Visual_Title",
                     "description": "Display a title for legend symbols",
                     "type": {
                         "bool": true
                     }
                 },
                 "titleText": {
-                    "displayName": "Legend Name",
+                  "displayName": "Legend Name",
+                  "displayNameKey": "Visual_LegendName",
                     "description": "Title text",
                     "type": {
                         "text": true
@@ -110,7 +125,8 @@
                     "suppressFormatPainterCopy": true
                 },
                 "labelColor": {
-                    "displayName": "Color",
+                  "displayName": "Color",
+                  "displayNameKey": "Visual_Color",
                     "type": {
                         "fill": {
                             "solid": {
@@ -120,7 +136,8 @@
                     }
                 },
                 "fontSize": {
-                    "displayName": "Text Size",
+                  "displayName": "Text Size",
+                  "displayNameKey": "Visual_TextSize",
                     "type": {
                         "formatting": {
                             "fontSize": true
@@ -130,7 +147,8 @@
             }
         },
         "label": {
-            "displayName": "Center Label",
+          "displayName": "Center Label",
+          "displayNameKey": "Visual_CenterLabel",
             "properties": {
                 "show": {
                     "type": {
@@ -138,7 +156,8 @@
                     }
                 },
                 "color": {
-                    "displayName": "Color",
+                  "displayName": "Color",
+                  "displayNameKey": "Visual_Color",
                     "type": {
                         "fill": {
                             "solid": {
@@ -148,7 +167,8 @@
                     }
                 },                
                 "fontSize": {
-                    "displayName": "Text Size",
+                  "displayName": "Text Size",
+                  "displayNameKey": "Visual_TextSize",
                     "type": {
                         "formatting": {
                             "fontSize": true
@@ -158,7 +178,8 @@
             }
         },
         "labels": {
-            "displayName": "Detail Labels",
+          "displayName": "Detail Labels",
+          "displayNameKey": "Visual_DetailLabels",
             "properties": {
                 "show": {
                     "type": {
@@ -166,7 +187,8 @@
                     }
                 },
                 "color": {
-                    "displayName": "Color",
+                  "displayName": "Color",
+                  "displayNameKey": "Visual_Color",
                     "type": {
                         "fill": {
                             "solid": {
@@ -176,7 +198,8 @@
                     }
                 },
                 "displayUnits": {
-                    "displayName": "Display Units",
+                  "displayName": "Display Units",
+                  "displayNameKey": "Visual_DisplayUnits",
                     "type": {
                         "formatting": {
                             "labelDisplayUnits": true
@@ -184,14 +207,16 @@
                     }
                 },
                 "precision": {
-                    "displayName": "Decimal Places",
+                  "displayName": "Decimal Places",
+                  "displayNameKey": "Visual_DecimalPlaces",
                     "placeHolderText": "Auto",
                     "type": {
                         "numeric": true
                     }
                 },
                 "fontSize": {
-                    "displayName": "Text Size",
+                  "displayName": "Text Size",
+                  "displayNameKey": "Visual_TextSize",
                     "type": {
                         "formatting": {
                             "fontSize": true
@@ -201,16 +226,19 @@
             }
         },
         "outerLine": {
-            "displayName": "Outer line",
+          "displayName": "Outer line",
+          "displayNameKey": "Visual_Outerline",
             "properties": {
                 "show": {
-                    "displayName": "Show",
+                  "displayName": "Show",
+                  "displayNameKey": "Visual_Show",
                     "type": {
                         "bool": true
                     }
                 },
                 "thickness": {
-                    "displayName": "Thickness",
+                  "displayName": "Thickness",
+                  "displayNameKey": "Visual_Thickness",
                     "type": {
                         "numeric": true
                     }
