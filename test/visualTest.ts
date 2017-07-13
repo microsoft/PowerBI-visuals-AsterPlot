@@ -117,6 +117,17 @@ module powerbi.extensibility.visual.test {
                 expect(centerText[0].style.fill).toBe(labelColor);
             });
 
+            it("Selection test", () => {
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                const clickableSlice: JQuery = visualBuilder.slices.eq(0),
+                    checkingSlice: JQuery = visualBuilder.slices.eq(1);
+                clickElement(clickableSlice);
+
+                expect(parseFloat(clickableSlice.css("fill-opacity"))).toBe(1);
+                expect(parseFloat(checkingSlice.css("fill-opacity"))).toBeLessThan(1);
+            });
+
             describe("Data Labels", () => {
                 beforeEach(() => {
                     dataView.metadata.objects = {
