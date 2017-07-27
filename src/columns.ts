@@ -29,24 +29,6 @@ module powerbi.extensibility.visual {
     import converterHelper = powerbi.extensibility.utils.dataview.converterHelper;
 
     export class AsterPlotColumns<T> {
-        public static getColumnSources(dataView: DataView) {
-            return this.getColumnSourcesT<DataViewMetadataColumn>(dataView);
-        }
-
-        public static getTableValues(dataView: DataView) {
-            let table = dataView && dataView.table;
-            let columns = this.getColumnSourcesT<any[]>(dataView);
-            return columns && table && _.mapValues(
-                columns, (n: DataViewMetadataColumn, i) => n && table.rows.map(row => row[n.index]));
-        }
-
-        public static getTableRows(dataView: DataView) {
-            let table = dataView && dataView.table;
-            let columns = this.getColumnSourcesT<any[]>(dataView);
-            return columns && table && table.rows.map(row =>
-                _.mapValues(columns, (n: DataViewMetadataColumn, i) => n && row[n.index]));
-        }
-
         public static getCategoricalValues(dataView: DataView) {
             let categorical = dataView && dataView.categorical;
             let categories: (DataViewCategoryColumn | DataViewValueColumn)[] = categorical && categorical.categories || [];
@@ -72,12 +54,6 @@ module powerbi.extensibility.visual {
                 (n, i) => categories.filter(x => x.source.roles && x.source.roles[i])[0]
                     || values.source && values.source.roles && values.source.roles[i]
                     || values.filter(x => x.source.roles && x.source.roles[i]));
-        }
-
-        private static getColumnSourcesT<T>(dataView: DataView) {
-            let columns = dataView && dataView.metadata && dataView.metadata.columns;
-            return columns && _.mapValues(
-                new this<T>(), (n, i) => columns.filter(x => x.roles && x.roles[i])[0]);
         }
 
         // Data Roles

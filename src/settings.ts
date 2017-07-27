@@ -64,5 +64,11 @@ module powerbi.extensibility.visual {
     export class OuterLineSettings {
         public show: boolean = false;
         public thickness: number = 1;
+        public color: string = "grey";
+        public showGrid: boolean = false;
+        public showGridTicksValues: boolean = false;
+        public showStraightLines: boolean = true;
+        public textColor: string = "rgb(119, 119, 119)";
+        public fontSize: number = 9;
     }
 }

@@ -225,6 +225,23 @@
                 }
             }
         },
+        "pies": {
+            "displayName": "Pies colors",
+            "displayNameKey": "Visual_PiesColors",
+            "properties": {
+                "fill": {
+                    "displayName": "Color",
+                    "displayNameKey": "Visual_Color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "outerLine": {
           "displayName": "Outer line",
           "displayNameKey": "Visual_Outerline",
@@ -236,11 +253,63 @@
                         "bool": true
                     }
                 },
+                "color": {
+                    "displayName": "Color",
+                    "displayNameKey": "Visual_Color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    } 
+                },
                 "thickness": {
                   "displayName": "Thickness",
                   "displayNameKey": "Visual_Thickness",
                     "type": {
                         "numeric": true
+                    }
+                },
+                "showGrid": {
+                    "displayName": "Show Grid",
+                    "displayNameKey": "Visual_ShowGrid",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "showGridTicksValues": {
+                    "displayName": "Show Grid Ticks Values",
+                    "displayNameKey": "Visual_ShowGridTicksValues",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "showStraightLines": {
+                    "displayName": "Show Straight Lines",
+                    "displayNameKey": "Visual_ShowStraightLines",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "textColor": {
+                    "displayName": "Text Color",
+                    "displayNameKey": "Visual_TextColor",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "fontSize": {
+                  "displayName": "Text Size",
+                  "displayNameKey": "Visual_TextSize",
+                    "type": {
+                        "formatting": {
+                            "fontSize": true
+                        }
                     }
                 }
             }
