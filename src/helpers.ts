@@ -26,18 +26,27 @@
 
 module powerbi.extensibility.visual {
     export class Helpers {
-        public static setAttrThroughTransitionIfNotResized(
+        public static setAttr(
             element: d3.Selection<any>,
-            setTransision: (t: d3.Transition<any>) => d3.Transition<any>,
             attrName: string,
-            attrValue: (data: any, index: number) => any,
-            attrTransitionValue: (data: any, index: number) => any,
-            viewportChanged: boolean) {
-            if (viewportChanged) {
-                element.attr(attrName, attrValue);
-            } else {
-                setTransision(element.transition()).attrTween(attrName, attrTransitionValue);
-            }
+            attrValue: (data: any, index: number) => any) {
+            element.attr(attrName, attrValue);
+        }
+
+        public static setTransition(
+            element: d3.Selection<any>,
+            animationDuration: number,
+            attrName: string,
+            attrValue: (data: any, index: number) => any) {
+
+            element
+                .transition()
+                .duration(animationDuration)
+                .attrTween(attrName, Helpers.interpolateArc(attrValue));
+        }
+
+        public static needToSetTransition(viewportChanged: boolean) {
+            return !viewportChanged;
         }
 
         public static interpolateArc(arc: any) {
@@ -50,12 +59,6 @@ module powerbi.extensibility.visual {
                 let interpolation = d3.interpolate(this.oldData, data);
                 this.oldData = interpolation(0);
                 return (x) => arc(interpolation(x));
-            };
-        }
-
-        public static addContext(context: any, fn: Function): any {
-            return <any>function () {
-                return fn.apply(context, [this].concat(_.toArray(arguments)));
             };
         }
     }

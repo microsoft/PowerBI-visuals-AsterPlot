@@ -22,6 +22,8 @@
     "src/dataInterfaces.ts",
     "src/utils.ts",
     "src/tooltipBuilder.ts",
+    "src/services/asterPlotConverterService.ts",
+    "src/services/dataRenderService.ts",
     "src/helpers.ts",
     "src/behavior.ts",
     "src/columns.ts",

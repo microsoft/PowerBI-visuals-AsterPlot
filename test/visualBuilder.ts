@@ -87,6 +87,12 @@ module powerbi.extensibility.visual.test {
                 .children("path.outerLine");
         }
 
+        public get outerLineGrid(): JQuery {
+            return this.mainElement
+                .children("g")
+                .children("g.circleLine");
+        }
+
         public converter(dataView: DataView): AsterPlotData {
             return VisualClass.converter(
                 dataView,

@@ -48,6 +48,8 @@ module powerbi.extensibility.visual.test {
     import VisualClass = powerbi.extensibility.visual.AsterPlot1443303142064.AsterPlot;
     import AsterPlotVisualData = powerbi.extensibility.visual.AsterPlot1443303142064.AsterPlotData;
 
+    import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
+
     describe("AsterPlot", () => {
         let visualBuilder: AsterPlotBuilder,
             defaultDataViewBuilder: AsterPlotData,
@@ -394,6 +396,28 @@ module powerbi.extensibility.visual.test {
                     visualBuilder.updateFlushAllD3Transitions(dataView);
 
                     expect(parseFloat(visualBuilder.outerLine.attr("stroke-width"))).toBe(thickness);
+                });
+
+                it("Grid line", () => {
+                    (dataView.metadata.objects as any).outerLine.showGrid = true;
+                    (dataView.metadata.objects as any).outerLine.showGridTicksValues = true;
+
+                    visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                    expect(visualBuilder.outerLineGrid).toBeInDOM();
+                });
+            });
+
+            describe("Pie colors", () => {
+                it("Pie colors options created for all pies", () => {
+                    visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                    let piesOptionName: string = "pies",
+                        piesOptions: EnumerateVisualObjectInstancesOptions = <EnumerateVisualObjectInstancesOptions> { objectName: piesOptionName };
+
+                    let colorOptions: VisualObjectInstanceEnumeration = visualBuilder.enumerateObjectInstances(piesOptions);
+
+                    expect(visualBuilder.mainElement.find(".asterSlice").length).toBe(colorOptions.length);
                 });
             });
 

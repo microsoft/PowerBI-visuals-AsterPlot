@@ -91,14 +91,6 @@ module powerbi.extensibility.visual {
                 || this.previousOriginalViewportValue.width !== this.originalViewportValue.width);
         }
 
-        public get viewportInIsZero(): boolean {
-            return this.viewportIn.width === 0 || this.viewportIn.height === 0;
-        }
-
-        public resetMargin(): void {
-            this.margin = this.defaultMargin;
-        }
-
         private update(): void {
             this.viewportInValue = VisualLayout.restrictToMinMax({
                 width: this.viewport.width - (this.margin.left + this.margin.right),
