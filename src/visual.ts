@@ -105,6 +105,7 @@ module powerbi.extensibility.visual {
         private colors: IDataColorPalette;
 
         private visualHost: IVisualHost;
+        private localizationManager: ILocalizationManager;
         private interactivityService: IInteractivityService;
 
         private renderService: DataRenderService;
@@ -123,6 +124,7 @@ module powerbi.extensibility.visual {
         constructor(options: VisualConstructorOptions) {
 
             this.visualHost = options.host;
+            this.localizationManager = this.visualHost.createLocalizationManager();
 
             this.tooltipServiceWrapper = createTooltipServiceWrapper(
                 this.visualHost.tooltipService,
@@ -160,7 +162,7 @@ module powerbi.extensibility.visual {
                 true);
         }
 
-        public static converter(dataView: DataView, colors: IDataColorPalette, visualHost: IVisualHost): AsterPlotData {
+        public static converter(dataView: DataView, colors: IDataColorPalette, visualHost: IVisualHost, localizationManager: ILocalizationManager): AsterPlotData {
             let categorical = AsterPlotColumns.getCategoricalColumns(dataView);
 
             if (!AsterPlotConverterService.isDataValid(categorical)) {
@@ -170,7 +172,7 @@ module powerbi.extensibility.visual {
             let settings: AsterPlotSettings = AsterPlot.parseSettings(dataView, categorical.Category.source);
             let converterService: AsterPlotConverterService = new AsterPlotConverterService(dataView, settings, colors, visualHost, categorical);
 
-            return converterService.getConvertedData();
+            return converterService.getConvertedData(localizationManager);
         }
 
         private static parseSettings(dataView: DataView, categorySource: DataViewMetadataColumn): AsterPlotSettings {
@@ -204,7 +206,7 @@ module powerbi.extensibility.visual {
                 return;
             }
 
-            let data = AsterPlot.converter(options.dataViews[0], this.colors, this.visualHost);
+            let data = AsterPlot.converter(options.dataViews[0], this.colors, this.visualHost, this.localizationManager);
 
             if (!data) {
                 this.clear();
