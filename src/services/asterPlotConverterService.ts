@@ -128,16 +128,17 @@ module powerbi.extensibility.visual {
             return categoricalColumns.Y.length > 1;
         }
 
-        private buildOneMeasureTooltip(formattedCategoryValue: any, value: number): VisualTooltipDataItem[] {
-            return tooltipBuilder.createTooltipInfo(this.dataView.categorical, formattedCategoryValue, value, 0);
+        private buildOneMeasureTooltip(formattedCategoryValue: any, value: number, localizationManager: ILocalizationManager): VisualTooltipDataItem[] {
+            return tooltipBuilder.createTooltipInfo(this.dataView.categorical, formattedCategoryValue, localizationManager, value, 0);
         }
 
-        private buildTwoMeasuresTooltip(formattedCategoryValue: any, value: number, secondValue: number): VisualTooltipDataItem[] {
-            let tooltipInfo: VisualTooltipDataItem[] = this.buildOneMeasureTooltip(formattedCategoryValue, value);
+        private buildTwoMeasuresTooltip(formattedCategoryValue: any, value: number, secondValue: number, localizationManager: ILocalizationManager): VisualTooltipDataItem[] {
+            let tooltipInfo: VisualTooltipDataItem[] = this.buildOneMeasureTooltip(formattedCategoryValue, value, localizationManager);
 
             let toolTip: VisualTooltipDataItem = tooltipBuilder.createTooltipInfo(
                         this.dataView.categorical,
                         formattedCategoryValue,
+                        localizationManager,
                         secondValue,
                         1)[1];
 
@@ -148,7 +149,7 @@ module powerbi.extensibility.visual {
             return tooltipInfo;
         }
 
-        public getConvertedData(): AsterPlotData {
+        public getConvertedData(localizationManager: ILocalizationManager): AsterPlotData {
             let categoryValue: any = this.categoricalValueColumns.Category,
                 category: any = this.categoricalColumns.Category,
                 values: number[] = <number[]>this.categoricalColumns.Y[0].values,
@@ -162,11 +163,11 @@ module powerbi.extensibility.visual {
 
                 if (this.isMoreThanOneMeasure(categoricalColumns)) {
                     let secondMeasureValue: number = <number>categoricalColumns.Y[1].values[i];
-                    tooltipInfo = this.buildTwoMeasuresTooltip(formattedCategoryValue, currentValue, secondMeasureValue);
+                    tooltipInfo = this.buildTwoMeasuresTooltip(formattedCategoryValue, currentValue, secondMeasureValue, localizationManager);
 
                     currentValue += secondMeasureValue;
                 } else {
-                    tooltipInfo = this.buildOneMeasureTooltip(formattedCategoryValue, currentValue);
+                    tooltipInfo = this.buildOneMeasureTooltip(formattedCategoryValue, currentValue, localizationManager);
                 }
 
                 let identity: DataViewScopeIdentity = category.identity[i],
@@ -224,11 +225,11 @@ module powerbi.extensibility.visual {
 
                     if (this.isMoreThanOneMeasure(categoricalColumns)) {
                         let secondMeasureValue: number = <number>categoricalColumns.Y[1].highlights[i] !== null ? <number>categoricalColumns.Y[1].highlights[i] : 0;
-                        tooltipInfo = this.buildTwoMeasuresTooltip(formattedCategoryValue, currentValue, secondMeasureValue);
+                        tooltipInfo = this.buildTwoMeasuresTooltip(formattedCategoryValue, currentValue, secondMeasureValue, localizationManager);
 
                         currentValue += secondMeasureValue;
                     } else {
-                        tooltipInfo = this.buildOneMeasureTooltip(formattedCategoryValue, currentValue);
+                        tooltipInfo = this.buildOneMeasureTooltip(formattedCategoryValue, currentValue, localizationManager);
                     }
 
                     this.highlightedDataPoints.push({

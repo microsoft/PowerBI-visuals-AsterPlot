@@ -51,6 +51,7 @@
           "displayName": "Legend",
           "displayNameKey": "Visual_Legend",
             "description": "Display legend options",
+            "descriptionKey": "Visual_Description_Legend",
             "properties": {
                 "show": {
                   "displayName": "Show",
@@ -111,6 +112,7 @@
                   "displayName": "Title",
                   "displayNameKey": "Visual_Title",
                     "description": "Display a title for legend symbols",
+                    "descriptionKey": "Visual_Description_Title",
                     "type": {
                         "bool": true
                     }
@@ -119,6 +121,7 @@
                   "displayName": "Legend Name",
                   "displayNameKey": "Visual_LegendName",
                     "description": "Title text",
+                    "descriptionKey": "Visual_Description_LegendName",
                     "type": {
                         "text": true
                     },
