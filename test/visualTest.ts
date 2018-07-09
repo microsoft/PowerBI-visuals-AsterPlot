@@ -597,5 +597,31 @@ module powerbi.extensibility.visual.test {
                 });
             });
         });
+
+        describe("high contrast mode test", () => {
+            const backgroundColor: string =  "black";
+            const foregroundColor: string = "green";
+
+            beforeEach(() => {
+                visualBuilder.visualHost.colorPalette.isHighContrast = true;
+
+                visualBuilder.visualHost.colorPalette.background = { value: backgroundColor };
+                visualBuilder.visualHost.colorPalette.foreground = { value: foregroundColor };
+            });
+
+            it("should not use fill style", () => {
+
+            });
+
+            it("should use stroke style", () => {
+
+            });
+
+            function isColorAppliedToElement(): boolean {
+
+                return false;
+            }
+
+        });
     });
 }

@@ -78,7 +78,7 @@ module powerbi.extensibility.visual {
                         dataPoints: [],
                         title: null,
                         fontSize: this.settings.legend.fontSize,
-                        labelColor: LegendDataModule.DefaultLegendLabelFillColor
+                        labelColor: this.colorHelper.getHighContrastColor("foreground", LegendDataModule.DefaultLegendLabelFillColor)
                     };
 
                     this.hasHighlights = this.containsHighlights(this.categoricalColumns);
@@ -175,9 +175,9 @@ module powerbi.extensibility.visual {
                     sliceWidth: number;
 
                 if (category.objects && category.objects[i]) {
-                    color = this.colorHelper.getColorForMeasure(category.objects[i], "");
+                    color = this.colorHelper.getColorForMeasure(category.objects[i], "", "foreground");
                 } else {
-                    color = this.colorHelper.getColorForMeasure(category.objects && category.objects[i], identity.key);
+                    color = this.colorHelper.getColorForMeasure(category.objects && category.objects[i], identity.key, "foreground");
                 }
 
                 sliceWidth = Math.max(0, categoricalColumns.Y.length > 1 ? <number>categoricalColumns.Y[1].values[i] : 1);

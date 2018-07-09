@@ -181,6 +181,8 @@ module powerbi.extensibility.visual {
 
             selection
                 .attr("fill", d => d.data.color)
+                // .attr("stroke", d => d.data.color)
+                // .attr("stroke-width", "2px")
                 .call(selection => {
                     return  Helpers.needToSetTransition(this.layout.viewportChanged)
                         ? Helpers.setAttr(selection, "d", arc)
