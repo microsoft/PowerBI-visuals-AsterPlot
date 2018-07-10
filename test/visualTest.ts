@@ -601,42 +601,35 @@ module powerbi.extensibility.visual.test {
                     expect(visualBuilder.dataLabels[0]).not.toBeInDOM();
                 });
             });
-        });
 
-        describe("high contrast mode test", () => {
-            const backgroundColor: string = "black";
-            const foregroundColor: string = "green";
+            describe("high contrast mode test", () => {
+                const backgroundColor: string = "#000000";
+                const foregroundColor: string = "#ff00ff";
 
-            beforeEach(() => {
-                visualBuilder.visualHost.colorPalette.isHighContrast = true;
+                beforeEach(() => {
+                    visualBuilder.visualHost.colorPalette.isHighContrast = true;
 
-                visualBuilder.visualHost.colorPalette.background = { value: backgroundColor };
-                visualBuilder.visualHost.colorPalette.foreground = { value: foregroundColor };
-            });
-
-            it("should not use fill style", (done) => {
-                visualBuilder.updateRenderTimeout(dataView, () => {
-                    const slices: JQuery[] = visualBuilder.slices.toArray().map($);
-                    const archs: JQuery[] = visualBuilder.outerLineGrid.toArray().map($);
-
-                    expect(isColorAppliedToElements(slices, null, "fill"));
-                    expect(isColorAppliedToElements(archs, null, "fill"));
-
-                    done();
+                    visualBuilder.visualHost.colorPalette.background = { value: backgroundColor };
+                    visualBuilder.visualHost.colorPalette.foreground = { value: foregroundColor };
                 });
-            });
 
-            it("should use stroke style", (done) => {
-                visualBuilder.updateRenderTimeout(dataView, () => {
-                    const slices: JQuery[] = visualBuilder.slices.toArray().map($);
-                    const archs: JQuery[] = visualBuilder.outerLineGrid.toArray().map($);
+                it("should not use fill style", (done) => {
+                    visualBuilder.updateRenderTimeout(dataView, () => {
+                        const slices: JQuery[] = visualBuilder.slices.toArray().map($);
 
-                    expect(isColorAppliedToElements(slices, foregroundColor, "stroke"));
-                    expect(isColorAppliedToElements(archs, foregroundColor, "stroke"));
+                        expect(isColorAppliedToElements(slices, null, "fill"));
+                        done();
+                    });
+                });
 
-                    done();
+                it("should use stroke style", (done) => {
+                    visualBuilder.updateRenderTimeout(dataView, () => {
+                        const slices: JQuery[] = visualBuilder.slices.toArray().map($);
+
+                        expect(isColorAppliedToElements(slices, foregroundColor, "stroke"));
+                        done();
+                    });
                 });
             });
         });
-    });
-}
+    }
