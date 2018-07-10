@@ -95,9 +95,9 @@ module powerbi.extensibility.visual {
         private tickValuesArray: number[];
 
         constructor(data: AsterPlotData,
-                    settings: AsterPlotSettings,
-                    layout: VisualLayout,
-                    tooltipServiceWrapper: ITooltipServiceWrapper) {
+            settings: AsterPlotSettings,
+            layout: VisualLayout,
+            tooltipServiceWrapper: ITooltipServiceWrapper) {
 
             this.data = data;
             this.settings = settings;
@@ -112,8 +112,8 @@ module powerbi.extensibility.visual {
             this.tooltipServiceWrapper = tooltipServiceWrapper;
 
             this.innerRadius = 0.3 * (this.settings.labels.show
-                    ? this.viewportRadius * DataRenderService.AsterRadiusRatio
-                    : this.viewportRadius);
+                ? this.viewportRadius * DataRenderService.AsterRadiusRatio
+                : this.viewportRadius);
 
             let showOuterLine: boolean = settings.outerLine.show;
             if (showOuterLine) {
@@ -180,11 +180,11 @@ module powerbi.extensibility.visual {
                 .classed(classSelector.className, true);
 
             selection
-                .attr("fill", d => d.data.color)
-                // .attr("stroke", d => d.data.color)
-                // .attr("stroke-width", "2px")
+                .attr("fill", d => d.data.fillColor)
+                .attr("stroke", d => d.data.strokeColor)
+                .attr("stroke-width", d => d.data.strokeWidth)
                 .call(selection => {
-                    return  Helpers.needToSetTransition(this.layout.viewportChanged)
+                    return Helpers.needToSetTransition(this.layout.viewportChanged)
                         ? Helpers.setAttr(selection, "d", arc)
                         : Helpers.setTransition(selection, DataRenderService.AnimationDuration, "d", arc);
                 });
@@ -229,10 +229,10 @@ module powerbi.extensibility.visual {
                 };
                 text.enter().append("text");
                 text.attr({
-                        "dy": (d: number, o: number, i: number) => { return -this.ticksRadiusArray[i] + DataRenderService.PixelsBelowAxis + (parseInt(this.settings.outerLine.fontSize.toString())); },
-                        "dx": (d: number, o: number, i: number) => { return - textMeasurementService.measureSvgTextWidth(textProperties, this.tickValuesArray[i].toString()) / DataRenderService.AxisTextWidthCoefficient; },
-                        "text-anchor": "middle"
-                    })
+                    "dy": (d: number, o: number, i: number) => { return -this.ticksRadiusArray[i] + DataRenderService.PixelsBelowAxis + (parseInt(this.settings.outerLine.fontSize.toString())); },
+                    "dx": (d: number, o: number, i: number) => { return - textMeasurementService.measureSvgTextWidth(textProperties, this.tickValuesArray[i].toString()) / DataRenderService.AxisTextWidthCoefficient; },
+                    "text-anchor": "middle"
+                })
                     .style({
                         "font-size": this.settings.outerLine.fontSize,
                         "fill": this.settings.outerLine.textColor
@@ -356,8 +356,8 @@ module powerbi.extensibility.visual {
             let pie: d3.layout.Pie<AsterDataPoint> = this.getPieLayout(totalWeight);
 
             return pie(hasHighlight
-                    ? data.highlightedDataPoints
-                    : data.dataPoints);
+                ? data.highlightedDataPoints
+                : data.dataPoints);
         }
 
         private getDataPoints(isHighlight: boolean) {
@@ -366,8 +366,8 @@ module powerbi.extensibility.visual {
 
         private getClassAndSelector(isHighlighted: boolean) {
             return (isHighlighted
-                    ? DataRenderService.AsterHighlightedSlice
-                    : DataRenderService.AsterSlice);
+                ? DataRenderService.AsterHighlightedSlice
+                : DataRenderService.AsterSlice);
         }
 
         private getPieLayout(totalWeight: number): d3.layout.Pie<AsterDataPoint> {
@@ -472,8 +472,8 @@ module powerbi.extensibility.visual {
             let labels: d3.selection.Update<LabelEnabledDataPoint> = context
                 .select(DataRenderService.labelGraphicsContextClass.selectorName)
                 .selectAll(".data-labels").data<LabelEnabledDataPoint>(
-                filteredData,
-                (d: ArcDescriptor<AsterDataPoint>) => (d.data.identity as ISelectionId).getKey());
+                    filteredData,
+                    (d: ArcDescriptor<AsterDataPoint>) => (d.data.identity as ISelectionId).getKey());
 
             labels.enter().append("text").classed("data-labels", true);
 
@@ -501,8 +501,8 @@ module powerbi.extensibility.visual {
                 .select(DataRenderService.linesGraphicsContextClass.selectorName)
                 .selectAll("polyline")
                 .data<LabelEnabledDataPoint>(
-                filteredData,
-                (d: ArcDescriptor<AsterDataPoint>) => (d.data.identity as ISelectionId).getKey());
+                    filteredData,
+                    (d: ArcDescriptor<AsterDataPoint>) => (d.data.identity as ISelectionId).getKey());
 
             let midAngle = function (d: ArcDescriptor<AsterDataPoint>) { return d.startAngle + (d.endAngle - d.startAngle) / 2; };
 

@@ -233,9 +233,9 @@ module powerbi.extensibility.visual {
             dataLabelUtils.cleanDataLabels(this.mainLabelsElement, true);
 
             this.renderService = new DataRenderService(data,
-                                                this.settings,
-                                                this.layout,
-                                                this.tooltipServiceWrapper);
+                this.settings,
+                this.layout,
+                this.tooltipServiceWrapper);
 
             this.renderService.renderArcs(this.slicesElement, false);
 
@@ -357,8 +357,8 @@ module powerbi.extensibility.visual {
         public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstanceEnumeration {
             const instanceEnumeration: VisualObjectInstanceEnumeration =
                 AsterPlotSettings.enumerateObjectInstances(
-                this.settings || AsterPlotSettings.getDefault(),
-                options);
+                    this.settings || AsterPlotSettings.getDefault(),
+                    options);
 
             if (options.objectName === AsterPlot.PiesPropertyIdentifier.objectName) {
                 this.enumeratePies(instanceEnumeration);
@@ -383,7 +383,7 @@ module powerbi.extensibility.visual {
                     objectName: AsterPlot.PiesPropertyIdentifier.objectName,
                     selector: ColorHelper.normalizeSelector(identity.getSelector(), false),
                     properties: {
-                        fill: { solid: { color: pie.color } }
+                        fill: { solid: { color: pie.fillColor } }
                     }
                 });
             });

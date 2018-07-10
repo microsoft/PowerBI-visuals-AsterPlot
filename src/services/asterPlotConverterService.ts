@@ -38,6 +38,9 @@ module powerbi.extensibility.visual {
     import LegendData = powerbi.extensibility.utils.chart.legend.LegendData;
     import LegendIcon = powerbi.extensibility.utils.chart.legend.LegendIcon;
 
+    const minStrokeWidth: number = 0;
+    const maxStrokeWidth: number = 3;
+
     export class AsterPlotConverterService {
         private static PiesPropertyIdentifier: DataViewObjectPropertyIdentifier = {
             objectName: "pies",
@@ -63,33 +66,33 @@ module powerbi.extensibility.visual {
         private fontSizeInPx: string;
 
         constructor(dataView: DataView,
-                settings: AsterPlotSettings,
-                colors: IDataColorPalette,
-                visualHost: IVisualHost,
-                categorical?: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>) {
-                    this.dataView = dataView;
-                    this.categoricalColumns = categorical ? categorical : AsterPlotColumns.getCategoricalColumns(dataView);
-                    this.categoricalValueColumns = AsterPlotColumns.getCategoricalValues(dataView);
-                    this.settings = settings;
-                    this.colorHelper = new ColorHelper(colors, AsterPlotConverterService.PiesPropertyIdentifier, "");
-                    this.visualHost = visualHost;
+            settings: AsterPlotSettings,
+            colors: IDataColorPalette,
+            visualHost: IVisualHost,
+            categorical?: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>) {
+            this.dataView = dataView;
+            this.categoricalColumns = categorical ? categorical : AsterPlotColumns.getCategoricalColumns(dataView);
+            this.categoricalValueColumns = AsterPlotColumns.getCategoricalValues(dataView);
+            this.settings = settings;
+            this.colorHelper = new ColorHelper(colors, AsterPlotConverterService.PiesPropertyIdentifier, "");
+            this.visualHost = visualHost;
 
-                    this.legendData = {
-                        dataPoints: [],
-                        title: null,
-                        fontSize: this.settings.legend.fontSize,
-                        labelColor: this.colorHelper.getHighContrastColor("foreground", LegendDataModule.DefaultLegendLabelFillColor)
-                    };
+            this.legendData = {
+                dataPoints: [],
+                title: null,
+                fontSize: this.settings.legend.fontSize,
+                labelColor: this.colorHelper.getHighContrastColor("foreground", LegendDataModule.DefaultLegendLabelFillColor)
+            };
 
-                    this.hasHighlights = this.containsHighlights(this.categoricalColumns);
-                    this.maxValue = this.getMaxValue(this.categoricalColumns);
-                    this.minValue = this.getMinValue(this.categoricalColumns);
-                    this.labelFormatter = this.createFormatter(this.categoricalColumns.Y[0].source, settings.labels.precision, (settings.labels.displayUnits === 0) && (this.maxValue != null) ? this.maxValue : settings.labels.displayUnits);
+            this.hasHighlights = this.containsHighlights(this.categoricalColumns);
+            this.maxValue = this.getMaxValue(this.categoricalColumns);
+            this.minValue = this.getMinValue(this.categoricalColumns);
+            this.labelFormatter = this.createFormatter(this.categoricalColumns.Y[0].source, settings.labels.precision, (settings.labels.displayUnits === 0) && (this.maxValue != null) ? this.maxValue : settings.labels.displayUnits);
 
-                    this.fontSizeInPx = PixelConverter.fromPoint(settings.labels.fontSize);
+            this.fontSizeInPx = PixelConverter.fromPoint(settings.labels.fontSize);
 
-                    this.dataPoints = [];
-                    this.highlightedDataPoints = [];
+            this.dataPoints = [];
+            this.highlightedDataPoints = [];
         }
 
         public static isDataValid(categorical: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>): boolean {
@@ -136,11 +139,11 @@ module powerbi.extensibility.visual {
             let tooltipInfo: VisualTooltipDataItem[] = this.buildOneMeasureTooltip(formattedCategoryValue, value, localizationManager);
 
             let toolTip: VisualTooltipDataItem = tooltipBuilder.createTooltipInfo(
-                        this.dataView.categorical,
-                        formattedCategoryValue,
-                        localizationManager,
-                        secondValue,
-                        1)[1];
+                this.dataView.categorical,
+                formattedCategoryValue,
+                localizationManager,
+                secondValue,
+                1)[1];
 
             if (toolTip) {
                 tooltipInfo.push(toolTip);
@@ -171,14 +174,19 @@ module powerbi.extensibility.visual {
                 }
 
                 let identity: DataViewScopeIdentity = category.identity[i],
-                    color: string,
+                    fillColor: string,
+                    strokeColor: string,
+                    strokeWidth: number,
                     sliceWidth: number;
 
                 if (category.objects && category.objects[i]) {
-                    color = this.colorHelper.getColorForMeasure(category.objects[i], "", "foreground");
+                    fillColor = this.colorHelper.getColorForMeasure(category.objects[i], "");
                 } else {
-                    color = this.colorHelper.getColorForMeasure(category.objects && category.objects[i], identity.key, "foreground");
+                    fillColor = this.colorHelper.getColorForMeasure(category.objects && category.objects[i], identity.key);
                 }
+
+                strokeColor = this.colorHelper.getHighContrastColor("foreground", fillColor);
+                strokeWidth = this.colorHelper.isHighContrast ? maxStrokeWidth : minStrokeWidth;
 
                 sliceWidth = Math.max(0, categoricalColumns.Y.length > 1 ? <number>categoricalColumns.Y[1].values[i] : 1);
 
@@ -190,12 +198,14 @@ module powerbi.extensibility.visual {
                 if (sliceWidth > 0) {
                     this.dataPoints.push({
                         sliceHeight: values[i] - this.minValue,
-                        sliceWidth: sliceWidth,
+                        sliceWidth,
                         label: this.labelFormatter.format(<any>currentValue),
-                        color: color,
+                        fillColor,
+                        strokeColor,
+                        strokeWidth,
                         identity: selectionId,
                         selected: false,
-                        tooltipInfo: tooltipInfo,
+                        tooltipInfo,
                         labelFontSize: this.fontSizeInPx,
                         highlight: false,
                         categoryName: formattedCategoryValue
@@ -206,7 +216,7 @@ module powerbi.extensibility.visual {
                 if (this.settings.legend.show) {
                     this.legendData.dataPoints.push({
                         label: formattedCategoryValue,
-                        color: color,
+                        color: strokeColor,
                         icon: LegendIcon.Box,
                         selected: false,
                         identity: selectionId
@@ -236,10 +246,12 @@ module powerbi.extensibility.visual {
                         sliceHeight: isNotNull ? highlightValues[i] - this.minValue : null,
                         sliceWidth: Math.max(0, (categoricalColumns.Y.length > 1 && categoricalColumns.Y[1].highlights[i] !== null) ? <number>categoricalColumns.Y[1].highlights[i] : sliceWidth),
                         label: this.labelFormatter.format(<any>currentValue),
-                        color: color,
+                        fillColor,
+                        strokeColor,
+                        strokeWidth,
                         identity: selectionId,
                         selected: false,
-                        tooltipInfo: tooltipInfo,
+                        tooltipInfo,
                         labelFontSize: this.fontSizeInPx,
                         highlight: true,
                         categoryName: formattedCategoryValue

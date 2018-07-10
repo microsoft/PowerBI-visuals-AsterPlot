@@ -64,7 +64,12 @@ module powerbi.extensibility.visual {
         }
 
         public renderSelection(hasSelection: boolean) {
-            this.selection.style("fill-opacity", (d) => {
+            this.changeOpacityAttribute("fill-opacity", hasSelection);
+            this.changeOpacityAttribute("stroke-opacity", hasSelection);
+        }
+
+        private changeOpacityAttribute(attributeName: string, hasSelection: boolean) {
+            this.selection.style(attributeName, (d) => {
                 return asterPlotUtils.getFillOpacity(
                     d.data.selected,
                     d.data.highlight,
