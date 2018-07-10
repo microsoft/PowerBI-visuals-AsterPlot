@@ -180,7 +180,7 @@ module powerbi.extensibility.visual {
         private static parseSettings(dataView: DataView, categorySource: DataViewMetadataColumn, colorHelper: ColorHelper): AsterPlotSettings {
             let settings: AsterPlotSettings = AsterPlotSettings.parse<AsterPlotSettings>(dataView);
 
-            //parse colors for high contrast mode
+            // parse colors for high contrast mode
             settings.label.color = colorHelper.getHighContrastColor("foreground", settings.label.color);
             settings.labels.color = colorHelper.getHighContrastColor("foreground", settings.labels.color);
             settings.legend.labelColor = colorHelper.getHighContrastColor("foreground", settings.legend.labelColor);

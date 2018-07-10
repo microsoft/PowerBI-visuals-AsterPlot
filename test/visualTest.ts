@@ -632,4 +632,4 @@ module powerbi.extensibility.visual.test {
                 });
             });
         });
-    }
+    };
