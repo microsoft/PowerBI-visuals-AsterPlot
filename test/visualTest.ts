@@ -50,10 +50,15 @@ module powerbi.extensibility.visual.test {
 
     import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
 
+    import areColorsEqual = powerbi.extensibility.visual.test.helpers.areColorsEqual;
+    import isColorAppliedToElements = powerbi.extensibility.visual.test.helpers.isColorAppliedToElements;
+    import IDataColorPalette = powerbi.extensibility.IColorPalette;
+
     describe("AsterPlot", () => {
         let visualBuilder: AsterPlotBuilder,
             defaultDataViewBuilder: AsterPlotData,
-            dataView: DataView;
+            dataView: DataView,
+            colorPalette: IDataColorPalette;
 
         beforeEach(() => {
             let selectionIndex: number = 0;
@@ -72,14 +77,14 @@ module powerbi.extensibility.visual.test {
             let labelFontSize: number = 11;
 
             beforeEach(() => {
-                    dataView.metadata.objects = {
-                        label: {
-                            show: true,
-                            color: labelColor,
-                            fontSize: labelFontSize
-                        }
-                    };
-                });
+                dataView.metadata.objects = {
+                    label: {
+                        show: true,
+                        color: labelColor,
+                        fontSize: labelFontSize
+                    }
+                };
+            });
 
             it("Should create svg element", () => {
                 expect(visualBuilder.mainElement[0]).toBeInDOM();
@@ -413,7 +418,7 @@ module powerbi.extensibility.visual.test {
                     visualBuilder.updateFlushAllD3Transitions(dataView);
 
                     let piesOptionName: string = "pies",
-                        piesOptions: EnumerateVisualObjectInstancesOptions = <EnumerateVisualObjectInstancesOptions> { objectName: piesOptionName };
+                        piesOptions: EnumerateVisualObjectInstancesOptions = <EnumerateVisualObjectInstancesOptions>{ objectName: piesOptionName };
 
                     let colorOptions: VisualObjectInstanceEnumeration = visualBuilder.enumerateObjectInstances(piesOptions);
 
@@ -596,6 +601,35 @@ module powerbi.extensibility.visual.test {
                     expect(visualBuilder.dataLabels[0]).not.toBeInDOM();
                 });
             });
+
+            describe("high contrast mode test", () => {
+                const backgroundColor: string = "#000000";
+                const foregroundColor: string = "#ff00ff";
+
+                beforeEach(() => {
+                    visualBuilder.visualHost.colorPalette.isHighContrast = true;
+
+                    visualBuilder.visualHost.colorPalette.background = { value: backgroundColor };
+                    visualBuilder.visualHost.colorPalette.foreground = { value: foregroundColor };
+                });
+
+                it("should not use fill style", (done) => {
+                    visualBuilder.updateRenderTimeout(dataView, () => {
+                        const slices: JQuery[] = visualBuilder.slices.toArray().map($);
+
+                        expect(isColorAppliedToElements(slices, null, "fill"));
+                        done();
+                    });
+                });
+
+                it("should use stroke style", (done) => {
+                    visualBuilder.updateRenderTimeout(dataView, () => {
+                        const slices: JQuery[] = visualBuilder.slices.toArray().map($);
+
+                        expect(isColorAppliedToElements(slices, foregroundColor, "stroke"));
+                        done();
+                    });
+                });
+            });
         });
-    });
-}
+    };

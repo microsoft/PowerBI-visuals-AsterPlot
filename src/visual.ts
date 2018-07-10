@@ -102,7 +102,8 @@ module powerbi.extensibility.visual {
         private slicesElement: d3.Selection<AsterPlotData>;
         private clearCatcher: d3.Selection<any>;
 
-        private colors: IDataColorPalette;
+        private colorPalette: IDataColorPalette;
+        private colorHelper: ColorHelper;
 
         private visualHost: IVisualHost;
         private localizationManager: ILocalizationManager;
@@ -142,7 +143,8 @@ module powerbi.extensibility.visual {
                 .classed(AsterPlotVisualClassName, true)
                 .style("position", "absolute");
 
-            this.colors = options.host.colorPalette;
+            this.colorPalette = options.host.colorPalette;
+            this.colorHelper = new ColorHelper(this.colorPalette);
             this.mainGroupElement = svg.append("g");
             this.mainLabelsElement = svg.append("g");
 
@@ -162,21 +164,28 @@ module powerbi.extensibility.visual {
                 true);
         }
 
-        public static converter(dataView: DataView, colors: IDataColorPalette, visualHost: IVisualHost, localizationManager: ILocalizationManager): AsterPlotData {
+        public static converter(dataView: DataView, colors: IDataColorPalette, colorHelper: ColorHelper, visualHost: IVisualHost, localizationManager: ILocalizationManager): AsterPlotData {
             let categorical = AsterPlotColumns.getCategoricalColumns(dataView);
 
             if (!AsterPlotConverterService.isDataValid(categorical)) {
                 return;
             }
 
-            let settings: AsterPlotSettings = AsterPlot.parseSettings(dataView, categorical.Category.source);
+            let settings: AsterPlotSettings = AsterPlot.parseSettings(dataView, categorical.Category.source, colorHelper);
             let converterService: AsterPlotConverterService = new AsterPlotConverterService(dataView, settings, colors, visualHost, categorical);
 
             return converterService.getConvertedData(localizationManager);
         }
 
-        private static parseSettings(dataView: DataView, categorySource: DataViewMetadataColumn): AsterPlotSettings {
+        private static parseSettings(dataView: DataView, categorySource: DataViewMetadataColumn, colorHelper: ColorHelper): AsterPlotSettings {
             let settings: AsterPlotSettings = AsterPlotSettings.parse<AsterPlotSettings>(dataView);
+
+            // parse colors for high contrast mode
+            settings.label.color = colorHelper.getHighContrastColor("foreground", settings.label.color);
+            settings.labels.color = colorHelper.getHighContrastColor("foreground", settings.labels.color);
+            settings.legend.labelColor = colorHelper.getHighContrastColor("foreground", settings.legend.labelColor);
+            settings.outerLine.color = colorHelper.getHighContrastColor("foreground", settings.outerLine.color);
+            settings.outerLine.textColor = colorHelper.getHighContrastColor("foreground", settings.outerLine.textColor);
 
             settings.labels.precision = Math.min(17, Math.max(0, settings.labels.precision));
             settings.outerLine.thickness = Math.min(25, Math.max(0.1, settings.outerLine.thickness));
@@ -206,7 +215,7 @@ module powerbi.extensibility.visual {
                 return;
             }
 
-            let data = AsterPlot.converter(options.dataViews[0], this.colors, this.visualHost, this.localizationManager);
+            let data = AsterPlot.converter(options.dataViews[0], this.colorPalette, this.colorHelper, this.visualHost, this.localizationManager);
 
             if (!data) {
                 this.clear();
@@ -224,9 +233,9 @@ module powerbi.extensibility.visual {
             dataLabelUtils.cleanDataLabels(this.mainLabelsElement, true);
 
             this.renderService = new DataRenderService(data,
-                                                this.settings,
-                                                this.layout,
-                                                this.tooltipServiceWrapper);
+                this.settings,
+                this.layout,
+                this.tooltipServiceWrapper);
 
             this.renderService.renderArcs(this.slicesElement, false);
 
@@ -348,8 +357,8 @@ module powerbi.extensibility.visual {
         public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstanceEnumeration {
             const instanceEnumeration: VisualObjectInstanceEnumeration =
                 AsterPlotSettings.enumerateObjectInstances(
-                this.settings || AsterPlotSettings.getDefault(),
-                options);
+                    this.settings || AsterPlotSettings.getDefault(),
+                    options);
 
             if (options.objectName === AsterPlot.PiesPropertyIdentifier.objectName) {
                 this.enumeratePies(instanceEnumeration);
@@ -374,7 +383,7 @@ module powerbi.extensibility.visual {
                     objectName: AsterPlot.PiesPropertyIdentifier.objectName,
                     selector: ColorHelper.normalizeSelector(identity.getSelector(), false),
                     properties: {
-                        fill: { solid: { color: pie.color } }
+                        fill: { solid: { color: pie.fillColor } }
                     }
                 });
             });

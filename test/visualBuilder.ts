@@ -33,6 +33,7 @@ module powerbi.extensibility.visual.test {
     // AsterPlot1443303142064
     import VisualClass = powerbi.extensibility.visual.AsterPlot1443303142064.AsterPlot;
     import AsterPlotData = powerbi.extensibility.visual.AsterPlot1443303142064.AsterPlotData;
+    import ColorHelper = powerbi.extensibility.utils.color.ColorHelper;
 
     export class AsterPlotBuilder extends VisualBuilderBase<VisualClass> {
         constructor(width: number, height: number) {
@@ -97,7 +98,10 @@ module powerbi.extensibility.visual.test {
             return VisualClass.converter(
                 dataView,
                 this.visualHost.colorPalette,
-                this.visualHost);
+                new ColorHelper(this.visualHost.colorPalette),
+                this.visualHost,
+                this.visualHost.localizationManager
+            );
         }
     }
 }

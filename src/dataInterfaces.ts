@@ -53,7 +53,9 @@ module powerbi.extensibility.visual {
     }
 
     export interface AsterDataPoint extends SelectableDataPoint {
-        color: string;
+        fillColor: string;
+        strokeColor: string;
+        strokeWidth: number;
         sliceHeight?: number;
         sliceWidth?: number;
         label: string;
