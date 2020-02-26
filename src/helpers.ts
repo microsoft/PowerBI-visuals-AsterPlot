@@ -24,42 +24,43 @@
  *  THE SOFTWARE.
  */
 
-module powerbi.extensibility.visual {
-    export class Helpers {
-        public static setAttr(
-            element: d3.Selection<any>,
-            attrName: string,
-            attrValue: (data: any, index: number) => any) {
-            element.attr(attrName, attrValue);
-        }
+import {Selection} from "./dataInterfaces";
+import * as d3 from "d3";
 
-        public static setTransition(
-            element: d3.Selection<any>,
-            animationDuration: number,
-            attrName: string,
-            attrValue: (data: any, index: number) => any) {
+export class Helpers {
+    public static setAttr(
+        element: Selection<any>,
+        attrName: string,
+        attrValue: (data: any, index: number) => any) {
+        element.attr(attrName, attrValue);
+    }
 
-            element
-                .transition()
-                .duration(animationDuration)
-                .attrTween(attrName, Helpers.interpolateArc(attrValue));
-        }
+    public static setTransition(
+        element: Selection<any>,
+        animationDuration: number,
+        attrName: string,
+        attrValue: (data: any, index: number) => any) {
 
-        public static needToSetTransition(viewportChanged: boolean) {
-            return !viewportChanged;
-        }
+        element
+            .transition()
+            .duration(animationDuration)
+            .attrTween(attrName, Helpers.interpolateArc(attrValue));
+    }
 
-        public static interpolateArc(arc: any) {
-            return function (data) {
-                if (!this.oldData) {
-                    this.oldData = data;
-                    return () => arc(data);
-                }
+    public static needToSetTransition(viewportChanged: boolean) {
+        return !viewportChanged;
+    }
 
-                let interpolation = d3.interpolate(this.oldData, data);
-                this.oldData = interpolation(0);
-                return (x) => arc(interpolation(x));
-            };
-        }
+    public static interpolateArc(arc: any) {
+        return function (data) {
+            if (!this.oldData) {
+                this.oldData = data;
+                return () => arc(data);
+            }
+
+            let interpolation = d3.interpolate(this.oldData, data);
+            this.oldData = interpolation(0);
+            return (x) => arc(interpolation(x));
+        };
     }
 }

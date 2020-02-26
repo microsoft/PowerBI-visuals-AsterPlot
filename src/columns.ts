@@ -24,40 +24,48 @@
  *  THE SOFTWARE.
  */
 
-module powerbi.extensibility.visual {
-    // powerbi.extensibility.utils.dataview
-    import converterHelper = powerbi.extensibility.utils.dataview.converterHelper;
+import powerbi from "powerbi-visuals-api";
+import DataView  = powerbi.DataView;
+import DataViewCategoryColumn  = powerbi.DataViewCategoryColumn;
+import DataViewValueColumn  = powerbi.DataViewValueColumn;
+import DataViewValueColumns  = powerbi.DataViewValueColumns;
 
-    export class AsterPlotColumns<T> {
-        public static getCategoricalValues(dataView: DataView) {
-            let categorical = dataView && dataView.categorical;
-            let categories: (DataViewCategoryColumn | DataViewValueColumn)[] = categorical && categorical.categories || [];
-            let values = categorical && categorical.values || <DataViewValueColumns>[];
-            let series = categorical && values.source && this.getSeriesValues(dataView);
-            return categorical && _.mapValues(new this<any[]>(), (n, i) =>
-                (<(DataViewCategoryColumn | DataViewValueColumn)[]>_.toArray(categories)).concat(_.toArray(values))
-                    .filter(x => x.source.roles && x.source.roles[i]).map(x => x.values)[0]
-                || values.source && values.source.roles && values.source.roles[i] && series);
-        }
+// powerbi.extensibility.utils.dataview
+import {converterHelper as helper} from "powerbi-visuals-utils-dataviewutils";
 
-        public static getSeriesValues(dataView: DataView) {
-            return dataView && dataView.categorical && dataView.categorical.values
-                && dataView.categorical.values.map(x => converterHelper.getSeriesName(x.source));
-        }
+import converterHelper = helper.converterHelper;
 
-        public static getCategoricalColumns(dataView: DataView) {
-            let categorical = dataView && dataView.categorical;
-            let categories = categorical && categorical.categories || [];
-            let values = categorical && categorical.values || <DataViewValueColumns>[];
-            return categorical && _.mapValues(
-                new this<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>(),
-                (n, i) => categories.filter(x => x.source.roles && x.source.roles[i])[0]
-                    || values.source && values.source.roles && values.source.roles[i]
-                    || values.filter(x => x.source.roles && x.source.roles[i]));
-        }
+import _ = require("lodash");
 
-        // Data Roles
-        public Category: T = null;
-        public Y: T = null;
+export class AsterPlotColumns<T> {
+    public static getCategoricalValues(dataView: DataView) {
+        let categorical = dataView && dataView.categorical;
+        let categories: (DataViewCategoryColumn | DataViewValueColumn)[] = categorical && categorical.categories || [];
+        let values = categorical && categorical.values || <DataViewValueColumns>[];
+        let series = categorical && values.source && this.getSeriesValues(dataView);
+        return categorical && _.mapValues(new this<any[]>(), (n, i) =>
+            (<(DataViewCategoryColumn | DataViewValueColumn)[]>_.toArray(categories)).concat(_.toArray(values))
+                .filter(x => x.source.roles && x.source.roles[i]).map(x => x.values)[0]
+            || values.source && values.source.roles && values.source.roles[i] && series);
     }
+
+    public static getSeriesValues(dataView: DataView) {
+        return dataView && dataView.categorical && dataView.categorical.values
+            && dataView.categorical.values.map(x => converterHelper.getSeriesName(x.source));
+    }
+
+    public static getCategoricalColumns(dataView: DataView) {
+        let categorical = dataView && dataView.categorical;
+        let categories = categorical && categorical.categories || [];
+        let values = categorical && categorical.values || <DataViewValueColumns>[];
+        return categorical && _.mapValues(
+            new this<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>(),
+            (n, i) => { debugger; return categories.filter(x => x.source.roles && x.source.roles[i])[0]
+                || values.source && values.source.roles && values.source.roles[i]
+                || values.filter(x => x.source.roles && x.source.roles[i]);} );
+    }
+
+    // Data Roles
+    public Category: T = null;
+    public Y: T = null;
 }

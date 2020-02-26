@@ -24,58 +24,67 @@
  *  THE SOFTWARE.
  */
 
-module powerbi.extensibility.visual {
-    // d3
-    import Selection = d3.Selection;
+// d3
+// import Selection = d3.Selection;
+import { Selection, AsterPlotData } from "./dataInterfaces";
+// powerbi.extensibility.utils.interactivity
+import { interactivityBaseService, interactivitySelectionService, interactivityUtils } from "powerbi-visuals-utils-interactivityutils";
+import appendClearCatcher = interactivityBaseService.appendClearCatcher;
+import createInteractivityService = interactivitySelectionService.createInteractivitySelectionService;
+import IInteractivityService = interactivityBaseService.IInteractivityService;
+import IInteractiveBehavior = interactivityBaseService.IInteractiveBehavior;
+import SelectableDataPoint = interactivitySelectionService.SelectableDataPoint;
+import IBehaviorOptions = interactivityBaseService.IBehaviorOptions;
+import getEvent = interactivityUtils.getEvent;
 
-    // powerbi.extensibility.utils.interactivity
-    import ISelectionHandler = powerbi.extensibility.utils.interactivity.ISelectionHandler;
-    import IInteractiveBehavior = powerbi.extensibility.utils.interactivity.IInteractiveBehavior;
-    import IInteractivityService = powerbi.extensibility.utils.interactivity.IInteractivityService;
+// powerbi.extensibility.utils.interactivity
+import ISelectionHandler = interactivityBaseService.ISelectionHandler;
 
-    export interface AsterPlotBehaviorOptions {
-        selection: Selection<AsterPlotData>;
-        clearCatcher: Selection<any>;
-        interactivityService: IInteractivityService;
-        hasHighlights: boolean;
+import { asterPlotUtils } from "./utils";
+
+
+export interface AsterPlotBehaviorOptions extends IBehaviorOptions<SelectableDataPoint> {
+    selection: Selection<AsterPlotData>;
+    clearCatcher: Selection<any>;
+    interactivityService: IInteractivityService<SelectableDataPoint>;
+    hasHighlights: boolean;
+}
+
+export class AsterPlotWebBehavior implements IInteractiveBehavior {
+    private selection: Selection<any>;
+    private clearCatcher: Selection<any>;
+    private interactivityService: IInteractivityService<SelectableDataPoint>;
+    private hasHighlights: boolean;
+
+    public bindEvents(options: AsterPlotBehaviorOptions, selectionHandler: ISelectionHandler) {
+        this.selection = options.selection;
+        this.clearCatcher = options.clearCatcher;
+        this.interactivityService = options.interactivityService;
+        this.hasHighlights = options.hasHighlights;
+
+        this.selection.on("click", (d, i: number) => {
+            selectionHandler.handleSelection(d.data, (<MouseEvent>getEvent()).ctrlKey);
+        });
+
+        this.clearCatcher.on("click", () => {
+            selectionHandler.handleClearSelection();
+        });
+
+        this.renderSelection(this.interactivityService.hasSelection());
     }
 
-    export class AsterPlotWebBehavior implements IInteractiveBehavior {
-        private selection: Selection<any>;
-        private clearCatcher: Selection<any>;
-        private interactivityService: IInteractivityService;
-        private hasHighlights: boolean;
+    public renderSelection(hasSelection: boolean) {
+        this.changeOpacityAttribute("fill-opacity", hasSelection);
+        this.changeOpacityAttribute("stroke-opacity", hasSelection);
+    }
 
-        public bindEvents(options: AsterPlotBehaviorOptions, selectionHandler: ISelectionHandler) {
-            this.selection = options.selection;
-            this.clearCatcher = options.clearCatcher;
-            this.interactivityService = options.interactivityService;
-            this.hasHighlights = options.hasHighlights;
-
-            this.selection.on("click", (d, i: number) => {
-                selectionHandler.handleSelection(d.data, (d3.event as MouseEvent).ctrlKey);
-            });
-
-            this.clearCatcher.on("click", () => {
-                selectionHandler.handleClearSelection();
-            });
-
-            this.renderSelection(this.interactivityService.hasSelection());
-        }
-
-        public renderSelection(hasSelection: boolean) {
-            this.changeOpacityAttribute("fill-opacity", hasSelection);
-            this.changeOpacityAttribute("stroke-opacity", hasSelection);
-        }
-
-        private changeOpacityAttribute(attributeName: string, hasSelection: boolean) {
-            this.selection.style(attributeName, (d) => {
-                return asterPlotUtils.getFillOpacity(
-                    d.data.selected,
-                    d.data.highlight,
-                    hasSelection,
-                    this.hasHighlights);
-            });
-        }
+    private changeOpacityAttribute(attributeName: string, hasSelection: boolean) {
+        this.selection.style(attributeName, (d) => {
+            return asterPlotUtils.getFillOpacity(
+                d.data.selected,
+                d.data.highlight,
+                hasSelection,
+                this.hasHighlights);
+        });
     }
 }

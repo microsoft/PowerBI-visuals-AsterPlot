@@ -24,44 +24,59 @@
  *  THE SOFTWARE.
  */
 
-module powerbi.extensibility.visual {
-    // d3
-    import ArcDescriptor = d3.layout.pie.Arc;
 
-    // powerbi.extensibility.utils.chart
-    import LegendData = powerbi.extensibility.utils.chart.legend.LegendData;
+import * as d3 from "d3";
+import { Arc } from "d3-shape";
+// d3
+type ArcDescriptor<T> = Arc<any, T>;
 
-    // powerbi.extensibility.utils.formatting
-    import IValueFormatter = powerbi.extensibility.utils.formatting.IValueFormatter;
+// powerbi
+import powerbi from "powerbi-visuals-api";
+import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 
-    // powerbi.extensibility.utils.interactivity
-    import SelectableDataPoint = powerbi.extensibility.utils.interactivity.SelectableDataPoint;
+export type Selection<T> = d3.Selection<any, T, any, any>;
+export type UpdateSelection<T> = d3.Selection<any, T, any, any>;
 
-    export interface AsterPlotData {
-        dataPoints: AsterDataPoint[];
-        highlightedDataPoints?: AsterDataPoint[];
-        settings: AsterPlotSettings;
-        hasHighlights: boolean;
-        legendData: LegendData;
-        labelFormatter: IValueFormatter;
-        centerText: string;
-    }
+// powerbi.extensibility.utils.chart
+import * as LegendUtil from "powerbi-visuals-utils-chartutils";
+import LegendData = LegendUtil.legendInterfaces.LegendData;
 
-    export interface AsterArcDescriptor extends ArcDescriptor<AsterDataPoint> {
-        isLabelHasConflict?: boolean;
-        data: AsterDataPoint;
-    }
+// powerbi.extensibility.utils.formatting
+import {valueFormatter} from "powerbi-visuals-utils-formattingutils";
+import IValueFormatter = valueFormatter.IValueFormatter;
 
-    export interface AsterDataPoint extends SelectableDataPoint {
-        fillColor: string;
-        strokeColor: string;
-        strokeWidth: number;
-        sliceHeight?: number;
-        sliceWidth?: number;
-        label: string;
-        highlight?: boolean;
-        tooltipInfo: VisualTooltipDataItem[];
-        labelFontSize: string;
-        categoryName: string;
-    }
+// powerbi.extensibility.utils.interactivity
+import { interactivitySelectionService} from "powerbi-visuals-utils-interactivityutils";
+import SelectableDataPoint = interactivitySelectionService.SelectableDataPoint;
+
+import { AsterPlotSettings } from "./settings";
+
+import {} from "powerbi-visuals-utils-tooltiputils";
+
+export interface AsterPlotData {
+    dataPoints: AsterDataPoint[];
+    highlightedDataPoints?: AsterDataPoint[];
+    settings: AsterPlotSettings;
+    hasHighlights: boolean;
+    legendData: LegendData;
+    labelFormatter: IValueFormatter;
+    centerText: string;
+}
+
+export interface AsterArcDescriptor extends ArcDescriptor<AsterDataPoint> {
+    isLabelHasConflict?: boolean;
+    data: AsterDataPoint;
+}
+
+export interface AsterDataPoint extends SelectableDataPoint {
+    fillColor: string;
+    strokeColor: string;
+    strokeWidth: number;
+    sliceHeight?: number;
+    sliceWidth?: number;
+    label: string;
+    highlight?: boolean;
+    tooltipInfo: VisualTooltipDataItem[];
+    labelFontSize: string;
+    categoryName: string;
 }
