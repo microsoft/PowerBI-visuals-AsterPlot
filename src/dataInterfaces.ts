@@ -28,7 +28,7 @@
 import * as d3 from "d3";
 import { Arc } from "d3-shape";
 // d3
-type ArcDescriptor<T> = Arc<any, T>;
+export type ArcDescriptor<T> = Arc<any, T>;
 
 // powerbi
 import powerbi from "powerbi-visuals-api";

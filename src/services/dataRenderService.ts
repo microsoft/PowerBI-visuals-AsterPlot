@@ -33,7 +33,6 @@ import {
     dataLabelManager as DataLabelManager,
     dataLabelUtils,
     dataLabelInterfaces,
-
 } from "powerbi-visuals-utils-chartutils";
 import ILabelLayout = dataLabelInterfaces.ILabelLayout;
 import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
@@ -41,10 +40,8 @@ import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
 // d3
 import * as d3 from "d3";
 import { Arc as SvgArc } from "d3-shape";
-type ArcDescriptor<T> = SvgArc<any, T>;
-type Selection<T> = d3.Selection<any, T, any, any>;
 
-import {AsterArcDescriptor} from "./../dataInterfaces";
+import {AsterArcDescriptor, ArcDescriptor, Selection} from "./../dataInterfaces";
 
 // powerbi.extensibility.utils.svg
 import { CssConstants } from "powerbi-visuals-utils-svgutils";
@@ -97,7 +94,7 @@ import _ = require("lodash");
 export class DataRenderService {
     private static AsterRadiusRatio: number = 0.9;
     private static AsterConflictRatio: number = 0.9;
-    private static AnimationDuration: number = 5250;
+    private static AnimationDuration: number = 1250;
     private static CenterTextFontWidthCoefficient = 1.9;
     private static AxisTextWidthCoefficient = 1.75;
     private static PixelsBelowAxis = 5;
@@ -125,7 +122,7 @@ export class DataRenderService {
     private tooltipServiceWrapper: ITooltipServiceWrapper;
     private dataPoints: ArcDescriptor<AsterDataPoint>[];
     private highlightedDataPoints: ArcDescriptor<AsterDataPoint>[];
-    private arcSvg: ArcDescriptor<AsterArcDescriptor>;
+    private arcSvg: AsterArcDescriptor;
     private ticksOptions: CircleTicksOptions;
     private ticksRadiusArray: number[];
     private tickValuesArray: number[];
@@ -158,7 +155,7 @@ export class DataRenderService {
         }
 
         this.arcSvg = this.getArcSvg(this.innerRadius, this.viewportRadius, this.maxHeight);
-        this.outerRadius = _.max(this.dataPoints.map(d => this.arcSvg.outerRadius()(d, undefined)));
+        this.outerRadius = _.max(this.dataPoints.map(d => this.arcSvg.outerRadius()(d as any, undefined)));
 
         if (showOuterLine) {
             this.outerRadius *= this.ticksOptions.diffPercent;
@@ -195,12 +192,12 @@ export class DataRenderService {
     }
 
     public renderArcs(slicesElement: Selection<AsterPlotData>, isHighlighted: boolean) {
-        let arc: ArcDescriptor<AsterArcDescriptor> = this.arcSvg,
+        let arc: AsterArcDescriptor = this.arcSvg,
             classSelector: ClassAndSelector = this.getClassAndSelector(isHighlighted);
 
         let selection = slicesElement
             .selectAll(classSelector.selectorName)
-            .data(isHighlighted ? this.highlightedDataPoints : this.dataPoints, (d: ArcDescriptor<AsterDataPoint>, i: number) => {
+            .data(isHighlighted ? this.highlightedDataPoints : this.dataPoints, (d: AsterArcDescriptor, i: number) => {
                 return d.data
                     ? (d.data.identity as powerbi.visuals.ISelectionId).getKey()
                     : i as any; // TODO: check it.
@@ -279,7 +276,7 @@ export class DataRenderService {
     }
 
     private drawOuter(element: Selection<any>) {
-        let outlineArc: ArcDescriptor<any> = d3.svg.arc()
+        let outlineArc: SvgArc<d3.svg.arc.Arc> = d3.svg.arc()
             .innerRadius(this.settings.outerLine.showStraightLines ? this.innerRadius : this.outerRadius)
             .outerRadius(this.outerRadius);
 
@@ -298,16 +295,16 @@ export class DataRenderService {
         outerLine.exit().remove();
     }
 
-    public drawOuterLines(element: Selection<any>): void {
+    public drawOuterLines(element: d3.Selection<any>): void {
         let settings: AsterPlotSettings = this.settings;
 
         this.drawOuter(element);
 
-        // if (settings.outerLine.showGrid || settings.outerLine.showGridTicksValues) {
-        //     this.drawGrid(element, settings.outerLine);
-        // } else {
-        //     this.cleanGrid(element);
-        // }
+        if (settings.outerLine.showGrid || settings.outerLine.showGridTicksValues) {
+            this.drawGrid(element, settings.outerLine);
+        } else {
+            this.cleanGrid(element);
+        }
     }
 
     private cleanGrid(element: Selection<any>): void {
@@ -475,12 +472,12 @@ export class DataRenderService {
         }
     }
 
-    public cleanLabels(labelsElement: Selection<any>): void {
+    public cleanLabels(labelsElement: d3.Selection<any>): void {
         dataLabelUtils.cleanDataLabels(labelsElement, true);
     }
 
     private drawLabels(data: ArcDescriptor<AsterDataPoint>[],
-        context: Selection<AsterArcDescriptor>,
+        context: d3.Selection<AsterArcDescriptor>,
         layout: ILabelLayout,
         viewport: IViewport,
         outlineArc: d3.svg.Arc<AsterArcDescriptor>,
@@ -549,10 +546,12 @@ export class DataRenderService {
                 chartPoint[1] *= DataRenderService.ChartLinePadding;
 
                 return [chartPoint, textPoint] as any; // TODO: check it
-            })
-            .style("opacity", 0.5)
-            .style("fill-opacity", 0)
-            .style("stroke", () => this.settings.labels.color);
+            }).
+            style({
+                "opacity": 0.5,
+                "fill-opacity": 0,
+                "stroke": () => this.settings.labels.color,
+            });
 
         lines
             .exit()
@@ -560,7 +559,7 @@ export class DataRenderService {
 
     }
 
-    private getLabelLayout(arc: ArcDescriptor<AsterArcDescriptor>, viewport: IViewport): ILabelLayout {
+    private getLabelLayout(arc: SvgArc<AsterArcDescriptor>, viewport: IViewport): ILabelLayout {
         let midAngle = function (d: ArcDescriptor<AsterDataPoint>) { return d.startAngle + (d.endAngle - d.startAngle) / 2; };
         let textProperties: TextProperties = {
             fontFamily: dataLabelUtils.StandardFontFamily,
@@ -588,13 +587,13 @@ export class DataRenderService {
                 return textMeasurementService.getTailoredTextOrDefault(textProperties, spaceAvaliableForLabels);
             },
             labelLayout: {
-                x: (d: ArcDescriptor) => {
+                x: (d: AsterArcDescriptor) => {
                     let pos = arc.centroid(d);
                     textProperties.text = d.data.label;
                     let xPos = d.isLabelHasConflict ? pos[0] * DataRenderService.AsterConflictRatio : pos[0];
                     return xPos;
                 },
-                y: (d: ArcDescriptor) => {
+                y: (d: AsterArcDescriptor) => {
                     let pos: [number, number] = arc.centroid(d);
                     let yPos: number = d.isLabelHasConflict ? pos[1] * DataRenderService.AsterConflictRatio : pos[1];
                     return yPos;
