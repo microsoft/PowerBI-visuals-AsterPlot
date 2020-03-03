@@ -25,58 +25,57 @@
  */
 
 /// <reference path="_references.ts"/>
+/// <reference path="../node_modules/powerbi-visuals-api/index.d.ts"/>
 
-module powerbi.extensibility.visual.test {
-    // powerbi.extensibility.utils.test
-    import TestDataViewBuilder = powerbi.extensibility.utils.test.dataViewBuilder.TestDataViewBuilder;
+// powerbi.extensibility.utils.test
+import TestDataViewBuilder = powerbi.extensibility.utils.test.dataViewBuilder.TestDataViewBuilder;
 
-    // powerbi.extensibility.utils.type
-    import ValueType = powerbi.extensibility.utils.type.ValueType;
+// powerbi.extensibility.utils.type
+import ValueType = powerbi.extensibility.utils.type.ValueType;
 
-    export class AsterPlotData extends TestDataViewBuilder {
-        public static ColumnCategory: string = "category";
-        public static ColumnY1: string = "sales1";
-        public static ColumnY2: string = "sales2";
+export class AsterPlotData extends TestDataViewBuilder {
+    public static ColumnCategory: string = "category";
+    public static ColumnY1: string = "sales1";
+    public static ColumnY2: string = "sales2";
 
-        public valuesCategory: string[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-        public valuesY1: number[] = [742731.43, 162066.43, 283085.78, 300263.49, 376074.57, 814724.34, 570921.34];
-        public valuesY2: number[] = [123455.43, 40566.43, 200457.78, 5000.49, 320000.57, 450000.34, 140832.67];
+    public valuesCategory: string[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    public valuesY1: number[] = [742731.43, 162066.43, 283085.78, 300263.49, 376074.57, 814724.34, 570921.34];
+    public valuesY2: number[] = [123455.43, 40566.43, 200457.78, 5000.49, 320000.57, 450000.34, 140832.67];
 
-        public getDataView(columnNames?: string[]): DataView {
-            return this.createCategoricalDataViewBuilder([
-                {
-                    source: {
-                        displayName: "Day",
-                        queryName: AsterPlotData.ColumnCategory,
-                        type: ValueType.fromDescriptor({ text: true }),
-                        roles: { Category: true },
-                    },
-                    values: this.valuesCategory
-                }
-            ], [
-                    {
-                        source: {
-                            displayName: "Previous week sales",
-                            isMeasure: true,
-                            format: "$0,000.00",
-                            queryName: AsterPlotData.ColumnY1,
-                            type: ValueType.fromDescriptor({ numeric: true }),
-                            roles: { Y: true },
-                        },
-                        values: this.valuesY1
-                    },
-                    {
-                        source: {
-                            displayName: "This week sales",
-                            isMeasure: true,
-                            format: "$0,000.00",
-                            queryName: AsterPlotData.ColumnY2,
-                            type: ValueType.fromDescriptor({ numeric: true }),
-                            roles: { Y: true },
-                        },
-                        values: this.valuesY2
-                    }
-                ], columnNames).build();
-        }
+    public getDataView(columnNames?: string[]): powerbi.DataView {
+        return this.createCategoricalDataViewBuilder([
+            {
+                source: {
+                    displayName: "Day",
+                    queryName: AsterPlotData.ColumnCategory,
+                    type: ValueType.fromDescriptor({ text: true }),
+                    roles: { Category: true },
+                },
+                values: this.valuesCategory
+            }
+        ], [
+            {
+                source: {
+                    displayName: "Previous week sales",
+                    isMeasure: true,
+                    format: "$0,000.00",
+                    queryName: AsterPlotData.ColumnY1,
+                    type: ValueType.fromDescriptor({ numeric: true }),
+                    roles: { Y: true },
+                },
+                values: this.valuesY1
+            },
+            {
+                source: {
+                    displayName: "This week sales",
+                    isMeasure: true,
+                    format: "$0,000.00",
+                    queryName: AsterPlotData.ColumnY2,
+                    type: ValueType.fromDescriptor({ numeric: true }),
+                    roles: { Y: true },
+                },
+                values: this.valuesY2
+            }
+        ], columnNames).build();
     }
 }

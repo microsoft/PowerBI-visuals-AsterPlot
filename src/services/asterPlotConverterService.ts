@@ -48,7 +48,7 @@ import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 import IValueFormatter = valueFormatter.IValueFormatter;
 
 // powerbi.extensibility.utils.type
-import { pixelConverter as PixelConverter  } from "powerbi-visuals-utils-typeutils";
+import { pixelConverter as PixelConverter } from "powerbi-visuals-utils-typeutils";
 
 import IDataColorPalette = powerbi.extensibility.IColorPalette;
 
@@ -129,8 +129,8 @@ import {
 } from "./../tooltipBuilder";
 import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
 import { createLegend } from "powerbi-visuals-utils-chartutils/lib/legend/legend";
-import _ = require("lodash");
 
+import { isEmpty } from "lodash-es";
 
 
 const minStrokeWidth: number = 0;
@@ -194,9 +194,9 @@ export class AsterPlotConverterService {
     public static isDataValid(categorical: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>): boolean {
         return categorical
             && categorical.Category
-            && !_.isEmpty(categorical.Category.values)
-            && !_.isEmpty(categorical.Y)
-            && !_.isEmpty(categorical.Y[0].values);
+            && !isEmpty(categorical.Category.values)
+            && !isEmpty(categorical.Y)
+            && !isEmpty(categorical.Y[0].values);
     }
 
     private containsHighlights(categorical: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>): boolean {

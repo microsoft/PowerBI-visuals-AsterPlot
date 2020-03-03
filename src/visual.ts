@@ -25,7 +25,6 @@
  */
 
 
-
 import * as d3 from "d3";
 import "d3-selection-multi";
 
@@ -122,12 +121,13 @@ import {
 } from "./settings";
 import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
 import { createLegend } from "powerbi-visuals-utils-chartutils/lib/legend/legend";
-import _ = require("lodash");
-
+// import _ = require("lodash");
+import { isEmpty, clone } from "lodash-es";
 
 let AsterPlotVisualClassName: string = "asterPlot";
 
 
+import "../style/asterPlot.less";
 
 export class AsterPlot implements IVisual {
     private static AsterSlices: ClassAndSelector = createClassAndSelector("asterSlices");
@@ -170,7 +170,9 @@ export class AsterPlot implements IVisual {
     private tooltipServiceWrapper: ITooltipServiceWrapper;
 
     constructor(options: VisualConstructorOptions) {
-
+        if (window.location !== window.parent.location) {
+            require("core-js/stable");
+        }
         this.visualHost = options.host;
         this.localizationManager = this.visualHost.createLocalizationManager();
 
@@ -237,7 +239,7 @@ export class AsterPlot implements IVisual {
         settings.labels.precision = Math.min(17, Math.max(0, settings.labels.precision));
         settings.outerLine.thickness = Math.min(25, Math.max(0.1, settings.outerLine.thickness));
 
-        if (_.isEmpty(settings.legend.titleText)) {
+        if (isEmpty(settings.legend.titleText)) {
             settings.legend.titleText = categorySource.displayName;
         }
 
@@ -257,7 +259,6 @@ export class AsterPlot implements IVisual {
     }
 
     public update(options: VisualUpdateOptions): void {
-
         if (!this.areValidOptions(options)) {
             return;
         }
@@ -303,7 +304,6 @@ export class AsterPlot implements IVisual {
         } else {
             this.renderService.cleanCenterText(this.mainGroupElement);
         }
-        debugger;
         if (this.settings.outerLine.show) {
             this.renderService.drawOuterLines(this.mainGroupElement);
         } else {
@@ -351,7 +351,7 @@ export class AsterPlot implements IVisual {
     private renderLegend(): void {
         if (this.settings.legend.show) {
             // Force update for title text
-            let legendObject = _.clone(this.settings.legend);
+            let legendObject = clone(this.settings.legend);
             legendObject.labelColor = <any>{ solid: { color: legendObject.labelColor } };
             LegendDataModule.update(this.data.legendData, <any>legendObject);
             this.legend.changeOrientation(LegendPosition[this.settings.legend.position]);

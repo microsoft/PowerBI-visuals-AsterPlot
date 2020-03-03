@@ -25,17 +25,17 @@
  */
 
 import powerbi from "powerbi-visuals-api";
-import DataView  = powerbi.DataView;
-import DataViewCategoryColumn  = powerbi.DataViewCategoryColumn;
-import DataViewValueColumn  = powerbi.DataViewValueColumn;
-import DataViewValueColumns  = powerbi.DataViewValueColumns;
+import DataView = powerbi.DataView;
+import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
+import DataViewValueColumn = powerbi.DataViewValueColumn;
+import DataViewValueColumns = powerbi.DataViewValueColumns;
 
 // powerbi.extensibility.utils.dataview
-import {converterHelper as helper} from "powerbi-visuals-utils-dataviewutils";
+import { converterHelper as helper } from "powerbi-visuals-utils-dataviewutils";
 
 import converterHelper = helper.converterHelper;
 
-import _ = require("lodash");
+import { toArray, mapValues } from "lodash-es";
 
 export class AsterPlotColumns<T> {
     public static getCategoricalValues(dataView: DataView) {
@@ -43,8 +43,8 @@ export class AsterPlotColumns<T> {
         let categories: (DataViewCategoryColumn | DataViewValueColumn)[] = categorical && categorical.categories || [];
         let values = categorical && categorical.values || <DataViewValueColumns>[];
         let series = categorical && values.source && this.getSeriesValues(dataView);
-        return categorical && _.mapValues(new this<any[]>(), (n, i) =>
-            (<(DataViewCategoryColumn | DataViewValueColumn)[]>_.toArray(categories)).concat(_.toArray(values))
+        return categorical && mapValues(new this<any[]>(), (n, i) =>
+            (<(DataViewCategoryColumn | DataViewValueColumn)[]>toArray(categories)).concat(toArray(values))
                 .filter(x => x.source.roles && x.source.roles[i]).map(x => x.values)[0]
             || values.source && values.source.roles && values.source.roles[i] && series);
     }
@@ -58,11 +58,13 @@ export class AsterPlotColumns<T> {
         let categorical = dataView && dataView.categorical;
         let categories = categorical && categorical.categories || [];
         let values = categorical && categorical.values || <DataViewValueColumns>[];
-        return categorical && _.mapValues(
+        return categorical && mapValues(
             new this<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>(),
-            (n, i) => { debugger; return categories.filter(x => x.source.roles && x.source.roles[i])[0]
-                || values.source && values.source.roles && values.source.roles[i]
-                || values.filter(x => x.source.roles && x.source.roles[i]);} );
+            (n, i) => {
+                return categories.filter(x => x.source.roles && x.source.roles[i])[0]
+                    || values.source && values.source.roles && values.source.roles[i]
+                    || values.filter(x => x.source.roles && x.source.roles[i]);
+            });
     }
 
     // Data Roles
