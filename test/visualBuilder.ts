@@ -24,84 +24,104 @@
  *  THE SOFTWARE.
  */
 
-/// <reference path="_references.ts"/>
+// powerbi.extensibility.utils.test
+import {
+    VisualBuilderBase
+} from "powerbi-visuals-utils-testutils";
 
-module powerbi.extensibility.visual.test {
-    // powerbi.extensibility.utils.test
-    import VisualBuilderBase = powerbi.extensibility.utils.test.VisualBuilderBase;
+// SankeyDiagram1446463184954
+import {
+    AsterPlot as VisualClass
+} from "../src/visual";
 
-    // AsterPlot1443303142064
-    import VisualClass = powerbi.extensibility.visual.AsterPlot1443303142064.AsterPlot;
-    import AsterPlotData = powerbi.extensibility.visual.AsterPlot1443303142064.AsterPlotData;
-    import ColorHelper = powerbi.extensibility.utils.color.ColorHelper;
+import powerbi from "powerbi-visuals-api";
+import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
+import DataView = powerbi.DataView;
+import {
+    AsterPlotData
+} from "../src/dataInterfaces";
 
-    export class AsterPlotBuilder extends VisualBuilderBase<VisualClass> {
-        constructor(width: number, height: number) {
-            super(width, height, "AsterPlot1443303142064");
+import { ColorHelper } from "powerbi-visuals-utils-colorutils";
+import { MockISelectionIdBuilder } from "powerbi-visuals-utils-testutils/lib/mocks/mockISelectionIdBuilder";
+
+import { createSelectionId } from "powerbi-visuals-utils-testutils";
+
+class FakeSelectionIdBuilder extends MockISelectionIdBuilder {
+    private index = 0;
+    createSelectionId() {
+        return createSelectionId(`${this.index++}`);
+    }
+}
+
+export class AsterPlotBuilder extends VisualBuilderBase<VisualClass> {
+    constructor(width: number, height: number) {
+        super(width, height, "AsterPlot1443303142064");
+    }
+
+    protected build(options: VisualConstructorOptions): VisualClass {
+        options.host.createSelectionIdBuilder = () => {
+            return new FakeSelectionIdBuilder();
         }
+        return new VisualClass(options);
+    }
 
-        protected build(options: VisualConstructorOptions): VisualClass {
-            return new VisualClass(options);
-        }
+    public get mainElement(): JQuery {
+        return this.element.children("svg");
+    }
 
-        public get mainElement(): JQuery {
-            return this.element.children("svg");
-        }
+    public get legendGroup(): JQuery {
+        return this.element
+            .children(".legend")
+            .children("#legendGroup");
+    }
 
-        public get legendGroup(): JQuery {
-            return this.element
-                .children(".legend")
-                .children("#legendGroup");
-        }
+    public get firstLegendText(): JQuery {
+        return this.legendGroup
+            .children(".legendItem")
+            .first()
+            .children(".legendText");
+    }
 
-        public get firstLegendText(): JQuery {
-            return this.legendGroup
-                .children(".legendItem")
-                .first()
-                .children(".legendText");
-        }
+    public get dataLabels(): JQuery {
+        return this.mainElement
+            .children("g")
+            .children("g.labels")
+            .children("text.data-labels");
+    }
 
-        public get dataLabels(): JQuery {
-            return this.mainElement
-                .children("g")
-                .children("g.labels")
-                .children("text.data-labels");
-        }
+    public get lineLabel(): JQuery {
+        return this.mainElement
+            .children("g")
+            .children("g.lines")
+            .children("polyline.line-label");
+    }
 
-        public get lineLabel(): JQuery {
-            return this.mainElement
-                .children("g")
-                .children("g.lines")
-                .children("polyline.line-label");
-        }
+    public get slices(): JQuery {
+        return this.mainElement
+            .children("g")
+            .children("g.asterSlices")
+            .children("path.asterSlice");
+    }
 
-        public get slices(): JQuery {
-            return this.mainElement
-                .children("g")
-                .children("g.asterSlices")
-                .children("path.asterSlice");
-        }
+    public get outerLine(): JQuery {
+        return this.mainElement
+            .children("g")
+            .children("path.outerLine");
+    }
 
-        public get outerLine(): JQuery {
-            return this.mainElement
-                .children("g")
-                .children("path.outerLine");
-        }
+    public get outerLineGrid(): JQuery {
+        return this.mainElement
+            .children("g")
+            .children("g.circleLine");
+    }
 
-        public get outerLineGrid(): JQuery {
-            return this.mainElement
-                .children("g")
-                .children("g.circleLine");
-        }
-
-        public converter(dataView: DataView): AsterPlotData {
-            return VisualClass.converter(
-                dataView,
-                this.visualHost.colorPalette,
-                new ColorHelper(this.visualHost.colorPalette),
-                this.visualHost,
-                this.visualHost.localizationManager
-            );
-        }
+    public converter(dataView: DataView): AsterPlotData {
+        return VisualClass.converter(
+            dataView,
+            this.visualHost.colorPalette,
+            new ColorHelper(this.visualHost.colorPalette),
+            this.visualHost,
+            this.visualHost.createLocalizationManager()
+        );
     }
 }

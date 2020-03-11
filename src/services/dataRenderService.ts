@@ -149,7 +149,7 @@ export class DataRenderService {
         this.innerRadius = 0.3 * (this.settings.labels.show
             ? this.viewportRadius * DataRenderService.AsterRadiusRatio
             : this.viewportRadius);
-
+        debugger;
         let showOuterLine: boolean = settings.outerLine.show;
         if (showOuterLine) {
             this.ticksOptions = this.calcTickOptions(this.maxHeight);
@@ -218,12 +218,12 @@ export class DataRenderService {
             .attr("fill", d => d.data.fillColor)
             .attr("stroke", d => d.data.strokeColor)
             .attr("stroke-width", d => d.data.strokeWidth)
-            .call(selection => Helpers.setAttr(selection, "d", arc))
-            // .call(selection => {
-            //     return Helpers.needToSetTransition(this.layout.viewportChanged)
-            //         ? Helpers.setAttr(selection, "d", arc)
-            //         : Helpers.setTransition(selection, DataRenderService.AnimationDuration, "d", arc);
-            // });
+            .call(selection => Helpers.setAttr(selection, "d", arc));
+        // .call(selection => {
+        //     return Helpers.needToSetTransition(this.layout.viewportChanged)
+        //         ? Helpers.setAttr(selection, "d", arc)
+        //         : Helpers.setTransition(selection, DataRenderService.AnimationDuration, "d", arc);
+        // });
 
         this.applyTooltipToSelection(selection);
     }
@@ -233,20 +233,27 @@ export class DataRenderService {
             color: string = settings.color,
             ticksCount: number = this.ticksRadiusArray.length;
 
-        let circleAxes: any = element
+        let circleAxes: Selection<any> = element
             .selectAll("g" + DataRenderService.CircleLine.selectorName)
             .data(this.ticksRadiusArray);
 
-        circleAxes.enter().append("g").classed(DataRenderService.CircleLine.className, true);
+            console.log("this.ticksRadiusArray", this.ticksRadiusArray);
         circleAxes.exit().remove();
+
+        circleAxes = circleAxes.merge(
+            circleAxes.enter().append("g").classed(DataRenderService.CircleLine.className, true));
 
         let circle: any = circleAxes
             .selectAll("circle")
             .data((t) => { return [t]; });
 
         circle
+            .exit()
+            .remove();
+
+        circle = circle.merge(circle
             .enter()
-            .append("circle");
+            .append("circle"));
 
         circle
             .attr("r", (d) => d)
@@ -260,8 +267,8 @@ export class DataRenderService {
             .style("stroke", color)
             .style("fill", "none");
 
-        if (settings.showGridTicksValues) {
-            let text: any = circleAxes.selectAll("text").data((t) => { return [t]; });
+            if (settings.showGridTicksValues) {
+            let text: any = circleAxes.selectAll("text").data(this.tickValuesArray);
             let textProperties: TextProperties = {
                 fontFamily: dataLabelUtils.StandardFontFamily,
                 fontSize: PixelConverter.toString(this.settings.outerLine.fontSize)
@@ -269,14 +276,14 @@ export class DataRenderService {
             text.exit().remove();
             text = text.merge(text.enter().append("text"));
             text.attrs({
-                "dy": (d: number, o: number, i: number) => { return -this.ticksRadiusArray[i] + DataRenderService.PixelsBelowAxis + (parseInt(this.settings.outerLine.fontSize.toString())); },
-                "dx": (d: number, o: number, i: number) => { return - textMeasurementService.measureSvgTextWidth(textProperties, this.tickValuesArray[i].toString()) / DataRenderService.AxisTextWidthCoefficient; },
+                "dy": (d: number, i: number) => { return -this.ticksRadiusArray[i] + DataRenderService.PixelsBelowAxis + (parseInt(this.settings.outerLine.fontSize.toString())); },
+                "dx": (d: number, i: number) => { return - textMeasurementService.measureSvgTextWidth(textProperties, this.tickValuesArray[i].toString()) / DataRenderService.AxisTextWidthCoefficient; },
                 "text-anchor": "middle"
             })
                 .style("font-size", this.settings.outerLine.fontSize)
                 .style("fill", this.settings.outerLine.textColor)
                 .classed(DataRenderService.CircleText.className, true)
-                .text((d: number, o: number, i: number) => { return this.tickValuesArray[i]; });
+                .text((d: number, i: number) => { return this.tickValuesArray[i]; });
 
         } else {
             element.selectAll(DataRenderService.CircleText.selectorName).remove();
@@ -345,11 +352,11 @@ export class DataRenderService {
 
         let step = Math.pow(10, val.toString().length - 1);
 
-        let allTicksCount: number = Math.ceil((val) / step),
-            endPoint: number = allTicksCount * step / modifier,
-            diffPercent: number = endPoint / value,
-            threeTicks: number = 3,
-            twoTicks: number = 2;
+        let allTicksCount: number = Math.ceil((val) / step);
+        let endPoint: number = allTicksCount * step / modifier;
+        let diffPercent: number = endPoint / value;
+        let threeTicks: number = 3;
+        let twoTicks: number = 2;
 
         return {
             diffPercent,
@@ -362,9 +369,9 @@ export class DataRenderService {
         let array = [];
 
         if (ticksCount % 3 === 0) {
-            array = [(radius - this.innerRadius) / 3 + this.innerRadius, (radius - this.innerRadius) / 3 * 2 + this.innerRadius, radius];
+            array = [(radius - this.innerRadius) / 3 + this.innerRadius / this.ticksOptions.diffPercent, (radius - this.innerRadius) / 3 * 2 + this.innerRadius / this.ticksOptions.diffPercent, radius];
         } else {
-            array = [(radius - this.innerRadius) / 2 + this.innerRadius, radius];
+            array = [(radius - this.innerRadius) / 2 + this.innerRadius / this.ticksOptions.diffPercent, radius];
         }
 
         return array;
@@ -439,7 +446,7 @@ export class DataRenderService {
 
                 // The chart should shrink if data labels are on
                 let heightIsLabelsOn = innerRadius + (this.settings.labels.show ? height * DataRenderService.AsterRadiusRatio : height);
-
+                // let heightIsLabelsOn = innerRadius + height;
                 if (this.ticksOptions) {
                     heightIsLabelsOn /= this.ticksOptions.diffPercent;
                 }
@@ -529,7 +536,7 @@ export class DataRenderService {
         labels
             .attrs({ x: (d: LabelEnabledDataPoint) => d.labelX, y: (d: LabelEnabledDataPoint) => d.labelY, dy: ".35em" })
             .text((d: LabelEnabledDataPoint) => d.labeltext)
-            .style(layout.style as any);
+            .styles(layout.style as any);
 
         // labels
         //     .exit()
@@ -574,9 +581,6 @@ export class DataRenderService {
             .style("fill-opacity", 0)
             .style("stroke", () => this.settings.labels.color);
 
-        lines
-            .exit()
-            .remove();
 
     }
 

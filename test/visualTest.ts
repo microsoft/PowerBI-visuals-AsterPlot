@@ -24,52 +24,58 @@
  *  THE SOFTWARE.
  */
 
-/// <reference path="_references.ts"/>
-/// <reference path="../node_modules/powerbi-visuals-api/index.d.ts"/>
+import * as d3 from "d3";
+import "d3-selection-multi";
+
+import PrimitiveValue = powerbi.PrimitiveValue;
+
+import {  } from "powerbi-visuals-utils-colorutils";
+// powerbi
+import powerbi from "powerbi-visuals-api";
+import DataView = powerbi.DataView;
+import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
+import IDataColorPalette = powerbi.extensibility.IColorPalette;
+import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
 // powerbi.extensibility.utils.type
-import PixelConverter = powerbi.extensibility.utils.type.PixelConverter;
+import { pixelConverter as PixelConverter } from "powerbi-visuals-utils-typeutils";
 
 // powerbi.extensibility.utils.chart
-import LegendData = powerbi.extensibility.utils.chart.legend.data;
-import defaultLabelColor = powerbi.extensibility.utils.chart.dataLabel.utils.defaultLabelColor;
+import * as LegendUtil from "powerbi-visuals-utils-chartutils";
+import LegendData = LegendUtil.legendData;
+
+
+// powerbi.extensibility.utils.chart
+
 
 // powerbi.extensibility.visual.test
-import AsterPlotData = powerbi.extensibility.visual.test.AsterPlotData;
-import AsterPlotBuilder = powerbi.extensibility.visual.test.AsterPlotBuilder;
-import getSolidColorStructuralObject = powerbi.extensibility.visual.test.helpers.getSolidColorStructuralObject;
+import { AsterPlotData } from "./visualData";
+import { AsterPlotBuilder } from "./visualBuilder";
+import { getSolidColorStructuralObject, isColorAppliedToElements } from "./helpers/helpers";
 
 // powerbi.extensibility.utils.test
-import clickElement = powerbi.extensibility.utils.test.helpers.clickElement;
-import MockISelectionId = powerbi.extensibility.utils.test.mocks.MockISelectionId;
-import assertColorsMatch = powerbi.extensibility.utils.test.helpers.color.assertColorsMatch;
+import { clickElement, MockISelectionId, assertColorsMatch } from "powerbi-visuals-utils-testutils";
 
-// AsterPlot1443303142064
-import VisualClass = powerbi.extensibility.visual.AsterPlot1443303142064.AsterPlot;
-import AsterPlotVisualData = powerbi.extensibility.visual.AsterPlot1443303142064.AsterPlotData;
+import DataViewValueColumn = powerbi.DataViewValueColumn;
 
-import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
-
-import areColorsEqual = powerbi.extensibility.visual.test.helpers.areColorsEqual;
-import isColorAppliedToElements = powerbi.extensibility.visual.test.helpers.isColorAppliedToElements;
-import IDataColorPalette = powerbi.extensibility.IColorPalette;
-import powerbi from "powerbi-visuals-api";
+import * as _ from "lodash-es";
 
 describe("AsterPlot", () => {
     let visualBuilder: AsterPlotBuilder,
         defaultDataViewBuilder: AsterPlotData,
         dataView: DataView,
+        defaultLabelColor,
         colorPalette: IDataColorPalette;
 
     beforeEach(() => {
         let selectionIndex: number = 0;
-
+        defaultLabelColor = "rgb(0, 0, 0)";
         visualBuilder = new AsterPlotBuilder(1000, 500);
         defaultDataViewBuilder = new AsterPlotData();
         dataView = defaultDataViewBuilder.getDataView();
 
-        powerbi.extensibility.utils.test.mocks.createSelectionId = function () {
-            return new MockISelectionId(`${++selectionIndex}`);
-        };
+        // powerbi.extensibility.utils.test.mocks.createSelectionId = function () {
+        //     return new MockISelectionId(`${++selectionIndex}`);
+        // };
     });
 
     describe("DOM tests", () => {
@@ -119,7 +125,7 @@ describe("AsterPlot", () => {
             const centerText: JQuery = $(".asterPlot .centerLabel");
 
             expect(centerText).toBeInDOM();
-            expect(centerText[0].getBBox().height).toBeCloseTo(12, 10);
+            expect(centerText[0].getBoundingClientRect().height).toBeCloseTo(12, 10);
             expect(centerText[0].style.fontSize).toBe(labelFontSize + "px");
             expect(centerText[0].style.fill).toBe(labelColor);
         });
@@ -296,7 +302,7 @@ describe("AsterPlot", () => {
 
         describe("Converter", () => {
             it("Should convert all data when there is a limit to colors", () => {
-                const asterData: AsterPlotVisualData = visualBuilder.converter(dataView);
+                const asterData = visualBuilder.converter(dataView);
 
                 // Verify that all data was created even with the color limitation
                 expect(asterData.dataPoints.length)
@@ -543,7 +549,7 @@ describe("AsterPlot", () => {
 
             it("Should color legend title & items with user configured color", () => {
                 visualBuilder.update(dataView);
-
+                debugger;
                 const legendTitle: JQuery = visualBuilder
                     .legendGroup
                     .children(".legendTitle");
@@ -615,7 +621,7 @@ describe("AsterPlot", () => {
 
             it("should not use fill style", (done) => {
                 visualBuilder.updateRenderTimeout(dataView, () => {
-                    const slices: JQuery[] = visualBuilder.slices.toArray().map($);
+                    const slices: JQuery<HTMLElement>[] = <JQuery<HTMLElement>[]>visualBuilder.slices.toArray().map($);
 
                     expect(isColorAppliedToElements(slices, null, "fill"));
                     done();
@@ -624,7 +630,7 @@ describe("AsterPlot", () => {
 
             it("should use stroke style", (done) => {
                 visualBuilder.updateRenderTimeout(dataView, () => {
-                    const slices: JQuery[] = visualBuilder.slices.toArray().map($);
+                    const slices: JQuery<HTMLElement>[] = <JQuery<HTMLElement>[]>visualBuilder.slices.toArray().map($);
 
                     expect(isColorAppliedToElements(slices, foregroundColor, "stroke"));
                     done();
@@ -632,3 +638,4 @@ describe("AsterPlot", () => {
             });
         });
     });
+});

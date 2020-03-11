@@ -262,9 +262,8 @@ export class AsterPlot implements IVisual {
         if (!this.areValidOptions(options)) {
             return;
         }
-
-        let data = AsterPlot.converter(options.dataViews[0], this.colorPalette, this.colorHelper, this.visualHost, this.localizationManager);
         debugger;
+        let data: AsterPlotData = AsterPlot.converter(options.dataViews[0], this.colorPalette, this.colorHelper, this.visualHost, this.localizationManager);
         if (!data) {
             this.clear();
             return;
@@ -284,6 +283,7 @@ export class AsterPlot implements IVisual {
             this.settings,
             this.layout,
             this.tooltipServiceWrapper);
+        debugger;
 
         this.renderService.renderArcs(this.slicesElement, false);
 

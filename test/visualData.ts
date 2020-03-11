@@ -24,14 +24,17 @@
  *  THE SOFTWARE.
  */
 
-/// <reference path="_references.ts"/>
-/// <reference path="../node_modules/powerbi-visuals-api/index.d.ts"/>
+// powerbi.extensibility.utils.type
+import { valueType } from "powerbi-visuals-utils-typeutils";
+import ValueType = valueType.ValueType;
+import powerbi from "powerbi-visuals-api";
+import DataView = powerbi.DataView;
 
 // powerbi.extensibility.utils.test
-import TestDataViewBuilder = powerbi.extensibility.utils.test.dataViewBuilder.TestDataViewBuilder;
-
-// powerbi.extensibility.utils.type
-import ValueType = powerbi.extensibility.utils.type.ValueType;
+import {
+    testDataViewBuilder,
+} from "powerbi-visuals-utils-testutils";
+import TestDataViewBuilder = testDataViewBuilder.TestDataViewBuilder;
 
 export class AsterPlotData extends TestDataViewBuilder {
     public static ColumnCategory: string = "category";

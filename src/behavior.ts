@@ -35,13 +35,13 @@ import IInteractivityService = interactivityBaseService.IInteractivityService;
 import IInteractiveBehavior = interactivityBaseService.IInteractiveBehavior;
 import SelectableDataPoint = interactivitySelectionService.SelectableDataPoint;
 import IBehaviorOptions = interactivityBaseService.IBehaviorOptions;
-import getEvent = interactivityUtils.getEvent;
 
 // powerbi.extensibility.utils.interactivity
 import ISelectionHandler = interactivityBaseService.ISelectionHandler;
 
 import { asterPlotUtils } from "./utils";
-
+import * as d3 from "d3";
+const getEvent = (): MouseEvent => <MouseEvent>require("d3-selection").event;
 
 export interface AsterPlotBehaviorOptions extends IBehaviorOptions<SelectableDataPoint> {
     selection: Selection<AsterPlotData>;
@@ -71,6 +71,19 @@ export class AsterPlotWebBehavior implements IInteractiveBehavior {
         });
 
         this.renderSelection(this.interactivityService.hasSelection());
+
+        options.selection.on("contextmenu", (datum) => {
+            const event: MouseEvent = (<MouseEvent>getEvent()) || <MouseEvent>window.event;
+            if (event) {
+                selectionHandler.handleContextMenu(
+                    <any>datum,
+                    {
+                        x: event.clientX,
+                        y: event.clientY
+                    });
+                event.preventDefault();
+            }
+        });
     }
 
     public renderSelection(hasSelection: boolean) {
