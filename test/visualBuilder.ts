@@ -61,7 +61,7 @@ export class AsterPlotBuilder extends VisualBuilderBase<VisualClass> {
     protected build(options: VisualConstructorOptions): VisualClass {
         options.host.createSelectionIdBuilder = () => {
             return new FakeSelectionIdBuilder();
-        }
+        };
         return new VisualClass(options);
     }
 

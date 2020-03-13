@@ -321,5 +321,6 @@
     "sorting": {
         "default": {}
     },
-    "supportsHighlight": true
+    "supportsHighlight": true,
+    "supportsKeyboardFocus": true
 }

@@ -2,7 +2,7 @@
  *  Power BI Visualizations
  *
  *  Copyright (c) Microsoft Corporation
- *  All rights reserved. 
+ *  All rights reserved.
  *  MIT License
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -11,14 +11,14 @@
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *   
- *  The above copyright notice and this permission notice shall be included in 
+ *
+ *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *   
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
@@ -80,6 +80,8 @@ import IInteractiveBehavior = interactivityBaseService.IInteractiveBehavior;
 // powerbi.extensibility.utils.color
 import { ColorHelper } from "powerbi-visuals-utils-colorutils";
 
+import IVisualEventService = powerbi.extensibility.IVisualEventService;
+
 // powerbi.extensibility.utils.tooltip
 import {
     createTooltipServiceWrapper,
@@ -136,6 +138,8 @@ export class AsterPlot implements IVisual {
     private static OuterLine: ClassAndSelector = createClassAndSelector("outerLine");
     private static CenterLabelClass: ClassAndSelector = createClassAndSelector("centerLabel");
 
+    private events: IVisualEventService;
+
     private layout: VisualLayout;
 
     private static PiesPropertyIdentifier: DataViewObjectPropertyIdentifier = {
@@ -173,6 +177,7 @@ export class AsterPlot implements IVisual {
         if (window.location !== window.parent.location) {
             require("core-js/stable");
         }
+        this.events = options.host.eventService;
         this.visualHost = options.host;
         this.localizationManager = this.visualHost.createLocalizationManager();
 
@@ -259,58 +264,64 @@ export class AsterPlot implements IVisual {
     }
 
     public update(options: VisualUpdateOptions): void {
-        if (!this.areValidOptions(options)) {
-            return;
+        this.visualHost.eventService.renderingStarted(options);
+        try {
+            if (!this.areValidOptions(options)) {
+                return;
+            }
+            let data: AsterPlotData = AsterPlot.converter(options.dataViews[0], this.colorPalette, this.colorHelper, this.visualHost, this.localizationManager);
+            if (!data) {
+                this.clear();
+                return;
+            }
+
+            this.layout.viewport = options.viewport;
+            this.data = data;
+
+            this.applySelectionStateToData();
+            this.renderLegend();
+            this.updateViewPortAccordingToLegend();
+            this.transformAndResizeMainSvgElements();
+
+            dataLabelUtils.cleanDataLabels(this.mainLabelsElement, true);
+
+            this.renderService = new DataRenderService(data,
+                this.settings,
+                this.layout,
+                this.tooltipServiceWrapper);
+
+            this.renderService.renderArcs(this.slicesElement, false);
+
+            if (!this.data.hasHighlights) {
+                this.removeHighlightedSlice();
+            } else {
+                this.renderService.renderArcs(this.slicesElement, true);
+            }
+
+            if (this.settings.labels.show) {
+                this.renderService.renderLabels(this.mainLabelsElement, this.data.hasHighlights);
+            } else {
+                this.renderService.cleanLabels(this.mainLabelsElement);
+            }
+
+            if (this.settings.label.show) {
+                this.renderService.drawCenterText(this.mainGroupElement);
+            } else {
+                this.renderService.cleanCenterText(this.mainGroupElement);
+            }
+            if (this.settings.outerLine.show) {
+                this.renderService.drawOuterLines(this.mainGroupElement);
+            } else {
+                this.renderService.cleanOuterLines(this.mainGroupElement);
+            }
+
+            this.bindInteractivityBehaviour();
+            this.visualHost.eventService.renderingFinished(options);
         }
-        debugger;
-        let data: AsterPlotData = AsterPlot.converter(options.dataViews[0], this.colorPalette, this.colorHelper, this.visualHost, this.localizationManager);
-        if (!data) {
-            this.clear();
-            return;
+        catch (e) {
+            this.visualHost.eventService.renderingFailed(options, e);
+            console.log(e);
         }
-
-        this.layout.viewport = options.viewport;
-        this.data = data;
-
-        this.applySelectionStateToData();
-        this.renderLegend();
-        this.updateViewPortAccordingToLegend();
-        this.transformAndResizeMainSvgElements();
-
-        dataLabelUtils.cleanDataLabels(this.mainLabelsElement, true);
-
-        this.renderService = new DataRenderService(data,
-            this.settings,
-            this.layout,
-            this.tooltipServiceWrapper);
-        debugger;
-
-        this.renderService.renderArcs(this.slicesElement, false);
-
-        if (!this.data.hasHighlights) {
-            this.removeHighlightedSlice();
-        } else {
-            this.renderService.renderArcs(this.slicesElement, true);
-        }
-
-        if (this.settings.labels.show) {
-            this.renderService.renderLabels(this.mainLabelsElement, this.data.hasHighlights);
-        } else {
-            this.renderService.cleanLabels(this.mainLabelsElement);
-        }
-
-        if (this.settings.label.show) {
-            this.renderService.drawCenterText(this.mainGroupElement);
-        } else {
-            this.renderService.cleanCenterText(this.mainGroupElement);
-        }
-        if (this.settings.outerLine.show) {
-            this.renderService.drawOuterLines(this.mainGroupElement);
-        } else {
-            this.renderService.cleanOuterLines(this.mainGroupElement);
-        }
-
-        this.bindInteractivityBehaviour();
     }
 
     private removeHighlightedSlice(): void {
