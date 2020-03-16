@@ -33,7 +33,7 @@ import {
 import {
     AsterPlot as VisualClass
 } from "../src/visual";
-
+// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 import DataView = powerbi.DataView;

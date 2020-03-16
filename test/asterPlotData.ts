@@ -27,6 +27,7 @@
 // powerbi.extensibility.utils.type
 import { valueType } from "powerbi-visuals-utils-typeutils";
 import ValueType = valueType.ValueType;
+// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 import DataView = powerbi.DataView;
 

@@ -56,7 +56,7 @@ module.exports = (config: Config) => {
             outputFile: "TESTS-report.xml",
             useBrowserName: false
         },
-        singleRun: true,
+        singleRun: false,
         plugins: [
             "karma-coverage",
             "karma-typescript",

@@ -24,8 +24,6 @@
  *  THE SOFTWARE.
  */
 
-import powerbi from "powerbi-visuals-api";
-
 // powerbi.extensibility.utils.chart
 import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
 
@@ -50,6 +48,7 @@ export class LabelsSettings {
     public show: boolean = false;
     public color: string = "#777777";
     public displayUnits: number = 0;
+    // tslint:disable-next-line: no-unnecessary-field-initialization
     public precision: number = undefined;
     public fontSize: number = 9;
 }

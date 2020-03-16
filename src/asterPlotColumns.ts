@@ -24,6 +24,7 @@
  *  THE SOFTWARE.
  */
 
+// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 import DataView = powerbi.DataView;
 import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
@@ -38,6 +39,7 @@ import converterHelper = helper.converterHelper;
 import { toArray, mapValues } from "lodash-es";
 
 export class AsterPlotColumns<T> {
+    // tslint:disable-next-line: function-name
     public static getCategoricalValues(dataView: DataView) {
         let categorical = dataView && dataView.categorical;
         let categories: (DataViewCategoryColumn | DataViewValueColumn)[] = categorical && categorical.categories || [];
@@ -49,11 +51,13 @@ export class AsterPlotColumns<T> {
             || values.source && values.source.roles && values.source.roles[i] && series);
     }
 
+    // tslint:disable-next-line: function-name
     public static getSeriesValues(dataView: DataView) {
         return dataView && dataView.categorical && dataView.categorical.values
             && dataView.categorical.values.map(x => converterHelper.getSeriesName(x.source));
     }
 
+    // tslint:disable-next-line: function-name
     public static getCategoricalColumns(dataView: DataView) {
         let categorical = dataView && dataView.categorical;
         let categories = categorical && categorical.categories || [];

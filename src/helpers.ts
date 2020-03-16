@@ -28,13 +28,14 @@ import {Selection} from "./dataInterfaces";
 import * as d3 from "d3";
 
 export class Helpers {
+    // tslint:disable-next-line: function-name
     public static setAttr(
         element: Selection<any>,
         attrName: string,
         attrValue: (data: any, index: number) => any) {
         element.attr(attrName, attrValue);
     }
-
+    // tslint:disable-next-line: function-name
     public static setTransition(
         element: Selection<any>,
         animationDuration: number,
@@ -46,11 +47,11 @@ export class Helpers {
             .duration(animationDuration)
             .attrTween(attrName, Helpers.interpolateArc(attrValue));
     }
-
+    // tslint:disable-next-line: function-name
     public static needToSetTransition(viewportChanged: boolean) {
         return !viewportChanged;
     }
-
+    // tslint:disable-next-line: function-name
     public static interpolateArc(arc: any) {
         return function (data) {
             if (!this.oldData) {

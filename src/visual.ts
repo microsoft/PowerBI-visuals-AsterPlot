@@ -32,6 +32,7 @@ type Selection<T> = d3.Selection<any, T, any, any>;
 type UpdateSelection<T> = d3.Selection<any, T, any, any>;
 
 // powerbi
+// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 import IViewport = powerbi.IViewport;
 import DataView = powerbi.DataView;
@@ -40,7 +41,7 @@ import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInst
 import VisualObjectInstance = powerbi.VisualObjectInstance;
 import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
 import IVisual = powerbi.extensibility.IVisual;
-import IDataColorPalette = powerbi.extensibility.IColorPalette;
+import IColorPalette = powerbi.extensibility.IColorPalette;
 import VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnumerationObject;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
@@ -66,14 +67,14 @@ import { pixelConverter as PixelConverter } from "powerbi-visuals-utils-typeutil
 // powerbi.extensibility.utils.chart
 import * as LegendUtil from "powerbi-visuals-utils-chartutils";
 import ILegend = LegendUtil.legendInterfaces.ILegend;
-import LegendDataModule = LegendUtil.legendData;
+import legendData = LegendUtil.legendData;
 import dataLabelUtils = LegendUtil.dataLabelUtils;
 import positionChartArea = LegendUtil.legend.positionChartArea;
 
 // powerbi.extensibility.utils.interactivity
 import { interactivityBaseService, interactivitySelectionService } from "powerbi-visuals-utils-interactivityutils";
 import appendClearCatcher = interactivityBaseService.appendClearCatcher;
-import createInteractivityService = interactivitySelectionService.createInteractivitySelectionService;
+import createInteractivitySelectionService = interactivitySelectionService.createInteractivitySelectionService;
 import IInteractivityService = interactivityBaseService.IInteractivityService;
 import IInteractiveBehavior = interactivityBaseService.IInteractiveBehavior;
 
@@ -94,7 +95,7 @@ import {
 
 import {
     AsterPlotColumns
-} from "./columns";
+} from "./asterPlotColumns";
 
 import {
     AsterPlotWebBehavior,
@@ -131,6 +132,7 @@ let AsterPlotVisualClassName: string = "asterPlot";
 
 import "../style/asterPlot.less";
 
+// tslint:disable-next-line: export-name
 export class AsterPlot implements IVisual {
     private static AsterSlices: ClassAndSelector = createClassAndSelector("asterSlices");
     private static AsterSlice: ClassAndSelector = createClassAndSelector("asterSlice");
@@ -153,12 +155,12 @@ export class AsterPlot implements IVisual {
     private slicesElement: Selection<AsterPlotData>;
     private clearCatcher: Selection<any>;
 
-    private colorPalette: IDataColorPalette;
+    private colorPalette: IColorPalette;
     private colorHelper: ColorHelper;
 
     private visualHost: IVisualHost;
     private localizationManager: ILocalizationManager;
-    private interactivityService: IInteractivityService<any>; // todo fix??
+    private interactivityService: IInteractivityService<any>;
 
     private renderService: DataRenderService;
 
@@ -209,7 +211,7 @@ export class AsterPlot implements IVisual {
             .append("g")
             .classed(AsterPlot.AsterSlices.className, true);
 
-        this.interactivityService = createInteractivityService(options.host);
+        this.interactivityService = createInteractivitySelectionService(options.host);
 
         this.legend = createLegend(
             options.element,
@@ -218,7 +220,8 @@ export class AsterPlot implements IVisual {
             true);
     }
 
-    public static converter(dataView: DataView, colors: IDataColorPalette, colorHelper: ColorHelper, visualHost: IVisualHost, localizationManager: ILocalizationManager): AsterPlotData {
+    // tslint:disable-next-line: function-name
+    public static converter(dataView: DataView, colors: IColorPalette, colorHelper: ColorHelper, visualHost: IVisualHost, localizationManager: ILocalizationManager): AsterPlotData {
         let categorical = <any>AsterPlotColumns.getCategoricalColumns(dataView);
 
         if (!AsterPlotConverterService.isDataValid(categorical)) {
@@ -352,7 +355,7 @@ export class AsterPlot implements IVisual {
                 interactivityService: this.interactivityService,
                 hasHighlights: this.data.hasHighlights,
                 dataPoints: this.data.dataPoints,
-                behavior: this.behavior // todo normalno, ne?
+                behavior: this.behavior
             };
 
             this.interactivityService.bind(behaviorOptions);
@@ -364,7 +367,7 @@ export class AsterPlot implements IVisual {
             // Force update for title text
             let legendObject = clone(this.settings.legend);
             legendObject.labelColor = <any>{ solid: { color: legendObject.labelColor } };
-            LegendDataModule.update(this.data.legendData, <any>legendObject);
+            legendData.update(this.data.legendData, <any>legendObject);
             this.legend.changeOrientation(LegendPosition[this.settings.legend.position]);
         }
 
@@ -432,7 +435,7 @@ export class AsterPlot implements IVisual {
         }
 
         pies.forEach((pie: AsterDataPoint) => {
-            const identity: ISelectionId = pie.identity as ISelectionId,
+            const identity: ISelectionId = <ISelectionId>pie.identity,
                 displayName: string = `${pie.categoryName}`;
 
             this.addAnInstanceToEnumeration(instanceEnumeration, {
@@ -450,14 +453,14 @@ export class AsterPlot implements IVisual {
         instanceEnumeration: VisualObjectInstanceEnumeration,
         instance: VisualObjectInstance): void {
 
-        let objectInstanceEnumeration: VisualObjectInstanceEnumerationObject = instanceEnumeration as VisualObjectInstanceEnumerationObject;
+        let objectInstanceEnumeration: VisualObjectInstanceEnumerationObject = <VisualObjectInstanceEnumerationObject>instanceEnumeration;
 
         if (objectInstanceEnumeration.instances) {
             objectInstanceEnumeration
                 .instances
                 .push(instance);
         } else {
-            (instanceEnumeration as VisualObjectInstance[]).push(instance);
+            (<VisualObjectInstance[]>instanceEnumeration).push(instance);
         }
     }
 }

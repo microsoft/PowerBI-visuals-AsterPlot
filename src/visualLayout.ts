@@ -26,6 +26,7 @@
 
 // lodash
 import * as _ from "lodash-es";
+// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 
 // powerbi

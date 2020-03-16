@@ -30,7 +30,7 @@ import { Selection, AsterPlotData, AsterArcDescriptor } from "./dataInterfaces";
 // powerbi.extensibility.utils.interactivity
 import { interactivityBaseService, interactivitySelectionService, interactivityUtils } from "powerbi-visuals-utils-interactivityutils";
 import appendClearCatcher = interactivityBaseService.appendClearCatcher;
-import createInteractivityService = interactivitySelectionService.createInteractivitySelectionService;
+import createInteractivitySelectionService = interactivitySelectionService.createInteractivitySelectionService;
 import IInteractivityService = interactivityBaseService.IInteractivityService;
 import IInteractiveBehavior = interactivityBaseService.IInteractiveBehavior;
 import SelectableDataPoint = interactivitySelectionService.SelectableDataPoint;
@@ -39,7 +39,7 @@ import IBehaviorOptions = interactivityBaseService.IBehaviorOptions;
 // powerbi.extensibility.utils.interactivity
 import ISelectionHandler = interactivityBaseService.ISelectionHandler;
 
-import { asterPlotUtils } from "./utils";
+import * as asterPlotUtils from "./utils";
 import * as d3 from "d3";
 import { BaseDataPoint } from "powerbi-visuals-utils-interactivityutils/lib/interactivityBaseService";
 const getEvent = (): MouseEvent => <MouseEvent>require("d3-selection").event;
@@ -79,8 +79,7 @@ export class AsterPlotWebBehavior implements IInteractiveBehavior {
     protected bindContextMenu(options: AsterPlotBehaviorOptions, selectionHandler: ISelectionHandler) {
         options.selection.on("contextmenu",
             (datum: any) => {
-                debugger;
-                const mouseEvent: MouseEvent = d3.event as MouseEvent;
+                const mouseEvent: MouseEvent = <MouseEvent>d3.event;
                 selectionHandler.handleContextMenu(datum.data, {
                     x: mouseEvent.clientX,
                     y: mouseEvent.clientY

@@ -31,6 +31,7 @@ import { Arc } from "d3-shape";
 export type ArcDescriptor<T> = Arc<any, T>;
 
 // powerbi
+// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 

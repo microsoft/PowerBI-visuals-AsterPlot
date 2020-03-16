@@ -31,25 +31,26 @@ import PrimitiveValue = powerbi.PrimitiveValue;
 
 import {  } from "powerbi-visuals-utils-colorutils";
 // powerbi
+// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 import DataView = powerbi.DataView;
 import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
-import IDataColorPalette = powerbi.extensibility.IColorPalette;
+import IColorPalette = powerbi.extensibility.IColorPalette;
 import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
 // powerbi.extensibility.utils.type
 import { pixelConverter as PixelConverter } from "powerbi-visuals-utils-typeutils";
 
 // powerbi.extensibility.utils.chart
 import * as LegendUtil from "powerbi-visuals-utils-chartutils";
-import LegendData = LegendUtil.legendData;
+import legendData = LegendUtil.legendData;
 
 
 // powerbi.extensibility.utils.chart
 
 
 // powerbi.extensibility.visual.test
-import { AsterPlotData } from "./visualData";
-import { AsterPlotBuilder } from "./visualBuilder";
+import { AsterPlotData } from "./asterPlotData";
+import { AsterPlotBuilder } from "./asterPlotBuilder";
 import { getSolidColorStructuralObject, isColorAppliedToElements } from "./helpers/helpers";
 
 // powerbi.extensibility.utils.test
@@ -57,14 +58,14 @@ import { clickElement, MockISelectionId, assertColorsMatch } from "powerbi-visua
 
 import DataViewValueColumn = powerbi.DataViewValueColumn;
 
-import * as _ from "lodash-es";
+import {last} from "lodash-es";
 
 describe("AsterPlot", () => {
     let visualBuilder: AsterPlotBuilder,
         defaultDataViewBuilder: AsterPlotData,
         dataView: DataView,
         defaultLabelColor,
-        colorPalette: IDataColorPalette;
+        colorPalette: IColorPalette;
 
     beforeEach(() => {
         let selectionIndex: number = 0;
@@ -201,9 +202,8 @@ describe("AsterPlot", () => {
             });
 
             it("Data Labels - Decimal value for Labels should have a limit to 17", () => {
-                (dataView.metadata.objects as any).labels.show = true;
-                (dataView.metadata.objects as any).labels.precision = 5666;
-
+                (<any>dataView.metadata.objects).labels.show = true;
+                (<any>dataView.metadata.objects).labels.precision = 5666;
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 const labels: JQuery = $(".asterPlot .labels .data-labels"),
@@ -215,19 +215,19 @@ describe("AsterPlot", () => {
             });
 
             it("Data Labels - Change font size", () => {
-                (dataView.metadata.objects as any).labels.show = true;
-                (dataView.metadata.objects as any).labels.fontSize = 15;
+                (<any>dataView.metadata.objects).labels.show = true;
+                (<any>dataView.metadata.objects).labels.fontSize = 15;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 const labels: JQuery = $(".asterPlot .labels .data-labels");
 
                 expect(labels.first().css("font-size"))
-                    .toBe((dataView.metadata.objects as any).labels.fontSize * 4 / 3 + "px");
+                    .toBe((<any>dataView.metadata.objects).labels.fontSize * 4 / 3 + "px");
             });
 
             it("Data Labels should be clear when removing data", () => {
-                (dataView.metadata.objects as any).labels.show = true;
+                (<any>dataView.metadata.objects).labels.show = true;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -245,7 +245,7 @@ describe("AsterPlot", () => {
             });
 
             it("Data Labels should be displayed correctly when using dates as category values", () => {
-                (dataView.metadata.objects as any).labels.show = true;
+                (<any>dataView.metadata.objects).labels.show = true;
 
                 // Manually change the category format to be a date format
                 dataView.categorical.categories[0].source.format = "dddd\, MMMM %d\, yyyy";
@@ -263,7 +263,7 @@ describe("AsterPlot", () => {
             });
 
             it("Data Labels should not display lines for null and zero labels", () => {
-                (dataView.metadata.objects as any).labels.show = true;
+                (<any>dataView.metadata.objects).labels.show = true;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -284,7 +284,7 @@ describe("AsterPlot", () => {
             });
 
             it("Data labels shouldn't be displayed for non highlighted values", () => {
-                (dataView.metadata.objects as any).labels.show = true;
+                (<any>dataView.metadata.objects).labels.show = true;
 
                 const length: number = Math.round(dataView.categorical.values[0].values.length / 2);
 
@@ -322,7 +322,7 @@ describe("AsterPlot", () => {
             });
 
             it("show", () => {
-                (dataView.metadata.objects as any).labels.show = false;
+                (<any>dataView.metadata.objects).labels.show = false;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -332,7 +332,7 @@ describe("AsterPlot", () => {
             it("color", () => {
                 const color: string = "#649731";
 
-                (dataView.metadata.objects as any).labels.color = getSolidColorStructuralObject(color);
+                (<any>dataView.metadata.objects).labels.color = getSolidColorStructuralObject(color);
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -344,22 +344,22 @@ describe("AsterPlot", () => {
             it("display units", () => {
                 const displayUnits: number = 1000;
 
-                (dataView.metadata.objects as any).labels.displayUnits = displayUnits;
+                (<any>dataView.metadata.objects).labels.displayUnits = displayUnits;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 visualBuilder.dataLabels
                     .toArray()
                     .forEach((element: Element) => {
-                        expect(_.last($(element).text())).toEqual("K");
+                        expect(last($(element).text())).toEqual("K");
                     });
             });
 
             it("precision", () => {
                 const precision: number = 7;
 
-                (dataView.metadata.objects as any).labels.displayUnits = 1;
-                (dataView.metadata.objects as any).labels.precision = precision;
+                (<any>dataView.metadata.objects).labels.displayUnits = 1;
+                (<any>dataView.metadata.objects).labels.precision = precision;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -374,7 +374,7 @@ describe("AsterPlot", () => {
                 const fontSize: number = 22,
                     expectedFontSize: string = "29.3333px";
 
-                (dataView.metadata.objects as any).labels.fontSize = fontSize;
+                (<any>dataView.metadata.objects).labels.fontSize = fontSize;
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 visualBuilder.dataLabels
@@ -403,15 +403,15 @@ describe("AsterPlot", () => {
             it("Thickness", () => {
                 const thickness: number = 5;
 
-                (dataView.metadata.objects as any).outerLine.thickness = thickness;
+                (<any>dataView.metadata.objects).outerLine.thickness = thickness;
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 expect(parseFloat(visualBuilder.outerLine.attr("stroke-width"))).toBe(thickness);
             });
 
             it("Grid line", () => {
-                (dataView.metadata.objects as any).outerLine.showGrid = true;
-                (dataView.metadata.objects as any).outerLine.showGridTicksValues = true;
+                (<any>dataView.metadata.objects).outerLine.showGrid = true;
+                (<any>dataView.metadata.objects).outerLine.showGridTicksValues = true;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -454,11 +454,11 @@ describe("AsterPlot", () => {
 
                 assertColorsMatch(
                     legendTitle.css("fill"),
-                    LegendData.DefaultLegendLabelFillColor);
+                    legendData.DefaultLegendLabelFillColor);
 
                 assertColorsMatch(
                     visualBuilder.firstLegendText.css("fill"),
-                    LegendData.DefaultLegendLabelFillColor);
+                    legendData.DefaultLegendLabelFillColor);
             });
 
             it("Should set legend title & tooltip to text from dataview", () => {
@@ -505,6 +505,7 @@ describe("AsterPlot", () => {
 
         describe("Custom Legend", () => {
             const labelFontSizeInPoints: number = 10,
+                // tslint:disable-next-line: mocha-no-side-effect-code
                 labelFonSizeInPixels: number = Math.round(
                     PixelConverter.fromPointToPixel(labelFontSizeInPoints)),
                 customLegendTitle = "My title";
@@ -549,7 +550,6 @@ describe("AsterPlot", () => {
 
             it("Should color legend title & items with user configured color", () => {
                 visualBuilder.update(dataView);
-                debugger;
                 const legendTitle: JQuery = visualBuilder
                     .legendGroup
                     .children(".legendTitle");
