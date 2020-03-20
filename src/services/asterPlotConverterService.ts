@@ -280,7 +280,7 @@ export class AsterPlotConverterService {
             if (category.objects && category.objects[i]) {
                 fillColor = this.colorHelper.getColorForMeasure(category.objects[i], "");
             } else {
-                fillColor = this.colorHelper.getColorForMeasure(category.objects && category.objects[i], (<any>identity).key);
+                fillColor = this.colorHelper.getColorForMeasure(category.objects && category.objects[i], (<any>identity).identityIndex);
             }
 
             strokeColor = this.colorHelper.getHighContrastColor("foreground", fillColor);
