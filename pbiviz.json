@@ -1,15 +1,15 @@
 {
   "visual": {
     "name": "AsterPlot",
-    "displayName": "Aster Plot 1.4.0",
+    "displayName": "Aster Plot 1.5.1",
     "guid": "AsterPlot1443303142064",
     "visualClassName": "AsterPlot",
-    "version": "1.4.0",
+    "version": "1.5.1",
     "description": "An Aster plot is a twist on a standard donut chart, using a second value to drive sweep angle.",
     "supportUrl": "https://community.powerbi.com",
     "gitHubUrl": "https://github.com/Microsoft/PowerBI-visuals-asterplot"
   },
-  "apiVersion": "1.13.0",
+  "apiVersion": "2.6.0",
   "author": {
     "name": "Microsoft",
     "email": "pbicvsupport@microsoft.com"
@@ -17,20 +17,7 @@
   "assets": {
     "icon": "assets/icon.png"
   },
-  "externalJS": [
-    "node_modules/d3/d3.min.js",
-    "node_modules/lodash/lodash.min.js",
-    "node_modules/globalize/lib/globalize.js",
-    "node_modules/globalize/lib/cultures/globalize.culture.en-US.js",
-    "node_modules/powerbi-visuals-utils-typeutils/lib/index.js",
-    "node_modules/powerbi-visuals-utils-svgutils/lib/index.js",
-    "node_modules/powerbi-visuals-utils-dataviewutils/lib/index.js",
-    "node_modules/powerbi-visuals-utils-formattingutils/lib/index.js",
-    "node_modules/powerbi-visuals-utils-interactivityutils/lib/index.js",
-    "node_modules/powerbi-visuals-utils-colorutils/lib/index.js",
-    "node_modules/powerbi-visuals-utils-tooltiputils/lib/index.js",
-    "node_modules/powerbi-visuals-utils-chartutils/lib/index.js"
-  ],
+  "externalJS": [],
   "style": "style/asterPlot.less",
   "capabilities": "capabilities.json"
 }

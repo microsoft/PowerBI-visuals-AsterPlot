@@ -1,3 +1,10 @@
+## 1.5.1
+* Fixed pie default color display bug
+
+## 1.5.0
+* API update
+* Outer line scaling bug fix
+
 ## 1.4.0
 * High contrast mode
 * API 1.13.0

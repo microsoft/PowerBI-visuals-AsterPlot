@@ -24,51 +24,51 @@
  *  THE SOFTWARE.
  */
 
-module powerbi.extensibility.visual {
-    // powerbi.extensibility.utils.chart
-    import LegendPosition = powerbi.extensibility.utils.chart.legend.LegendPosition;
+// powerbi.extensibility.utils.chart
+import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
 
-    // powerbi.extensibility.utils.dataview
-    import DataViewObjectsParser = powerbi.extensibility.utils.dataview.DataViewObjectsParser;
+// powerbi.extensibility.utils.dataview
+import {dataViewObjectsParser} from "powerbi-visuals-utils-dataviewutils";
+import DataViewObjectsParser = dataViewObjectsParser.DataViewObjectsParser;
 
-    export class AsterPlotSettings extends DataViewObjectsParser {
-        public labels: LabelsSettings = new LabelsSettings();
-        public label: CentralLabelsSettings = new CentralLabelsSettings();
-        public legend: LegendSettings = new LegendSettings();
-        public outerLine: OuterLineSettings = new OuterLineSettings();
-    }
+export class AsterPlotSettings extends DataViewObjectsParser {
+    public labels: LabelsSettings = new LabelsSettings();
+    public label: CentralLabelsSettings = new CentralLabelsSettings();
+    public legend: LegendSettings = new LegendSettings();
+    public outerLine: OuterLineSettings = new OuterLineSettings();
+}
 
-    export class CentralLabelsSettings {
-        public show: boolean = false;
-        public color: string = "rgb(119, 119, 119)";
-        public fontSize: number = 9;
-    }
+export class CentralLabelsSettings {
+    public show: boolean = false;
+    public color: string = "rgb(119, 119, 119)";
+    public fontSize: number = 9;
+}
 
-    export class LabelsSettings {
-        public show: boolean = false;
-        public color: string = "#777777";
-        public displayUnits: number = 0;
-        public precision: number = undefined;
-        public fontSize: number = 9;
-    }
+export class LabelsSettings {
+    public show: boolean = false;
+    public color: string = "#777777";
+    public displayUnits: number = 0;
+    // tslint:disable-next-line: no-unnecessary-field-initialization
+    public precision: number = undefined;
+    public fontSize: number = 9;
+}
 
-    export class LegendSettings {
-        public show: boolean = false;
-        public position: string = LegendPosition[LegendPosition.Top];
-        public showTitle: boolean = true;
-        public titleText: string = "";
-        public labelColor: string = '#666666';
-        public fontSize: number = 8;
-    }
+export class LegendSettings {
+    public show: boolean = false;
+    public position: string = LegendPosition[LegendPosition.Top];
+    public showTitle: boolean = true;
+    public titleText: string = "";
+    public labelColor: string = '#666666';
+    public fontSize: number = 8;
+}
 
-    export class OuterLineSettings {
-        public show: boolean = false;
-        public thickness: number = 1;
-        public color: string = "grey";
-        public showGrid: boolean = false;
-        public showGridTicksValues: boolean = false;
-        public showStraightLines: boolean = true;
-        public textColor: string = "rgb(119, 119, 119)";
-        public fontSize: number = 9;
-    }
+export class OuterLineSettings {
+    public show: boolean = false;
+    public thickness: number = 1;
+    public color: string = "grey";
+    public showGrid: boolean = false;
+    public showGridTicksValues: boolean = false;
+    public showStraightLines: boolean = true;
+    public textColor: string = "rgb(119, 119, 119)";
+    public fontSize: number = 9;
 }
