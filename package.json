@@ -32,7 +32,7 @@
     "d3-selection-multi": "1.0.1",
     "jasmine": "3.5.0",
     "jasmine-jquery": "2.1.1",
-    "karma": "4.4.1",
+    "karma": "6.4.1",
     "karma-chrome-launcher": "3.1.0",
     "karma-coverage": "2.0.1",
     "karma-coverage-istanbul-reporter": "^2.1.1",
