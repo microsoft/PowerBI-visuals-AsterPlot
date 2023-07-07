@@ -11,8 +11,9 @@
     "start": "pbiviz start --target es6",
     "package": "pbiviz package",
     "lint": "tslint -r \"node_modules/tslint-microsoft-contrib\" \"+(src|test)/**/*.ts\"",
-    "test": "karma start",
-    "cert": "pbiviz --create-cert"
+    
+    "cert": "pbiviz --create-cert",
+    "test": "karma start"
   },
   "license": "MIT",
   "repository": {
