@@ -79,7 +79,7 @@ export class AsterPlotWebBehavior implements IInteractiveBehavior {
     protected bindContextMenu(options: AsterPlotBehaviorOptions, selectionHandler: ISelectionHandler) {
         options.selection.on("contextmenu",
             (datum: any) => {
-                const mouseEvent: MouseEvent = <MouseEvent>d3.event;
+                const mouseEvent: MouseEvent = <MouseEvent>(<any>d3).event;
                 selectionHandler.handleContextMenu(datum.data, {
                     x: mouseEvent.clientX,
                     y: mouseEvent.clientY

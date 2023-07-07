@@ -31,11 +31,13 @@ import IViewport = powerbi.IViewport;
 
 // powerbi.extensibility.utils.chart
 import {
-    dataLabelManager,
+    DataLabelManager as DataLabelManagerAlias,
     dataLabelUtils,
     dataLabelInterfaces,
 } from "powerbi-visuals-utils-chartutils";
-import DataLabelManager = dataLabelManager.DataLabelManager;
+
+const dataLabelManager = new DataLabelManagerAlias();
+
 import ILabelLayout = dataLabelInterfaces.ILabelLayout;
 import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
 
@@ -497,7 +499,7 @@ export class DataRenderService {
         outlineArc: any,
         labelArc: any): void {
         // Hide and reposition labels that overlap
-        let dataLabelManager: DataLabelManager = new DataLabelManager();
+        let dataLabelManager = new DataLabelManagerAlias();
         let filteredData: any = dataLabelManager.hideCollidedLabels(viewport, data, layout, true /* addTransform */);
 
         if (filteredData.length === 0) {
