@@ -31,19 +31,19 @@ import IViewport = powerbi.IViewport;
 
 // powerbi.extensibility.utils.chart
 import {
-    DataLabelManager as DataLabelManagerAlias,
+    DataLabelManager,
     dataLabelUtils,
     dataLabelInterfaces,
+
 } from "powerbi-visuals-utils-chartutils";
 
-const dataLabelManager = new DataLabelManagerAlias();
 
 import ILabelLayout = dataLabelInterfaces.ILabelLayout;
 import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
 
 // d3
 import * as d3 from "d3";
-import { Arc as SvgArc, arc, line } from "d3-shape";
+import { arc } from "d3-shape";
 
 import { AsterArcDescriptor, ArcDescriptor, Selection } from "./../dataInterfaces";
 
@@ -52,7 +52,7 @@ import { CssConstants } from "powerbi-visuals-utils-svgutils";
 import ClassAndSelector = CssConstants.ClassAndSelector;
 import createClassAndSelector = CssConstants.createClassAndSelector;
 
-import { TooltipEventArgs, ITooltipServiceWrapper } from "powerbi-visuals-utils-tooltiputils";
+import { ITooltipServiceWrapper } from "powerbi-visuals-utils-tooltiputils";
 
 import { Helpers } from "./../helpers";
 
@@ -60,7 +60,7 @@ import { Helpers } from "./../helpers";
 import { pixelConverter as PixelConverter } from "powerbi-visuals-utils-typeutils";
 
 // powerbi.extensibility.utils.formatting
-import { valueFormatter, textMeasurementService, interfaces } from "powerbi-visuals-utils-formattingutils";
+import { textMeasurementService, interfaces } from "powerbi-visuals-utils-formattingutils";
 import TextProperties = interfaces.TextProperties;
 
 
@@ -390,9 +390,11 @@ export class DataRenderService {
     }
 
     private applyTooltipToSelection(selection: any): void {
-        this.tooltipServiceWrapper.addTooltip(selection, (tooltipEvent: any) => {
-            return tooltipEvent.data.data.tooltipInfo;
-        });
+        this.tooltipServiceWrapper.addTooltip(
+            selection,
+            (data: any) => data.data.tooltipInfo,
+            (data: any) => data.data.identity
+        );
     }
 
     private createDataPoints(data: AsterPlotData, hasHighlight: boolean, totalWeight: number): AsterArcDescriptor[] {
@@ -401,10 +403,6 @@ export class DataRenderService {
         return pie(hasHighlight
             ? data.highlightedDataPoints
             : data.dataPoints);
-    }
-
-    private getDataPoints(isHighlight: boolean) {
-        return isHighlight ? this.highlightedDataPoints : this.dataPoints;
     }
 
     private getClassAndSelector(isHighlighted: boolean) {
@@ -499,7 +497,7 @@ export class DataRenderService {
         outlineArc: any,
         labelArc: any): void {
         // Hide and reposition labels that overlap
-        let dataLabelManager = new DataLabelManagerAlias();
+        let dataLabelManager = new DataLabelManager();
         let filteredData: any = dataLabelManager.hideCollidedLabels(viewport, data, layout, true /* addTransform */);
 
         if (filteredData.length === 0) {
@@ -536,7 +534,7 @@ export class DataRenderService {
         labels
             .attrs({ x: (d: LabelEnabledDataPoint) => d.labelX, y: (d: LabelEnabledDataPoint) => d.labelY, dy: ".35em" })
             .text((d: LabelEnabledDataPoint) => d.labeltext)
-            .styles(layout.style);
+            .styles(layout.style as {});
 
         // Draw lines
         if (context.select(DataRenderService.linesGraphicsContextClass.selectorName).empty())
@@ -576,8 +574,6 @@ export class DataRenderService {
             .style("opacity", 0.5)
             .style("fill-opacity", 0)
             .style("stroke", () => this.settings.labels.color);
-
-
     }
 
     private getLabelLayout(arc: any, viewport: IViewport): ILabelLayout {

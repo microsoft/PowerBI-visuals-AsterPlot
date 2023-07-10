@@ -25,11 +25,8 @@
  */
 
 
-import * as d3 from "d3";
+import { Selection, select as d3Select } from "d3-selection";
 import "d3-selection-multi";
-
-type Selection<T> = d3.Selection<any, T, any, any>;
-type UpdateSelection<T> = d3.Selection<any, T, any, any>;
 
 // powerbi
 // tslint:disable-next-line
@@ -116,11 +113,7 @@ import {
 } from "./services/dataRenderService";
 
 import {
-    AsterPlotSettings,
-    CentralLabelsSettings,
-    LabelsSettings,
-    LegendSettings,
-    OuterLineSettings
+    AsterPlotSettings
 } from "./settings";
 import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
 import { createLegend } from "powerbi-visuals-utils-chartutils/lib/legend/legend";
@@ -149,11 +142,11 @@ export class AsterPlot implements IVisual {
         propertyName: "fill"
     };
 
-    private svg: Selection<any>;
-    private mainGroupElement: Selection<any>;
-    private mainLabelsElement: Selection<any>;
-    private slicesElement: Selection<AsterPlotData>;
-    private clearCatcher: Selection<any>;
+    private svg: Selection<any, any, any, any>;
+    private mainGroupElement: Selection<any, any, any, any>;
+    private mainLabelsElement: Selection<any, any, any, any>;
+    private slicesElement: Selection<any, any, any, any>;
+    private clearCatcher: Selection<any, any, any, any>;;
 
     private colorPalette: IColorPalette;
     private colorHelper: ColorHelper;
@@ -194,7 +187,7 @@ export class AsterPlot implements IVisual {
             left: 10
         });
 
-        let svg: Selection<any> = this.svg = d3.select(options.element)
+        let svg: Selection<any, any, any, any> = this.svg = d3Select(options.element)
             .append("svg")
             .classed(AsterPlotVisualClassName, true)
             .style("position", "absolute");
@@ -332,10 +325,9 @@ export class AsterPlot implements IVisual {
     }
 
     private transformAndResizeMainSvgElements() {
-        this.svg.attrs({
-            width: PixelConverter.toString(this.layout.viewport.width),
-            height: PixelConverter.toString(this.layout.viewport.height)
-        });
+        this.svg
+            .attr("width", PixelConverter.toString(this.layout.viewport.width))
+            .attr("height", PixelConverter.toString(this.layout.viewport.height));
 
         let transformX: number = (this.layout.viewportIn.width + this.layout.margin.right) / 2;
         let transformY: number = (this.layout.viewportIn.height + this.layout.margin.bottom) / 2;

@@ -29,16 +29,10 @@ import * as d3 from "d3";
 // powerbi
 // tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
-import IViewport = powerbi.IViewport;
 import DataView = powerbi.DataView;
 import DataViewObjectPropertyIdentifier = powerbi.DataViewObjectPropertyIdentifier;
-import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
-import VisualObjectInstance = powerbi.VisualObjectInstance;
 import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
-import IVisual = powerbi.extensibility.IVisual;
-import VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnumerationObject;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
-import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 import DataViewValueColumn = powerbi.DataViewValueColumn;
@@ -56,52 +50,19 @@ import IColorPalette = powerbi.extensibility.IColorPalette;
 // powerbi.extensibility.utils.color
 import { ColorHelper } from "powerbi-visuals-utils-colorutils";
 
-
 // powerbi.extensibility.utils.chart
 import * as LegendUtil from "powerbi-visuals-utils-chartutils";
-import ILegend = LegendUtil.legendInterfaces.ILegend;
 import legendData = LegendUtil.legendData;
 import LegendData = LegendUtil.legendInterfaces.LegendData;
-// import LegendIcon = powerbi.extensibility.utils.chart.legend.LegendIcon;
-
-
-// powerbi.extensibility.visual
-import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
-import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 
 // powerbi.visuals
 import ISelectionId = powerbi.visuals.ISelectionId;
 
-// powerbi.extensibility.utils.svg
-import * as SVGUtil from "powerbi-visuals-utils-svgutils";
-import IMargin = SVGUtil.IMargin;
-import translate = SVGUtil.manipulation.translate;
-import ClassAndSelector = SVGUtil.CssConstants.ClassAndSelector;
-import createClassAndSelector = SVGUtil.CssConstants.createClassAndSelector;
-
-
-// powerbi.extensibility.utils.interactivity
-import { interactivityBaseService, interactivitySelectionService } from "powerbi-visuals-utils-interactivityutils";
-import appendClearCatcher = interactivityBaseService.appendClearCatcher;
-import createInteractivitySelectionService = interactivitySelectionService.createInteractivitySelectionService;
-import IInteractivityService = interactivityBaseService.IInteractivityService;
-import IInteractiveBehavior = interactivityBaseService.IInteractiveBehavior;
-
-
 // powerbi.extensibility.utils.tooltip
-import {
-    createTooltipServiceWrapper,
-    ITooltipServiceWrapper,
-} from "powerbi-visuals-utils-tooltiputils";
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import {
     AsterPlotColumns
 } from "../asterPlotColumns";
-
-import {
-    AsterPlotWebBehavior,
-    AsterPlotBehaviorOptions
-} from "./../behavior";
 
 import {
     AsterDataPoint,
@@ -109,28 +70,12 @@ import {
 } from "./../dataInterfaces";
 
 import {
-    VisualLayout
-} from "./../visualLayout";
-
-import {
-    DataRenderService
-} from "./../services/dataRenderService";
-
-import {
     AsterPlotSettings,
-    CentralLabelsSettings,
-    LabelsSettings,
-    LegendSettings,
-    OuterLineSettings
 } from "./../settings";
 
 import {
-    createTooltipData,
     createTooltipInfo
 } from "./../tooltipBuilder";
-import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
-import { createLegend } from "powerbi-visuals-utils-chartutils/lib/legend/legend";
-
 import { isEmpty } from "lodash-es";
 
 
@@ -202,10 +147,6 @@ export class AsterPlotConverterService {
 
     private containsHighlights(categorical: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>): boolean {
         return categorical && categorical.Y && categorical.Y[0] && !!(categorical.Y[0].highlights);
-    }
-
-    private containsCategoryOnly(categorical: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>): boolean {
-        return !categorical || !categorical.Y || !categorical.Y[0];
     }
 
     private getMinValue(categorical: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>): number {

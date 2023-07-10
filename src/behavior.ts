@@ -25,12 +25,11 @@
  */
 
 // d3
-// import Selection = d3.Selection;
-import { Selection, AsterPlotData, AsterArcDescriptor } from "./dataInterfaces";
+import { Selection, AsterPlotData } from "./dataInterfaces";
+
 // powerbi.extensibility.utils.interactivity
-import { interactivityBaseService, interactivitySelectionService, interactivityUtils } from "powerbi-visuals-utils-interactivityutils";
-import appendClearCatcher = interactivityBaseService.appendClearCatcher;
-import createInteractivitySelectionService = interactivitySelectionService.createInteractivitySelectionService;
+import { interactivityBaseService, interactivitySelectionService } from "powerbi-visuals-utils-interactivityutils";
+
 import IInteractivityService = interactivityBaseService.IInteractivityService;
 import IInteractiveBehavior = interactivityBaseService.IInteractiveBehavior;
 import SelectableDataPoint = interactivitySelectionService.SelectableDataPoint;
@@ -40,9 +39,7 @@ import IBehaviorOptions = interactivityBaseService.IBehaviorOptions;
 import ISelectionHandler = interactivityBaseService.ISelectionHandler;
 
 import * as asterPlotUtils from "./utils";
-import * as d3 from "d3";
 import { BaseDataPoint } from "powerbi-visuals-utils-interactivityutils/lib/interactivityBaseService";
-const getEvent = (): MouseEvent => <MouseEvent>require("d3-selection").event;
 
 export interface AsterPlotBehaviorOptions extends IBehaviorOptions<SelectableDataPoint> {
     selection: Selection<AsterPlotData>;
@@ -63,8 +60,8 @@ export class AsterPlotWebBehavior implements IInteractiveBehavior {
         this.interactivityService = options.interactivityService;
         this.hasHighlights = options.hasHighlights;
 
-        this.selection.on("click", (d, i: number) => {
-            selectionHandler.handleSelection(d.data, (<MouseEvent>getEvent()).ctrlKey);
+        this.selection.on("click", (event: MouseEvent, d: any) => {
+            selectionHandler.handleSelection(d.data, event.ctrlKey);
         });
 
         this.clearCatcher.on("click", () => {
@@ -77,15 +74,17 @@ export class AsterPlotWebBehavior implements IInteractiveBehavior {
     }
 
     protected bindContextMenu(options: AsterPlotBehaviorOptions, selectionHandler: ISelectionHandler) {
-        options.selection.on("contextmenu",
-            (datum: any) => {
-                const mouseEvent: MouseEvent = <MouseEvent>(<any>d3).event;
-                selectionHandler.handleContextMenu(datum.data, {
-                    x: mouseEvent.clientX,
-                    y: mouseEvent.clientY
-                });
-                mouseEvent.preventDefault();
-            });
+        options.selection.on("contextmenu", (event: PointerEvent, datum: any) => {
+            if (event) {
+                selectionHandler.handleContextMenu(
+                    datum,
+                    {
+                        x: event.clientX,
+                        y: event.clientY
+                    });
+                event.preventDefault();
+            }
+        });
     }
 
     protected bindContextMenuToClearCatcher(options: AsterPlotBehaviorOptions, selectionHandler: ISelectionHandler) {
@@ -99,8 +98,8 @@ export class AsterPlotWebBehavior implements IInteractiveBehavior {
             }
         };
 
-        clearCatcher.on("contextmenu", () => {
-            const event: MouseEvent = <MouseEvent>getEvent() || <MouseEvent>window.event;
+        clearCatcher.on("contextmenu", (e: MouseEvent) => {
+            const event: MouseEvent = e || <MouseEvent>window.event;
             if (event) {
                 selectionHandler.handleContextMenu(
                     <BaseDataPoint>{

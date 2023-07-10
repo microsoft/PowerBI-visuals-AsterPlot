@@ -31,11 +31,7 @@ import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 import DataViewValueColumn = powerbi.DataViewValueColumn;
 import DataViewValueColumns = powerbi.DataViewValueColumns;
 
-// powerbi.extensibility.utils.dataview
-import { converterHelper as helper } from "powerbi-visuals-utils-dataviewutils";
-
-import converterHelper = helper.converterHelper;
-
+import { converterHelper } from "powerbi-visuals-utils-dataviewutils";
 import { toArray, mapValues } from "lodash-es";
 
 export class AsterPlotColumns<T> {
