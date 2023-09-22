@@ -209,6 +209,8 @@ export class AsterPlot implements IVisual {
 
         this.slicesElement = this.mainGroupElement
             .append("g")
+            .attr("role", "listbox")
+            .attr("aria-multiselectable", "true")
             .classed(AsterPlot.AsterSlices.className, true);
 
         this.interactivityService = createInteractivitySelectionService(options.host);
@@ -332,16 +334,18 @@ export class AsterPlot implements IVisual {
     }
 
     private transformAndResizeMainSvgElements() {
-        this.svg.attrs({
-            width: PixelConverter.toString(this.layout.viewport.width),
-            height: PixelConverter.toString(this.layout.viewport.height)
-        });
+        this.svg
+            .attr("width", PixelConverter.toString(this.layout.viewport.width))
+            .attr("height", PixelConverter.toString(this.layout.viewport.height));
 
         let transformX: number = (this.layout.viewportIn.width + this.layout.margin.right) / 2;
         let transformY: number = (this.layout.viewportIn.height + this.layout.margin.bottom) / 2;
 
-        this.mainGroupElement.attr("transform", translate(transformX, transformY));
-        this.mainLabelsElement.attr("transform", translate(transformX, transformY));
+        this.mainGroupElement
+            .attr("transform", translate(transformX, transformY))
+
+        this.mainLabelsElement
+            .attr("transform", translate(transformX, transformY));
 
         // Move back the clearCatcher
         this.clearCatcher.attr("transform", translate(-transformX, -transformY));

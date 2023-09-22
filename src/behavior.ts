@@ -51,6 +51,9 @@ export interface AsterPlotBehaviorOptions extends IBehaviorOptions<SelectableDat
     hasHighlights: boolean;
 }
 
+const EnterCode = "Enter";
+const SpaceCode = "Space";
+
 export class AsterPlotWebBehavior implements IInteractiveBehavior {
     private selection: Selection<any>;
     private clearCatcher: Selection<any>;
@@ -63,8 +66,15 @@ export class AsterPlotWebBehavior implements IInteractiveBehavior {
         this.interactivityService = options.interactivityService;
         this.hasHighlights = options.hasHighlights;
 
-        this.selection.on("click", (d, i: number) => {
-            selectionHandler.handleSelection(d.data, (<MouseEvent>getEvent()).ctrlKey);
+        this.selection.on("click", (event: MouseEvent, d: any) => {
+            selectionHandler.handleSelection(d.data, event.ctrlKey);
+        });
+
+        this.selection.on("keydown", (event: KeyboardEvent, d: any) => {
+            if (event.code !== EnterCode && event.code !== SpaceCode) {
+                return;
+            }
+            selectionHandler.handleSelection(d.data, event.ctrlKey);
         });
 
         this.clearCatcher.on("click", () => {
@@ -118,6 +128,9 @@ export class AsterPlotWebBehavior implements IInteractiveBehavior {
     }
 
     public renderSelection(hasSelection: boolean) {
+        this.selection.attr("aria-selected", (d) => {
+            return d.data.selected;
+        })
         this.changeOpacityAttribute("fill-opacity", hasSelection);
         this.changeOpacityAttribute("stroke-opacity", hasSelection);
     }

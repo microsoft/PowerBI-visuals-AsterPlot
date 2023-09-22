@@ -212,6 +212,8 @@ export class DataRenderService {
         selection = selection.merge(selection
             .enter()
             .append("path")
+            .attr("aria-selected", false)
+            .attr("tabindex", 0)
             .classed(classSelector.className, true));
 
         selection
