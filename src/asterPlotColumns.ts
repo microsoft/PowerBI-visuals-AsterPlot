@@ -32,9 +32,8 @@ import DataViewValueColumn = powerbi.DataViewValueColumn;
 import DataViewValueColumns = powerbi.DataViewValueColumns;
 
 // powerbi.extensibility.utils.dataview
-import { converterHelper as helper } from "powerbi-visuals-utils-dataviewutils";
+import { converterHelper } from "powerbi-visuals-utils-dataviewutils";
 
-import converterHelper = helper.converterHelper;
 
 import { toArray, mapValues } from "lodash-es";
 

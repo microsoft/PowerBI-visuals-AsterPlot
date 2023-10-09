@@ -31,11 +31,10 @@ import IViewport = powerbi.IViewport;
 
 // powerbi.extensibility.utils.chart
 import {
-    dataLabelManager,
+    DataLabelManager,
     dataLabelUtils,
     dataLabelInterfaces,
 } from "powerbi-visuals-utils-chartutils";
-import DataLabelManager = dataLabelManager.DataLabelManager;
 import ILabelLayout = dataLabelInterfaces.ILabelLayout;
 import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
 
@@ -534,9 +533,11 @@ export class DataRenderService {
         }
 
         labels
-            .attrs({ x: (d: LabelEnabledDataPoint) => d.labelX, y: (d: LabelEnabledDataPoint) => d.labelY, dy: ".35em" })
-            .text((d: LabelEnabledDataPoint) => d.labeltext)
-            .styles(layout.style);
+            .attr("x", (d: LabelEnabledDataPoint) => d.labelX)
+            .attr("y", (d: LabelEnabledDataPoint) => d.labelY)
+            .attr("dy", ".35em")
+            .text((d: LabelEnabledDataPoint) => d.labeltext);
+            //.styles(layout.style);
 
         // Draw lines
         if (context.select(DataRenderService.linesGraphicsContextClass.selectorName).empty())

@@ -71,7 +71,7 @@ export class AsterPlotBuilder extends VisualBuilderBase<VisualClass> {
 
     public get legendGroup(): JQuery {
         return this.element
-            .children(".legend")
+            (".legend")
             .children("#legendGroup");
     }
 
