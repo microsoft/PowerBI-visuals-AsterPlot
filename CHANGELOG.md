@@ -1,3 +1,8 @@
+## 1.6.0
+* Added keyboard navigation (feature)
+* Focus outline (styles)
+* Aria roles (aria-selected, listbox, option) on slices
+
 ## 1.5.1
 * Fixed pie default color display bug
 
