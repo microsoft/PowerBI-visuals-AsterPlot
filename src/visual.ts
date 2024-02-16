@@ -26,7 +26,6 @@
 
 
 import * as d3 from "d3";
-import "d3-selection-multi";
 
 type Selection<T> = d3.Selection<any, T, any, any>;
 // powerbi

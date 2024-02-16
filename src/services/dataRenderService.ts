@@ -267,11 +267,10 @@ export class DataRenderService {
             };
             text.exit().remove();
             text = text.merge(text.enter().append("text"));
-            text.attrs({
-                "dy": (d: number, i: number) => { return -this.ticksRadiusArray[i] + DataRenderService.PixelsBelowAxis + (parseInt(this.settings.outerLine.fontSize.toString())); },
-                "dx": (d: number, i: number) => { return - textMeasurementService.measureSvgTextWidth(textProperties, this.tickValuesArray[i].toString()) / DataRenderService.AxisTextWidthCoefficient; },
-                "text-anchor": "middle"
-            })
+            text
+                .attr("dy", (d: number, i: number) => { return -this.ticksRadiusArray[i] + DataRenderService.PixelsBelowAxis + (parseInt(this.settings.outerLine.fontSize.toString())); })
+                .attr("dx", (d: number, i: number) => { return - textMeasurementService.measureSvgTextWidth(textProperties, this.tickValuesArray[i].toString()) / DataRenderService.AxisTextWidthCoefficient; })
+                .attr("text-anchor", "middle")
                 .style("font-size", this.settings.outerLine.fontSize)
                 .style("fill", this.settings.outerLine.textColor)
                 .classed(DataRenderService.CircleText.className, true)

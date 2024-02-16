@@ -8,8 +8,7 @@
     "sourceMap": true,
     "outDir": "./.tmp/build/",
     "moduleResolution": "node",
-    "declaration": true,
-    "composite": true
+    "declaration": true
   },
   "files": [
     "src/visual.ts"
