@@ -40,24 +40,24 @@ import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
 
 // d3
 import * as d3 from "d3";
-import { Arc as SvgArc, arc, line } from "d3-shape";
+import { arc } from "d3-shape";
 
-import { AsterArcDescriptor, ArcDescriptor, Selection } from "./../dataInterfaces";
+import { AsterArcDescriptor, ArcDescriptor, Selection } from "../dataInterfaces";
 
 // powerbi.extensibility.utils.svg
 import { CssConstants } from "powerbi-visuals-utils-svgutils";
 import ClassAndSelector = CssConstants.ClassAndSelector;
 import createClassAndSelector = CssConstants.createClassAndSelector;
 
-import { TooltipEventArgs, ITooltipServiceWrapper } from "powerbi-visuals-utils-tooltiputils";
+import { ITooltipServiceWrapper } from "powerbi-visuals-utils-tooltiputils";
 
-import { Helpers } from "./../helpers";
+import { Helpers } from "../helpers";
 
 // powerbi.extensibility.utils.type
 import { pixelConverter as PixelConverter } from "powerbi-visuals-utils-typeutils";
 
 // powerbi.extensibility.utils.formatting
-import { valueFormatter, textMeasurementService, interfaces } from "powerbi-visuals-utils-formattingutils";
+import { textMeasurementService, interfaces } from "powerbi-visuals-utils-formattingutils";
 import TextProperties = interfaces.TextProperties;
 
 
@@ -74,22 +74,16 @@ class CircleTicksOptions {
 import {
     AsterDataPoint,
     AsterPlotData
-} from "./../dataInterfaces";
+} from "../dataInterfaces";
 
 import {
     VisualLayout
-} from "./../visualLayout";
+} from "../visualLayout";
 
 import {
     AsterPlotSettings,
-    CentralLabelsSettings,
-    LabelsSettings,
-    LegendSettings,
     OuterLineSettings
-} from "./../settings";
-import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
-import { createLegend } from "powerbi-visuals-utils-chartutils/lib/legend/legend";
-// import _ = require("lodash");
+} from "../settings";
 import { max, filter, isEmpty } from "lodash-es";
 
 
@@ -149,7 +143,7 @@ export class DataRenderService {
         this.innerRadius = 0.3 * (this.settings.labels.show
             ? this.viewportRadius * DataRenderService.AsterRadiusRatio
             : this.viewportRadius);
-        let showOuterLine: boolean = settings.outerLine.show;
+        const showOuterLine: boolean = settings.outerLine.show;
         if (showOuterLine) {
             this.ticksOptions = this.calcTickOptions(this.maxHeight);
             this.innerRadius /= this.ticksOptions.diffPercent;
@@ -166,7 +160,7 @@ export class DataRenderService {
     }
 
     public drawCenterText(mainGroupElement: Selection<any>): void {
-        let centerTextProperties: TextProperties = {
+        const centerTextProperties: TextProperties = {
             fontFamily: dataLabelUtils.StandardFontFamily,
             fontSize: PixelConverter.toString(this.settings.label.fontSize),
             text: this.data.centerText
@@ -193,7 +187,7 @@ export class DataRenderService {
     }
 
     public renderArcs(slicesElement: Selection<any>, isHighlighted: boolean) {
-        let arc: AsterArcDescriptor = this.arcSvg,
+        const arc: AsterArcDescriptor = this.arcSvg,
             classSelector: ClassAndSelector = this.getClassAndSelector(isHighlighted);
 
         let selection = slicesElement
@@ -229,9 +223,8 @@ export class DataRenderService {
     }
 
     private drawGrid(element: Selection<any>, settings: OuterLineSettings): void {
-        let outerThickness: string = PixelConverter.toString(settings.thickness),
-            color: string = settings.color,
-            ticksCount: number = this.ticksRadiusArray.length;
+        const color: string = settings.color;
+        const ticksCount: number = this.ticksRadiusArray.length;
 
         let circleAxes: Selection<any> = element
             .selectAll("g" + DataRenderService.CircleLine.selectorName)
@@ -268,7 +261,7 @@ export class DataRenderService {
 
         if (settings.showGridTicksValues) {
             let text: any = circleAxes.selectAll("text").data(this.tickValuesArray);
-            let textProperties: TextProperties = {
+            const textProperties: TextProperties = {
                 fontFamily: dataLabelUtils.StandardFontFamily,
                 fontSize: PixelConverter.toString(this.settings.outerLine.fontSize)
             };
@@ -290,11 +283,11 @@ export class DataRenderService {
     }
 
     private drawOuter(element: Selection<any>) {
-        let outlineArc: any = arc()
+        const outlineArc: any = arc()
             .innerRadius(this.settings.outerLine.showStraightLines ? this.innerRadius : this.outerRadius)
             .outerRadius(this.outerRadius);
 
-        let outerThickness: string = this.settings.outerLine.thickness + "px",
+        const outerThickness: string = this.settings.outerLine.thickness + "px",
             color: string = this.settings.outerLine.color;
 
         let outerLine = element.selectAll(DataRenderService.OuterLine.selectorName).data(this.dataPoints);
@@ -311,7 +304,7 @@ export class DataRenderService {
     }
 
     public drawOuterLines(element: Selection<any>): void {
-        let settings: AsterPlotSettings = this.settings;
+        const settings: AsterPlotSettings = this.settings;
 
         this.drawOuter(element);
 
@@ -349,13 +342,13 @@ export class DataRenderService {
             }
         }
 
-        let step = Math.pow(10, val.toString().length - 1);
+        const step = Math.pow(10, val.toString().length - 1);
 
-        let allTicksCount: number = Math.ceil((val) / step);
-        let endPoint: number = allTicksCount * step / modifier;
-        let diffPercent: number = endPoint / value;
-        let threeTicks: number = 3;
-        let twoTicks: number = 2;
+        const allTicksCount: number = Math.ceil((val) / step);
+        const endPoint: number = allTicksCount * step / modifier;
+        const diffPercent: number = endPoint / value;
+        const threeTicks: number = 3;
+        const twoTicks: number = 2;
 
         return {
             diffPercent,
@@ -365,7 +358,7 @@ export class DataRenderService {
     }
 
     private calcTicksRadius(ticksCount: number, radius: number): number[] {
-        let array = [];
+        let array: any[];
 
         if (ticksCount % 3 === 0) {
             array = [(radius - this.innerRadius) / 3 + this.innerRadius / this.ticksOptions.diffPercent, (radius - this.innerRadius) / 3 * 2 + this.innerRadius / this.ticksOptions.diffPercent, radius];
@@ -377,7 +370,7 @@ export class DataRenderService {
     }
 
     private calcTicksValues(ticksCount: number, outerValue: number): number[] {
-        let array = [];
+        let array: any[];
 
         if (ticksCount % 3 === 0) {
             array = [outerValue / 3, outerValue / 3 * 2, outerValue];
@@ -395,7 +388,7 @@ export class DataRenderService {
     }
 
     private createDataPoints(data: AsterPlotData, hasHighlight: boolean, totalWeight: number): AsterArcDescriptor[] {
-        let pie: any = this.getPieLayout(totalWeight);
+        const pie: any = this.getPieLayout(totalWeight);
 
         return pie(hasHighlight
             ? data.highlightedDataPoints
@@ -427,18 +420,16 @@ export class DataRenderService {
     private getArcSvg(innerRadius: number, viewportRadius: number, maxHeight: number): any {
         return arc<AsterArcDescriptor>()
             .innerRadius(innerRadius)
-            .outerRadius((arcDescriptor: AsterArcDescriptor, i: number) => {
+            .outerRadius((arcDescriptor: AsterArcDescriptor) => {
                 let height: number = 0;
 
                 if (this.maxHeight) {
-                    let radius: number = viewportRadius - innerRadius,
-                        sliceHeight: number = 1;
-
-                    sliceHeight = arcDescriptor
+                    const radius: number = viewportRadius - innerRadius;
+                    const sliceHeight = arcDescriptor
                         && arcDescriptor.data
                         && !isNaN(arcDescriptor.data.sliceHeight)
                         ? arcDescriptor.data.sliceHeight
-                        : sliceHeight;
+                        : 1;
 
                     height = radius * sliceHeight / maxHeight;
                 }
@@ -456,34 +447,33 @@ export class DataRenderService {
     }
 
     public renderLabels(labelsElement: Selection<any>, isHighlight: boolean) {
-        let dataPoints: AsterArcDescriptor[] = isHighlight ? this.highlightedDataPoints : this.dataPoints;
+        const dataPoints: AsterArcDescriptor[] = isHighlight ? this.highlightedDataPoints : this.dataPoints;
         if (!this.data.hasHighlights || (this.data.hasHighlights && isHighlight)) {
-            let labelRadCalc = (d: AsterDataPoint) => {
-                let height: number = this.viewportRadius * (d && !isNaN(d.sliceHeight) ? d.sliceHeight : 1) / this.maxHeight + this.innerRadius;
+            const labelRadCalc = (d: AsterDataPoint) => {
+                const height: number = this.viewportRadius * (d && !isNaN(d.sliceHeight) ? d.sliceHeight : 1) / this.maxHeight + this.innerRadius;
                 return Math.max(height, this.innerRadius);
             };
 
-            let labelArc = arc<AsterArcDescriptor>()
+            const labelArc = arc<AsterArcDescriptor>()
                 .innerRadius(d => labelRadCalc(d.data))
                 .outerRadius(d => labelRadCalc(d.data));
 
-            let lineRadCalc = (d: AsterDataPoint) => {
+            const lineRadCalc = (d: AsterDataPoint) => {
                 let height: number = (this.viewportRadius - this.innerRadius) * (d && !isNaN(d.sliceHeight) ? d.sliceHeight : 1) / this.maxHeight;
                 height = this.innerRadius + height * DataRenderService.AsterRadiusRatio;
                 return Math.max(height, this.innerRadius);
             };
-            let outlineArc = arc<AsterArcDescriptor>()
+            const outlineArc = arc<AsterArcDescriptor>()
                 .innerRadius(d => lineRadCalc(d.data))
                 .outerRadius(d => lineRadCalc(d.data));
 
-            let labelLayout: ILabelLayout = this.getLabelLayout(labelArc, this.layout.viewport);
+            const labelLayout: ILabelLayout = this.getLabelLayout(labelArc, this.layout.viewport);
             this.drawLabels(
                 dataPoints.filter(x => !isHighlight || x.data.sliceHeight !== null),
                 labelsElement,
                 labelLayout,
                 this.layout.viewport,
-                outlineArc,
-                labelArc);
+                outlineArc);
         }
     }
 
@@ -495,10 +485,9 @@ export class DataRenderService {
         context: Selection<AsterArcDescriptor>,
         layout: ILabelLayout,
         viewport: IViewport,
-        outlineArc: any,
-        labelArc: any): void {
+        outlineArc: any): void {
         // Hide and reposition labels that overlap
-        let dataLabelManager: DataLabelManager = new DataLabelManager();
+        const dataLabelManager: DataLabelManager = new DataLabelManager();
         let filteredData: any = dataLabelManager.hideCollidedLabels(viewport, data, layout, true /* addTransform */);
 
         if (filteredData.length === 0) {
@@ -553,7 +542,9 @@ export class DataRenderService {
                 filteredData,
                 (d: AsterArcDescriptor) => (<ISelectionId>d.data.identity).getKey());
 
-        let midAngle = (d: any) => { return d.startAngle + (d.endAngle - d.startAngle) / 2; };
+        const midAngle = (d: any) => {
+            return d.startAngle + (d.endAngle - d.startAngle) / 2;
+        };
 
         lines
             .exit()
@@ -566,9 +557,9 @@ export class DataRenderService {
 
         lines
             .attr("points", (d) => {
-                let textPoint = [d.labelX, d.labelY];
+                const textPoint = [d.labelX, d.labelY];
                 textPoint[0] = textPoint[0] + ((midAngle(<any>d) < Math.PI ? -1 : 1) * DataRenderService.LabelLinePadding);
-                let chartPoint = outlineArc.centroid(<any>d);
+                const chartPoint = outlineArc.centroid(<any>d);
                 chartPoint[0] *= DataRenderService.ChartLinePadding;
                 chartPoint[1] *= DataRenderService.ChartLinePadding;
 
@@ -582,20 +573,22 @@ export class DataRenderService {
     }
 
     private getLabelLayout(arc: any, viewport: IViewport): ILabelLayout {
-        let midAngle = (d: any) => { return d.startAngle + (d.endAngle - d.startAngle) / 2; };
-        let textProperties: TextProperties = {
+        const midAngle = (d: any) => {
+            return d.startAngle + (d.endAngle - d.startAngle) / 2;
+        };
+        const textProperties: TextProperties = {
             fontFamily: dataLabelUtils.StandardFontFamily,
             fontSize: PixelConverter.fromPoint(this.settings.labels.fontSize),
             text: "",
         };
 
-        let isLabelsHasConflict = (d: AsterArcDescriptor) => {
-            let pos = arc.centroid(d);
+        const isLabelsHasConflict = (d: AsterArcDescriptor) => {
+            const pos = arc.centroid(d);
             textProperties.text = d.data.label;
-            let textWidth = textMeasurementService.measureSvgTextWidth(textProperties);
-            let horizontalSpaceAvaliableForLabels = viewport.width / 2 - Math.abs(pos[0]);
-            let textHeight = textMeasurementService.estimateSvgTextHeight(textProperties);
-            let verticalSpaceAvaliableForLabels = viewport.height / 2 - Math.abs(pos[1]);
+            const textWidth = textMeasurementService.measureSvgTextWidth(textProperties);
+            const horizontalSpaceAvaliableForLabels = viewport.width / 2 - Math.abs(pos[0]);
+            const textHeight = textMeasurementService.estimateSvgTextHeight(textProperties);
+            const verticalSpaceAvaliableForLabels = viewport.height / 2 - Math.abs(pos[1]);
             d.isLabelHasConflict = textWidth > horizontalSpaceAvaliableForLabels || textHeight > verticalSpaceAvaliableForLabels;
             return d.isLabelHasConflict;
         };
@@ -603,19 +596,19 @@ export class DataRenderService {
         return {
             labelText: (d: AsterArcDescriptor) => {
                 textProperties.text = d.data.label;
-                let pos = arc.centroid(d);
-                let xPos = isLabelsHasConflict(d) ? pos[0] * DataRenderService.AsterConflictRatio : pos[0];
-                let spaceAvaliableForLabels = viewport.width / 2 - Math.abs(xPos);
+                const pos = arc.centroid(d);
+                const xPos = isLabelsHasConflict(d) ? pos[0] * DataRenderService.AsterConflictRatio : pos[0];
+                const spaceAvaliableForLabels = viewport.width / 2 - Math.abs(xPos);
                 return textMeasurementService.getTailoredTextOrDefault(textProperties, spaceAvaliableForLabels);
             },
             labelLayout: {
                 x: (d: AsterArcDescriptor) => {
-                    let pos = arc.centroid(d);
+                    const pos = arc.centroid(d);
                     textProperties.text = d.data.label;
                     return d.isLabelHasConflict ? pos[0] * DataRenderService.AsterConflictRatio : pos[0];
                 },
                 y: (d: AsterArcDescriptor) => {
-                    let pos: [number, number] = arc.centroid(d);
+                    const pos: [number, number] = arc.centroid(d);
                     return d.isLabelHasConflict ? pos[1] * DataRenderService.AsterConflictRatio : pos[1];
                 },
             },

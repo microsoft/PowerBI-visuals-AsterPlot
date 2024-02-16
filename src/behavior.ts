@@ -26,11 +26,11 @@
 
 // d3
 // import Selection = d3.Selection;
-import { Selection, AsterPlotData, AsterArcDescriptor } from "./dataInterfaces";
+import { Selection, AsterPlotData } from "./dataInterfaces";
 // powerbi.extensibility.utils.interactivity
-import { interactivityBaseService, interactivitySelectionService, interactivityUtils } from "powerbi-visuals-utils-interactivityutils";
-import appendClearCatcher = interactivityBaseService.appendClearCatcher;
-import createInteractivitySelectionService = interactivitySelectionService.createInteractivitySelectionService;
+import { interactivityBaseService, interactivitySelectionService } from "powerbi-visuals-utils-interactivityutils";
+
+
 import IInteractivityService = interactivityBaseService.IInteractivityService;
 import IInteractiveBehavior = interactivityBaseService.IInteractiveBehavior;
 import SelectableDataPoint = interactivitySelectionService.SelectableDataPoint;
@@ -40,7 +40,6 @@ import IBehaviorOptions = interactivityBaseService.IBehaviorOptions;
 import ISelectionHandler = interactivityBaseService.ISelectionHandler;
 
 import * as asterPlotUtils from "./utils";
-import * as d3 from "d3";
 import { BaseDataPoint } from "powerbi-visuals-utils-interactivityutils/lib/interactivityBaseService";
 const getEvent = (): MouseEvent => <MouseEvent>require("d3-selection").event;
 

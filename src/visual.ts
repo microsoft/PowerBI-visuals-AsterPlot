@@ -29,8 +29,6 @@ import * as d3 from "d3";
 import "d3-selection-multi";
 
 type Selection<T> = d3.Selection<any, T, any, any>;
-type UpdateSelection<T> = d3.Selection<any, T, any, any>;
-
 // powerbi
 // tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
@@ -56,7 +54,6 @@ import ISelectionId = powerbi.visuals.ISelectionId;
 
 // powerbi.extensibility.utils.svg
 import * as SVGUtil from "powerbi-visuals-utils-svgutils";
-import IMargin = SVGUtil.IMargin;
 import translate = SVGUtil.manipulation.translate;
 import ClassAndSelector = SVGUtil.CssConstants.ClassAndSelector;
 import createClassAndSelector = SVGUtil.CssConstants.createClassAndSelector;
@@ -116,18 +113,13 @@ import {
 } from "./services/dataRenderService";
 
 import {
-    AsterPlotSettings,
-    CentralLabelsSettings,
-    LabelsSettings,
-    LegendSettings,
-    OuterLineSettings
+    AsterPlotSettings
 } from "./settings";
 import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
 import { createLegend } from "powerbi-visuals-utils-chartutils/lib/legend/legend";
-// import _ = require("lodash");
 import { isEmpty, clone } from "lodash-es";
 
-let AsterPlotVisualClassName: string = "asterPlot";
+const AsterPlotVisualClassName: string = "asterPlot";
 
 
 import "../style/asterPlot.less";
@@ -191,7 +183,7 @@ export class AsterPlot implements IVisual {
             left: 10
         });
 
-        let svg: Selection<any> = this.svg = d3.select(options.element)
+        const svg: Selection<any> = this.svg = d3.select(options.element)
             .append("svg")
             .classed(AsterPlotVisualClassName, true)
             .style("position", "absolute");
@@ -221,20 +213,20 @@ export class AsterPlot implements IVisual {
 
     // tslint:disable-next-line: function-name
     public static converter(dataView: DataView, colors: IColorPalette, colorHelper: ColorHelper, visualHost: IVisualHost, localizationManager: ILocalizationManager): AsterPlotData {
-        let categorical = <any>AsterPlotColumns.getCategoricalColumns(dataView);
+        const categorical = <any>AsterPlotColumns.getCategoricalColumns(dataView);
 
         if (!AsterPlotConverterService.isDataValid(categorical)) {
             return;
         }
 
-        let settings: AsterPlotSettings = AsterPlot.parseSettings(dataView, categorical.Category.source, colorHelper);
-        let converterService: AsterPlotConverterService = new AsterPlotConverterService(dataView, settings, colors, visualHost, categorical);
+        const settings: AsterPlotSettings = AsterPlot.parseSettings(dataView, categorical.Category.source, colorHelper);
+        const converterService: AsterPlotConverterService = new AsterPlotConverterService(dataView, settings, colors, visualHost, categorical);
 
         return converterService.getConvertedData(localizationManager);
     }
 
     private static parseSettings(dataView: DataView, categorySource: DataViewMetadataColumn, colorHelper: ColorHelper): AsterPlotSettings {
-        let settings: AsterPlotSettings = AsterPlotSettings.parse<AsterPlotSettings>(dataView);
+        const settings: AsterPlotSettings = AsterPlotSettings.parse<AsterPlotSettings>(dataView);
 
         // parse colors for high contrast mode
         settings.label.color = colorHelper.getHighContrastColor("foreground", settings.label.color);
@@ -271,7 +263,7 @@ export class AsterPlot implements IVisual {
             if (!this.areValidOptions(options)) {
                 return;
             }
-            let data: AsterPlotData = AsterPlot.converter(options.dataViews[0], this.colorPalette, this.colorHelper, this.visualHost, this.localizationManager);
+            const data: AsterPlotData = AsterPlot.converter(options.dataViews[0], this.colorPalette, this.colorHelper, this.visualHost, this.localizationManager);
             if (!data) {
                 this.clear();
                 return;
@@ -335,8 +327,8 @@ export class AsterPlot implements IVisual {
             .attr("width", PixelConverter.toString(this.layout.viewport.width))
             .attr("height", PixelConverter.toString(this.layout.viewport.height));
 
-        let transformX: number = (this.layout.viewportIn.width + this.layout.margin.right) / 2;
-        let transformY: number = (this.layout.viewportIn.height + this.layout.margin.bottom) / 2;
+        const transformX: number = (this.layout.viewportIn.width + this.layout.margin.right) / 2;
+        const transformY: number = (this.layout.viewportIn.height + this.layout.margin.bottom) / 2;
 
         this.mainGroupElement
             .attr("transform", translate(transformX, transformY))
@@ -350,7 +342,7 @@ export class AsterPlot implements IVisual {
 
     private bindInteractivityBehaviour(): void {
         if (this.interactivityService) {
-            let behaviorOptions: AsterPlotBehaviorOptions = {
+            const behaviorOptions: AsterPlotBehaviorOptions = {
                 selection: this.slicesElement.selectAll(AsterPlot.AsterSlice.selectorName + ", " + AsterPlot.AsterHighlightedSlice.selectorName),
                 clearCatcher: this.clearCatcher,
                 interactivityService: this.interactivityService,
@@ -366,7 +358,7 @@ export class AsterPlot implements IVisual {
     private renderLegend(): void {
         if (this.settings.legend.show) {
             // Force update for title text
-            let legendObject = clone(this.settings.legend);
+            const legendObject = clone(this.settings.legend);
             legendObject.labelColor = <any>{ solid: { color: legendObject.labelColor } };
             legendData.update(this.data.legendData, <any>legendObject);
             this.legend.changeOrientation(LegendPosition[this.settings.legend.position]);
@@ -381,8 +373,8 @@ export class AsterPlot implements IVisual {
             return;
         }
 
-        let legendMargins: IViewport = this.legend.getMargins();
-        let legendPosition: LegendPosition = LegendPosition[this.settings.legend.position];
+        const legendMargins: IViewport = this.legend.getMargins();
+        const legendPosition: LegendPosition = LegendPosition[this.settings.legend.position];
 
         switch (legendPosition) {
             case LegendPosition.Top:
@@ -454,7 +446,7 @@ export class AsterPlot implements IVisual {
         instanceEnumeration: VisualObjectInstanceEnumeration,
         instance: VisualObjectInstance): void {
 
-        let objectInstanceEnumeration: VisualObjectInstanceEnumerationObject = <VisualObjectInstanceEnumerationObject>instanceEnumeration;
+        const objectInstanceEnumeration: VisualObjectInstanceEnumerationObject = <VisualObjectInstanceEnumerationObject>instanceEnumeration;
 
         if (objectInstanceEnumeration.instances) {
             objectInstanceEnumeration

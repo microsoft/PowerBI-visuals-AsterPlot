@@ -29,16 +29,10 @@ import * as d3 from "d3";
 // powerbi
 // tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
-import IViewport = powerbi.IViewport;
 import DataView = powerbi.DataView;
 import DataViewObjectPropertyIdentifier = powerbi.DataViewObjectPropertyIdentifier;
-import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
-import VisualObjectInstance = powerbi.VisualObjectInstance;
 import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
-import IVisual = powerbi.extensibility.IVisual;
-import VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnumerationObject;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
-import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 import DataViewValueColumn = powerbi.DataViewValueColumn;
@@ -59,77 +53,37 @@ import { ColorHelper } from "powerbi-visuals-utils-colorutils";
 
 // powerbi.extensibility.utils.chart
 import * as LegendUtil from "powerbi-visuals-utils-chartutils";
-import ILegend = LegendUtil.legendInterfaces.ILegend;
+
 import legendData = LegendUtil.legendData;
 import LegendData = LegendUtil.legendInterfaces.LegendData;
 // import LegendIcon = powerbi.extensibility.utils.chart.legend.LegendIcon;
 
 
 // powerbi.extensibility.visual
-import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
-import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
+
+
 
 // powerbi.visuals
 import ISelectionId = powerbi.visuals.ISelectionId;
 
-// powerbi.extensibility.utils.svg
-import * as SVGUtil from "powerbi-visuals-utils-svgutils";
-import IMargin = SVGUtil.IMargin;
-import translate = SVGUtil.manipulation.translate;
-import ClassAndSelector = SVGUtil.CssConstants.ClassAndSelector;
-import createClassAndSelector = SVGUtil.CssConstants.createClassAndSelector;
-
-
-// powerbi.extensibility.utils.interactivity
-import { interactivityBaseService, interactivitySelectionService } from "powerbi-visuals-utils-interactivityutils";
-import appendClearCatcher = interactivityBaseService.appendClearCatcher;
-import createInteractivitySelectionService = interactivitySelectionService.createInteractivitySelectionService;
-import IInteractivityService = interactivityBaseService.IInteractivityService;
-import IInteractiveBehavior = interactivityBaseService.IInteractiveBehavior;
-
-
 // powerbi.extensibility.utils.tooltip
-import {
-    createTooltipServiceWrapper,
-    ITooltipServiceWrapper,
-} from "powerbi-visuals-utils-tooltiputils";
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import {
     AsterPlotColumns
 } from "../asterPlotColumns";
 
 import {
-    AsterPlotWebBehavior,
-    AsterPlotBehaviorOptions
-} from "./../behavior";
-
-import {
     AsterDataPoint,
     AsterPlotData
-} from "./../dataInterfaces";
+} from "../dataInterfaces";
 
 import {
-    VisualLayout
-} from "./../visualLayout";
+    AsterPlotSettings
+} from "../settings";
 
 import {
-    DataRenderService
-} from "./../services/dataRenderService";
-
-import {
-    AsterPlotSettings,
-    CentralLabelsSettings,
-    LabelsSettings,
-    LegendSettings,
-    OuterLineSettings
-} from "./../settings";
-
-import {
-    createTooltipData,
     createTooltipInfo
-} from "./../tooltipBuilder";
-import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
-import { createLegend } from "powerbi-visuals-utils-chartutils/lib/legend/legend";
+} from "../tooltipBuilder";
 
 import { isEmpty } from "lodash-es";
 
@@ -233,9 +187,9 @@ export class AsterPlotConverterService {
     }
 
     private buildTwoMeasuresTooltip(formattedCategoryValue: any, value: number, secondValue: number, localizationManager: ILocalizationManager): VisualTooltipDataItem[] {
-        let tooltipInfo: VisualTooltipDataItem[] = this.buildOneMeasureTooltip(formattedCategoryValue, value, localizationManager);
+        const tooltipInfo: VisualTooltipDataItem[] = this.buildOneMeasureTooltip(formattedCategoryValue, value, localizationManager);
 
-        let toolTip: VisualTooltipDataItem = createTooltipInfo(
+        const toolTip: VisualTooltipDataItem = createTooltipInfo(
             this.dataView.categorical,
             formattedCategoryValue,
             localizationManager,
@@ -251,19 +205,19 @@ export class AsterPlotConverterService {
 
     // tslint:disable-next-line: max-func-body-length
     public getConvertedData(localizationManager: ILocalizationManager): AsterPlotData {
-        let categoryValue: any = this.categoricalValueColumns.Category,
+        const categoryValue: any = this.categoricalValueColumns.Category,
             category: DataViewCategoryColumn = this.categoricalColumns.Category,
             values: number[] = <number[]>this.categoricalColumns.Y[0].values,
             categoricalColumns: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns> = this.categoricalColumns;
 
         for (let i = 0; i < categoryValue.length; i++) {
-            let formattedCategoryValue = categoryValue[i],
-                currentValue = values[i];
+            const formattedCategoryValue = categoryValue[i];
+            let currentValue = values[i];
 
             let tooltipInfo: VisualTooltipDataItem[];
 
             if (this.isMoreThanOneMeasure(categoricalColumns)) {
-                let secondMeasureValue: number = <number>categoricalColumns.Y[1].values[i];
+                const secondMeasureValue: number = <number>categoricalColumns.Y[1].values[i];
                 tooltipInfo = this.buildTwoMeasuresTooltip(formattedCategoryValue, currentValue, secondMeasureValue, localizationManager);
 
                 currentValue += secondMeasureValue;
@@ -271,11 +225,8 @@ export class AsterPlotConverterService {
                 tooltipInfo = this.buildOneMeasureTooltip(formattedCategoryValue, currentValue, localizationManager);
             }
 
-            let identity: powerbi.visuals.CustomVisualOpaqueIdentity = category.identity[i],
-                fillColor: string,
-                strokeColor: string,
-                strokeWidth: number,
-                sliceWidth: number;
+            const identity: powerbi.visuals.CustomVisualOpaqueIdentity = category.identity[i];
+            let fillColor: string;
 
             if (category.objects && category.objects[i]) {
                 fillColor = this.colorHelper.getColorForMeasure(category.objects[i], "");
@@ -283,12 +234,11 @@ export class AsterPlotConverterService {
                 fillColor = this.colorHelper.getColorForMeasure(category.objects && category.objects[i], (<any>identity).identityIndex);
             }
 
-            strokeColor = this.colorHelper.getHighContrastColor("foreground", fillColor);
-            strokeWidth = this.colorHelper.isHighContrast ? maxStrokeWidth : minStrokeWidth;
+            const strokeColor = this.colorHelper.getHighContrastColor("foreground", fillColor);
+            const strokeWidth = this.colorHelper.isHighContrast ? maxStrokeWidth : minStrokeWidth;
+            const sliceWidth = Math.max(0, categoricalColumns.Y.length > 1 ? <number>categoricalColumns.Y[1].values[i] : 1);
 
-            sliceWidth = Math.max(0, categoricalColumns.Y.length > 1 ? <number>categoricalColumns.Y[1].values[i] : 1);
-
-            let selectionId: ISelectionId = this.visualHost.createSelectionIdBuilder()
+            const selectionId: ISelectionId = this.visualHost.createSelectionIdBuilder()
                 .withCategory(category, i)
                 .withMeasure(category.source.queryName)
                 .createSelectionId();
@@ -324,15 +274,15 @@ export class AsterPlotConverterService {
             // Handle highlights
             if (this.hasHighlights) {
 
-                let highlightValues: number[] = <number[]>this.categoricalColumns.Y[0].highlights,
-                    isNotNull: boolean = highlightValues[i] != null;
+                const highlightValues: number[] = <number[]>this.categoricalColumns.Y[0].highlights;
+                const isNotNull: boolean = highlightValues[i] != null;
 
                 currentValue = isNotNull
                     ? <number>highlightValues[i]
                     : 0;
 
                 if (this.isMoreThanOneMeasure(categoricalColumns)) {
-                    let secondMeasureValue: number = <number>categoricalColumns.Y[1].highlights[i] !== null ? <number>categoricalColumns.Y[1].highlights[i] : 0;
+                    const secondMeasureValue: number = <number>categoricalColumns.Y[1].highlights[i] !== null ? <number>categoricalColumns.Y[1].highlights[i] : 0;
                     tooltipInfo = this.buildTwoMeasuresTooltip(formattedCategoryValue, currentValue, secondMeasureValue, localizationManager);
 
                     currentValue += secondMeasureValue;

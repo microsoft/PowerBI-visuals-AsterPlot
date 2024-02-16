@@ -59,7 +59,7 @@ export class Helpers {
                 return () => arc(data);
             }
 
-            let interpolation = d3.interpolate(this.oldData, data);
+            const interpolation = d3.interpolate(this.oldData, data);
             this.oldData = interpolation(0);
             return (x) => arc(interpolation(x));
         };
