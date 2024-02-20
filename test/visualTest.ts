@@ -215,8 +215,8 @@ describe("AsterPlot", () => {
             });
 
             it("Data Labels - Change font size", () => {
-                (<any>dataView.metadata.objects).labels.show = true;
-                (<any>dataView.metadata.objects).labels.fontSize = 15;
+                (<any>dataView.metadata.objects).labels.show.value = true;
+                (<any>dataView.metadata.objects).labels.font.fontSize = 15;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -374,7 +374,7 @@ describe("AsterPlot", () => {
                 const fontSize: number = 22,
                     expectedFontSize: string = "29.3333px";
 
-                (<any>dataView.metadata.objects).labels.fontSize = fontSize;
+                (<any>dataView.metadata.objects).labels.font.fontSize = fontSize;
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 visualBuilder.dataLabels

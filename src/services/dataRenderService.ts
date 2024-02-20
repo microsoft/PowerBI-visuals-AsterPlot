@@ -80,12 +80,8 @@ import {
     VisualLayout
 } from "../visualLayout";
 
-import {
-    AsterPlotSettings,
-    OuterLineSettings
-} from "../settings";
 import { max, filter, isEmpty } from "lodash-es";
-
+import {AsterPlotSettingsModel, OuterLineCardSettings} from "../asterPlotSettingsModel";
 
 export class DataRenderService {
     private static AsterRadiusRatio: number = 0.9;
@@ -107,7 +103,7 @@ export class DataRenderService {
     private static CircleText: ClassAndSelector = createClassAndSelector("circleText");
 
     private data: AsterPlotData;
-    private settings: AsterPlotSettings;
+    private settings: AsterPlotSettingsModel;
     private layout: VisualLayout;
     private hasHighlights: boolean;
     private viewportRadius: number;
@@ -124,7 +120,7 @@ export class DataRenderService {
     private tickValuesArray: number[];
 
     constructor(data: AsterPlotData,
-        settings: AsterPlotSettings,
+        settings: AsterPlotSettingsModel,
         layout: VisualLayout,
         tooltipServiceWrapper: ITooltipServiceWrapper) {
 
@@ -140,10 +136,10 @@ export class DataRenderService {
         this.viewportRadius = Math.min(this.layout.viewportIn.width, this.layout.viewportIn.height) / 2;
         this.tooltipServiceWrapper = tooltipServiceWrapper;
 
-        this.innerRadius = 0.3 * (this.settings.labels.show
+        this.innerRadius = 0.3 * (this.settings.labels.show.value
             ? this.viewportRadius * DataRenderService.AsterRadiusRatio
             : this.viewportRadius);
-        const showOuterLine: boolean = settings.outerLine.show;
+        const showOuterLine: boolean = settings.outerLine.show.value;
         if (showOuterLine) {
             this.ticksOptions = this.calcTickOptions(this.maxHeight);
             this.innerRadius /= this.ticksOptions.diffPercent;
@@ -161,9 +157,11 @@ export class DataRenderService {
 
     public drawCenterText(mainGroupElement: Selection<any>): void {
         const centerTextProperties: TextProperties = {
-            fontFamily: dataLabelUtils.StandardFontFamily,
-            fontSize: PixelConverter.toString(this.settings.label.fontSize),
-            text: this.data.centerText
+            text: this.data.centerText,
+            fontFamily: this.settings.label.font.fontFamily.value,
+            fontSize: PixelConverter.toString(this.settings.label.font.fontSize.value),
+            fontWeight: this.settings.label.font.bold.value ? "bold" : "normal",
+            fontStyle: this.settings.label.font.italic.value ? "italic" : "normal",
         };
 
         let centerText: Selection<any> = mainGroupElement.select(DataRenderService.CenterLabelClass.selectorName);
@@ -175,8 +173,8 @@ export class DataRenderService {
         centerText
             .style("line-height", 1)
             .style("font-weight", centerTextProperties.fontWeight)
-            .style("font-size", this.settings.label.fontSize)
-            .style("fill", this.settings.label.color)
+            .style("font-size", this.settings.label.font.fontSize.value)
+            .style("fill", this.settings.label.color.value.value)
             .attr("dy", "0.35em")
             .attr("text-anchor", "middle")
             .text(textMeasurementService.getTailoredTextOrDefault(centerTextProperties, this.innerRadius * DataRenderService.CenterTextFontWidthCoefficient));
@@ -222,8 +220,8 @@ export class DataRenderService {
         this.applyTooltipToSelection(selection);
     }
 
-    private drawGrid(element: Selection<any>, settings: OuterLineSettings): void {
-        const color: string = settings.color;
+    private drawGrid(element: Selection<any>, settings: OuterLineCardSettings): void {
+        const color: string = settings.color.value.value;
         const ticksCount: number = this.ticksRadiusArray.length;
 
         let circleAxes: Selection<any> = element
@@ -253,28 +251,32 @@ export class DataRenderService {
                 if (o === ticksCount - 1) {
                     return 0;
                 } else {
-                    return settings.showGrid ? 0.5 : 0;
+                    return settings.showGrid.value ? 0.5 : 0;
                 }
             })
             .style("stroke", color)
             .style("fill", "none");
 
-        if (settings.showGridTicksValues) {
+        if (settings.showGridTicksValues.value) {
             let text: any = circleAxes.selectAll("text").data(this.tickValuesArray);
             const textProperties: TextProperties = {
                 fontFamily: dataLabelUtils.StandardFontFamily,
-                fontSize: PixelConverter.toString(this.settings.outerLine.fontSize)
+                fontSize: PixelConverter.toString(this.settings.outerLine.font.fontSize.value)
             };
             text.exit().remove();
             text = text.merge(text.enter().append("text"));
             text
-                .attr("dy", (d: number, i: number) => { return -this.ticksRadiusArray[i] + DataRenderService.PixelsBelowAxis + (parseInt(this.settings.outerLine.fontSize.toString())); })
+                .attr("dy", (d: number, i: number) => { return -this.ticksRadiusArray[i] + DataRenderService.PixelsBelowAxis + (parseInt(this.settings.outerLine.font.fontSize.value.toString())); })
                 .attr("dx", (d: number, i: number) => { return - textMeasurementService.measureSvgTextWidth(textProperties, this.tickValuesArray[i].toString()) / DataRenderService.AxisTextWidthCoefficient; })
                 .attr("text-anchor", "middle")
-                .style("font-size", this.settings.outerLine.fontSize)
-                .style("fill", this.settings.outerLine.textColor)
+                .style("font-size", this.settings.outerLine.font.fontSize.value)
+                .style("fill", this.settings.outerLine.textColor.value.value)
+                .style("font-family", this.settings.outerLine.font.fontFamily.value || dataLabelUtils.StandardFontFamily)
+                .style("font-weight", this.settings.outerLine.font.bold.value ? "bold" : "normal")
+                .style("font-style", this.settings.outerLine.font.italic.value ? "italic" : "normal")
+                .style("text-decoration", this.settings.outerLine.font.underline.value ? "underline" : "none")
                 .classed(DataRenderService.CircleText.className, true)
-                .text((d: number, i: number) => { return this.tickValuesArray[i]; });
+                .text((_: number, i: number) => { return this.tickValuesArray[i]; });
 
         } else {
             element.selectAll(DataRenderService.CircleText.selectorName).remove();
@@ -283,11 +285,11 @@ export class DataRenderService {
 
     private drawOuter(element: Selection<any>) {
         const outlineArc: any = arc()
-            .innerRadius(this.settings.outerLine.showStraightLines ? this.innerRadius : this.outerRadius)
+            .innerRadius(this.settings.outerLine.showStraightLines.value ? this.innerRadius : this.outerRadius)
             .outerRadius(this.outerRadius);
 
-        const outerThickness: string = this.settings.outerLine.thickness + "px",
-            color: string = this.settings.outerLine.color;
+        const outerThickness: string = this.settings.outerLine.thickness.value + "px",
+            color: string = this.settings.outerLine.color.value.value;
 
         let outerLine = element.selectAll(DataRenderService.OuterLine.selectorName).data(this.dataPoints);
         outerLine.exit().remove();
@@ -303,7 +305,7 @@ export class DataRenderService {
     }
 
     public drawOuterLines(element: Selection<any>): void {
-        const settings: AsterPlotSettings = this.settings;
+        const settings: AsterPlotSettingsModel = this.settings;
 
         this.drawOuter(element);
 
@@ -434,7 +436,7 @@ export class DataRenderService {
                 }
 
                 // The chart should shrink if data labels are on
-                let heightIsLabelsOn = innerRadius + (this.settings.labels.show ? height * DataRenderService.AsterRadiusRatio : height);
+                let heightIsLabelsOn = innerRadius + (this.settings.labels.show.value ? height * DataRenderService.AsterRadiusRatio : height);
                 // let heightIsLabelsOn = innerRadius + height;
                 if (this.ticksOptions) {
                     heightIsLabelsOn /= this.ticksOptions.diffPercent;
@@ -487,7 +489,7 @@ export class DataRenderService {
         outlineArc: any): void {
         // Hide and reposition labels that overlap
         const dataLabelManager: DataLabelManager = new DataLabelManager();
-        let filteredData: any = dataLabelManager.hideCollidedLabels(viewport, data, layout, true /* addTransform */);
+        let filteredData: LabelEnabledDataPoint[] = dataLabelManager.hideCollidedLabels(viewport, data, layout, true /* addTransform */);
 
         if (filteredData.length === 0) {
             dataLabelUtils.cleanDataLabels(context, true);
@@ -524,8 +526,14 @@ export class DataRenderService {
             .attr("x", (d: LabelEnabledDataPoint) => d.labelX)
             .attr("y", (d: LabelEnabledDataPoint) => d.labelY)
             .attr("dy", ".35em")
-            .text((d: LabelEnabledDataPoint) => d.labeltext);
-            //.styles(layout.style);
+            .text((d: LabelEnabledDataPoint) => d.labeltext)
+            .style("text-anchor", layout.style["text-anchor"])
+            .style("fill", this.settings.labels.color.value.value)
+            .style("font-family", this.settings.labels.font.fontFamily.value || dataLabelUtils.StandardFontFamily)
+            .style("font-weight", this.settings.labels.font.bold.value ? "bold" : "normal")
+            .style("font-style", this.settings.labels.font.italic.value ? "italic" : "normal")
+            .style("text-decoration", this.settings.labels.font.underline.value ? "underline" : "none")
+            .style("font-size", PixelConverter.fromPoint(this.settings.labels.font.fontSize.value));
 
         // Draw lines
         if (context.select(DataRenderService.linesGraphicsContextClass.selectorName).empty())
@@ -566,29 +574,31 @@ export class DataRenderService {
             })
             .style("opacity", 0.5)
             .style("fill-opacity", 0)
-            .style("stroke", () => this.settings.labels.color);
+            .style("stroke", () => this.settings.labels.color.value.value);
 
 
     }
 
-    private getLabelLayout(arc: any, viewport: IViewport): ILabelLayout {
+    private getLabelLayout(arc: d3.Arc<any, AsterArcDescriptor>, viewport: IViewport): ILabelLayout {
         const midAngle = (d: any) => {
             return d.startAngle + (d.endAngle - d.startAngle) / 2;
         };
         const textProperties: TextProperties = {
-            fontFamily: dataLabelUtils.StandardFontFamily,
-            fontSize: PixelConverter.fromPoint(this.settings.labels.fontSize),
             text: "",
+            fontFamily: this.settings.labels.font.fontFamily.value || dataLabelUtils.StandardFontFamily,
+            fontSize: PixelConverter.fromPoint(this.settings.labels.font.fontSize.value),
+            fontWeight: this.settings.labels.font.bold ? "bold" : "normal",
+            fontStyle: this.settings.labels.font.italic ? "italic" : "normal",
         };
 
         const isLabelsHasConflict = (d: AsterArcDescriptor) => {
             const pos = arc.centroid(d);
             textProperties.text = d.data.label;
             const textWidth = textMeasurementService.measureSvgTextWidth(textProperties);
-            const horizontalSpaceAvaliableForLabels = viewport.width / 2 - Math.abs(pos[0]);
+            const horizontalSpaceAvailableForLabels = viewport.width / 2 - Math.abs(pos[0]);
             const textHeight = textMeasurementService.estimateSvgTextHeight(textProperties);
-            const verticalSpaceAvaliableForLabels = viewport.height / 2 - Math.abs(pos[1]);
-            d.isLabelHasConflict = textWidth > horizontalSpaceAvaliableForLabels || textHeight > verticalSpaceAvaliableForLabels;
+            const verticalSpaceAvailableForLabels = viewport.height / 2 - Math.abs(pos[1]);
+            d.isLabelHasConflict = textWidth > horizontalSpaceAvailableForLabels || textHeight > verticalSpaceAvailableForLabels;
             return d.isLabelHasConflict;
         };
 
@@ -597,8 +607,8 @@ export class DataRenderService {
                 textProperties.text = d.data.label;
                 const pos = arc.centroid(d);
                 const xPos = isLabelsHasConflict(d) ? pos[0] * DataRenderService.AsterConflictRatio : pos[0];
-                const spaceAvaliableForLabels = viewport.width / 2 - Math.abs(xPos);
-                return textMeasurementService.getTailoredTextOrDefault(textProperties, spaceAvaliableForLabels);
+                const spaceAvailableForLabels = viewport.width / 2 - Math.abs(xPos);
+                return textMeasurementService.getTailoredTextOrDefault(textProperties, spaceAvailableForLabels);
             },
             labelLayout: {
                 x: (d: AsterArcDescriptor) => {
@@ -613,8 +623,6 @@ export class DataRenderService {
             },
             filter: (d: AsterArcDescriptor) => (d != null && !isEmpty(d.data.label + "")),
             style: {
-                "fill": this.settings.labels.color,
-                "font-size": textProperties.fontSize,
                 "text-anchor": (d: AsterArcDescriptor) => midAngle(d) < Math.PI ? "start" : "end",
             }
         };

@@ -1,11 +1,15 @@
 import powerbi from "powerbi-visuals-api";
 import {formattingSettings} from "powerbi-visuals-utils-formattingmodel"
-
+import {LegendPosition} from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
 import Card = formattingSettings.SimpleCard;
 import Model = formattingSettings.Model;
+import FormattingSettingsSlice = formattingSettings.Slice;
 import IEnumMember = powerbi.IEnumMember;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
-import {LegendPosition} from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
+import ValidatorType = powerbi.visuals.ValidatorType;
+import {AsterDataPoint} from "./dataInterfaces";
+import {ColorHelper} from "powerbi-visuals-utils-colorutils";
+import ISelectionId = powerbi.visuals.ISelectionId;
 
 const legendPositionOptions: IEnumMember[] = [
     { value: LegendPosition[LegendPosition.Top], displayName: "Visual_Top" },
@@ -53,42 +57,6 @@ class BaseFontCardSettings extends Card {
     });
 }
 
-class LabelsCardSettings extends BaseFontCardSettings {
-    show = new formattingSettings.ToggleSwitch({
-        name: "show",
-        displayName: "Show",
-        displayNameKey: "Visual_Show",
-        value: false,
-    });
-
-    topLevelSlice = this.show;
-
-    color = new formattingSettings.ColorPicker({
-        name: "color",
-        displayName: "Color",
-        displayNameKey: "Visual_Color",
-        value: { value: "#777777" },
-    });
-
-    displayUnits = new formattingSettings.AutoDropdown({
-        name: "displayUnits",
-        displayName: "Display Units",
-        displayNameKey: "Visual_DisplayUnits",
-        value: 0,
-    });
-
-    precision = new formattingSettings.NumUpDown({
-        name: "precision",
-        displayName: "Precision",
-        displayNameKey: "Visual_Precision",
-        value: null,
-    });
-
-    name: string = "labels";
-    displayName: string = "Detail Labels";
-    displayNameKey: string = "Visual_DetailLabels";
-    slices = [this.color, this.displayUnits, this.precision, this.font];
-}
 
 class LegendCardSettings extends BaseFontCardSettings {
     show = new formattingSettings.ToggleSwitch({
@@ -154,7 +122,8 @@ class CentralLabelCardSettings extends BaseFontCardSettings {
     slices = [this.color, this.font];
 }
 
-class OuterLineCardSettings extends Card {
+
+class LabelsCardSettings extends BaseFontCardSettings {
     show = new formattingSettings.ToggleSwitch({
         name: "show",
         displayName: "Show",
@@ -162,14 +131,64 @@ class OuterLineCardSettings extends Card {
         value: false,
     });
 
-    thickness = new formattingSettings.NumUpDown({
+    topLevelSlice = this.show;
+
+    color = new formattingSettings.ColorPicker({
+        name: "color",
+        displayName: "Color",
+        displayNameKey: "Visual_Color",
+        value: { value: "#777777" },
+    });
+
+    displayUnits = new formattingSettings.AutoDropdown({
+        name: "displayUnits",
+        displayName: "Display Units",
+        displayNameKey: "Visual_DisplayUnits",
+        value: 0,
+    });
+
+    precision = new formattingSettings.NumUpDown({
+        name: "precision",
+        displayName: "Decimal Places",
+        displayNameKey: "Visual_DecimalPlaces",
+        value: null,
+        options: {
+            minValue: { value: 0, type: ValidatorType.Min },
+            maxValue: { value: 17, type: ValidatorType.Max },
+        }
+    });
+
+    name: string = "labels";
+    displayName: string = "Detail Labels";
+    displayNameKey: string = "Visual_DetailLabels";
+    slices = [this.color, this.displayUnits, this.precision, this.font];
+}
+
+class PiesCardSettings extends Card {
+    name: string = "pies";
+    displayName: string = "Pies colors";
+    displayNameKey: "Visual_PiesColors";
+    slices: FormattingSettingsSlice[] = [];
+}
+
+export class OuterLineCardSettings extends BaseFontCardSettings {
+    show = new formattingSettings.ToggleSwitch({
+        name: "show",
+        displayName: "Show",
+        displayNameKey: "Visual_Show",
+        value: false,
+    });
+
+    topLevelSlice = this.show;
+
+    thickness = new formattingSettings.Slider({
         name: "thickness",
         displayName: "Thickness",
         displayNameKey: "Visual_Thickness",
         value: 1,
         options: {
-            minValue: { value: 0.1, type: powerbi.visuals.ValidatorType.Min },
-            maxValue: { value: 10, type: powerbi.visuals.ValidatorType.Max },
+            minValue: { value: 0.1, type: ValidatorType.Min },
+            maxValue: { value: 25, type: ValidatorType.Max },
         }
     });
 
@@ -203,20 +222,9 @@ class OuterLineCardSettings extends Card {
 
     textColor = new formattingSettings.ColorPicker({
         name: "textColor",
-        displayName: "Text Color",
-        displayNameKey: "Visual_TextColor",
+        displayName: "Ticks Color",
+        displayNameKey: "Visual_TicksColor",
         value: { value: "rgb(119, 119, 119)" },
-    });
-
-    fontSize = new formattingSettings.NumUpDown({
-        name: "fontSize",
-        displayName: "Text Size",
-        displayNameKey: "Visual_TextSize",
-        value: 9,
-        options: {
-            minValue: { value: 7, type: powerbi.visuals.ValidatorType.Min },
-            maxValue: { value: 30, type: powerbi.visuals.ValidatorType.Max },
-        }
     });
 
     name: string = "outerLine";
@@ -229,35 +237,48 @@ class OuterLineCardSettings extends Card {
         this.showGridTicksValues,
         this.showStraightLines,
         this.textColor,
-        this.fontSize,
+        this.font,
     ];
-}
-
-class PiesCardSettings extends Card {
-    fill = new formattingSettings.ColorPicker({
-        name: "fill",
-        displayName: "Color",
-        displayNameKey: "Visual_Color",
-        value: { value: "rgb(119, 119, 119)" },
-    });
-
-    name: string = "pies";
-    displayName: string = "Pies colors";
-    displayNameKey: "Visual_PiesColors";
 }
 
 export class AsterPlotSettingsModel extends Model {
-    labels = new LabelsCardSettings();
     legend = new LegendCardSettings();
     label = new CentralLabelCardSettings();
+    labels = new LabelsCardSettings();
+    pies = new PiesCardSettings();
     outerLine = new OuterLineCardSettings();
 
     cards = [
-        this.labels,
         this.legend,
         this.label,
+        this.labels,
+        this.pies,
         this.outerLine,
     ];
+
+
+    public populatePies(pies: AsterDataPoint[], isHighContrast: boolean) {
+        if (!pies || pies.length === 0) {
+            return;
+        }
+
+        this.pies.slices = [];
+
+        const isVisible = !isHighContrast;
+        this.pies.visible = isVisible;
+
+        // God, please help me with this
+        for (const pie of pies) {
+            const identity: ISelectionId = <ISelectionId>pie.identity;
+            const displayName: string = pie.categoryName;
+            this.pies.slices.push({
+                name: "fill",
+                displayName,
+                value: { value: pie.fillColor },
+                selector: ColorHelper.normalizeSelector(identity.getSelector(), false),
+            });
+        }
+    }
 
     public setLocalizedOptions(localizationManager: ILocalizationManager) {
         this.setLocalizedDisplayName(legendPositionOptions, localizationManager);

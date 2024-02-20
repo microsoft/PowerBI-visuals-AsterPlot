@@ -29,6 +29,27 @@ import * as d3 from "d3";
 // powerbi
 // tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
+
+// powerbi.extensibility.utils.formatting
+import {valueFormatter} from "powerbi-visuals-utils-formattingutils";
+
+// powerbi.extensibility.utils.type
+import {pixelConverter as PixelConverter} from "powerbi-visuals-utils-typeutils";
+
+// powerbi.extensibility.utils.color
+import {ColorHelper} from "powerbi-visuals-utils-colorutils";
+
+
+// powerbi.extensibility.utils.chart
+import * as LegendUtil from "powerbi-visuals-utils-chartutils";
+import {AsterPlotColumns} from "../asterPlotColumns";
+
+import {AsterDataPoint, AsterPlotData} from "../dataInterfaces";
+
+import {createTooltipInfo} from "../tooltipBuilder";
+
+import {isEmpty} from "lodash-es";
+import {AsterPlotSettingsModel} from "../asterPlotSettingsModel";
 import DataView = powerbi.DataView;
 import DataViewObjectPropertyIdentifier = powerbi.DataViewObjectPropertyIdentifier;
 import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
@@ -37,55 +58,18 @@ import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 import DataViewValueColumn = powerbi.DataViewValueColumn;
 import DataViewValueColumns = powerbi.DataViewValueColumns;
-
-// powerbi.extensibility.utils.formatting
-import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 import IValueFormatter = valueFormatter.IValueFormatter;
 
-// powerbi.extensibility.utils.type
-import { pixelConverter as PixelConverter } from "powerbi-visuals-utils-typeutils";
-
 import IColorPalette = powerbi.extensibility.IColorPalette;
-
-// powerbi.extensibility.utils.color
-import { ColorHelper } from "powerbi-visuals-utils-colorutils";
-
-
-// powerbi.extensibility.utils.chart
-import * as LegendUtil from "powerbi-visuals-utils-chartutils";
 
 import legendData = LegendUtil.legendData;
 import LegendData = LegendUtil.legendInterfaces.LegendData;
 // import LegendIcon = powerbi.extensibility.utils.chart.legend.LegendIcon;
-
-
 // powerbi.extensibility.visual
-
-
-
 // powerbi.visuals
 import ISelectionId = powerbi.visuals.ISelectionId;
-
 // powerbi.extensibility.utils.tooltip
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
-import {
-    AsterPlotColumns
-} from "../asterPlotColumns";
-
-import {
-    AsterDataPoint,
-    AsterPlotData
-} from "../dataInterfaces";
-
-import {
-    AsterPlotSettings
-} from "../settings";
-
-import {
-    createTooltipInfo
-} from "../tooltipBuilder";
-
-import { isEmpty } from "lodash-es";
 
 
 const minStrokeWidth: number = 0;
@@ -100,7 +84,7 @@ export class AsterPlotConverterService {
     private dataView: DataView;
     private categoricalColumns: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>;
     private categoricalValueColumns: AsterPlotColumns<any[]>;
-    private settings: AsterPlotSettings;
+    private settings: AsterPlotSettingsModel;
     private visualHost: IVisualHost;
 
     private dataPoints: AsterDataPoint[];
@@ -116,7 +100,7 @@ export class AsterPlotConverterService {
     private fontSizeInPx: string;
 
     constructor(dataView: DataView,
-        settings: AsterPlotSettings,
+        settings: AsterPlotSettingsModel,
         colors: IColorPalette,
         visualHost: IVisualHost,
         categorical?: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>) {
@@ -130,16 +114,22 @@ export class AsterPlotConverterService {
         this.legendData = {
             dataPoints: [],
             title: null,
-            fontSize: this.settings.legend.fontSize,
+            fontSize: this.settings.legend.font.fontSize.value,
             labelColor: this.colorHelper.getHighContrastColor("foreground", legendData.DefaultLegendLabelFillColor)
         };
 
         this.hasHighlights = this.containsHighlights(this.categoricalColumns);
         this.maxValue = this.getMaxValue(this.categoricalColumns);
         this.minValue = this.getMinValue(this.categoricalColumns);
-        this.labelFormatter = this.createFormatter(this.categoricalColumns.Y[0].source, settings.labels.precision, (settings.labels.displayUnits === 0) && (this.maxValue != null) ? this.maxValue : settings.labels.displayUnits);
 
-        this.fontSizeInPx = PixelConverter.fromPoint(settings.labels.fontSize);
+        this.labelFormatter = this.createFormatter(
+            this.categoricalColumns.Y[0].source,
+            settings.labels.precision.value,
+            (Number(settings.labels.displayUnits.value.valueOf()) === 0) && (this.maxValue != null)
+                ? this.maxValue
+                : Number(settings.labels.displayUnits.value.valueOf()));
+
+        this.fontSizeInPx = PixelConverter.fromPoint(settings.labels.font.fontSize.value);
 
         this.dataPoints = [];
         this.highlightedDataPoints = [];
@@ -256,12 +246,12 @@ export class AsterPlotConverterService {
                     tooltipInfo,
                     labelFontSize: this.fontSizeInPx,
                     highlight: false,
-                    categoryName: formattedCategoryValue
+                    categoryName: formattedCategoryValue,
                 });
             }
 
             // Handle legend data
-            if (this.settings.legend.show) {
+            if (this.settings.legend.show.value) {
                 this.legendData.dataPoints.push({
                     label: formattedCategoryValue,
                     color: strokeColor,

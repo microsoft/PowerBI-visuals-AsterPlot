@@ -34,7 +34,6 @@ import powerbi from "powerbi-visuals-api";
 import IViewport = powerbi.IViewport;
 import DataView = powerbi.DataView;
 import DataViewObjectPropertyIdentifier = powerbi.DataViewObjectPropertyIdentifier;
-import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
 import VisualObjectInstance = powerbi.VisualObjectInstance;
 import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
 import IVisual = powerbi.extensibility.IVisual;
@@ -111,17 +110,17 @@ import {
     DataRenderService
 } from "./services/dataRenderService";
 
-import {
-    AsterPlotSettings
-} from "./settings";
 import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
 import { createLegend } from "powerbi-visuals-utils-chartutils/lib/legend/legend";
-import { isEmpty, clone } from "lodash-es";
+import { isEmpty } from "lodash-es";
 
 const AsterPlotVisualClassName: string = "asterPlot";
 
 
 import "../style/asterPlot.less";
+import {FormattingSettingsService} from "powerbi-visuals-utils-formattingmodel";
+import {AsterPlotSettingsModel} from "./asterPlotSettingsModel";
+import FormattingModel = powerbi.visuals.FormattingModel;
 
 // tslint:disable-next-line: export-name
 export class AsterPlot implements IVisual {
@@ -151,16 +150,14 @@ export class AsterPlot implements IVisual {
 
     private visualHost: IVisualHost;
     private localizationManager: ILocalizationManager;
+    private formattingSettingsService: FormattingSettingsService;
+    private formattingSettings: AsterPlotSettingsModel;
     private interactivityService: IInteractivityService<any>;
 
     private renderService: DataRenderService;
 
     private legend: ILegend;
     private data: AsterPlotData;
-
-    private get settings(): AsterPlotSettings {
-        return this.data && this.data.settings;
-    }
 
     private behavior: IInteractiveBehavior;
 
@@ -170,6 +167,7 @@ export class AsterPlot implements IVisual {
         this.events = options.host.eventService;
         this.visualHost = options.host;
         this.localizationManager = this.visualHost.createLocalizationManager();
+        this.formattingSettingsService = new FormattingSettingsService(this.localizationManager);
 
         this.tooltipServiceWrapper = createTooltipServiceWrapper(
             this.visualHost.tooltipService,
@@ -211,37 +209,29 @@ export class AsterPlot implements IVisual {
     }
 
     // tslint:disable-next-line: function-name
-    public static converter(dataView: DataView, colors: IColorPalette, colorHelper: ColorHelper, visualHost: IVisualHost, localizationManager: ILocalizationManager): AsterPlotData {
+    public static converter(dataView: DataView, settings: AsterPlotSettingsModel, colors: IColorPalette, colorHelper: ColorHelper, visualHost: IVisualHost, localizationManager: ILocalizationManager): AsterPlotData {
         const categorical = <any>AsterPlotColumns.getCategoricalColumns(dataView);
 
         if (!AsterPlotConverterService.isDataValid(categorical)) {
             return;
         }
 
-        const settings: AsterPlotSettings = AsterPlot.parseSettings(dataView, categorical.Category.source, colorHelper);
+        AsterPlot.setHighContrastColors(settings, categorical.Category.source, colorHelper);
         const converterService: AsterPlotConverterService = new AsterPlotConverterService(dataView, settings, colors, visualHost, categorical);
 
         return converterService.getConvertedData(localizationManager);
     }
 
-    private static parseSettings(dataView: DataView, categorySource: DataViewMetadataColumn, colorHelper: ColorHelper): AsterPlotSettings {
-        const settings: AsterPlotSettings = AsterPlotSettings.parse<AsterPlotSettings>(dataView);
-
-        // parse colors for high contrast mode
-        settings.label.color = colorHelper.getHighContrastColor("foreground", settings.label.color);
-        settings.labels.color = colorHelper.getHighContrastColor("foreground", settings.labels.color);
-        settings.legend.labelColor = colorHelper.getHighContrastColor("foreground", settings.legend.labelColor);
-        settings.outerLine.color = colorHelper.getHighContrastColor("foreground", settings.outerLine.color);
-        settings.outerLine.textColor = colorHelper.getHighContrastColor("foreground", settings.outerLine.textColor);
-
-        settings.labels.precision = Math.min(17, Math.max(0, settings.labels.precision));
-        settings.outerLine.thickness = Math.min(25, Math.max(0.1, settings.outerLine.thickness));
+    private static setHighContrastColors(settings: AsterPlotSettingsModel, categorySource: DataViewMetadataColumn, colorHelper: ColorHelper): void {
+        settings.legend.labelColor.value.value = colorHelper.getHighContrastColor("foreground", settings.legend.labelColor.value.value);
+        settings.label.color.value.value = colorHelper.getHighContrastColor("foreground", settings.label.color.value.value);
+        settings.labels.color.value.value = colorHelper.getHighContrastColor("foreground", settings.labels.color.value.value);
+        settings.outerLine.color.value.value = colorHelper.getHighContrastColor("foreground", settings.outerLine.color.value.value);
+        settings.outerLine.textColor.value.value = colorHelper.getHighContrastColor("foreground", settings.outerLine.textColor.value.value);
 
         if (isEmpty(settings.legend.titleText)) {
-            settings.legend.titleText = categorySource.displayName;
+            settings.legend.titleText.value = categorySource.displayName;
         }
-
-        return settings;
     }
 
     private areValidOptions(options: VisualUpdateOptions): boolean {
@@ -262,11 +252,24 @@ export class AsterPlot implements IVisual {
             if (!this.areValidOptions(options)) {
                 return;
             }
-            const data: AsterPlotData = AsterPlot.converter(options.dataViews[0], this.colorPalette, this.colorHelper, this.visualHost, this.localizationManager);
+
+            this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(AsterPlotSettingsModel, options.dataViews[0]);
+            this.formattingSettings.setLocalizedOptions(this.localizationManager);
+
+            const data: AsterPlotData = AsterPlot.converter(
+                options.dataViews[0],
+                this.formattingSettings,
+                this.colorPalette,
+                this.colorHelper,
+                this.visualHost,
+                this.localizationManager,
+            );
             if (!data) {
                 this.clear();
                 return;
             }
+
+            // this.formattingSettings.populatePies(data.dataPoints, this.colorHelper.isHighContrast);
 
             this.layout.viewport = options.viewport;
             this.data = data;
@@ -279,7 +282,7 @@ export class AsterPlot implements IVisual {
             dataLabelUtils.cleanDataLabels(this.mainLabelsElement, true);
 
             this.renderService = new DataRenderService(data,
-                this.settings,
+                this.formattingSettings,
                 this.layout,
                 this.tooltipServiceWrapper);
 
@@ -291,18 +294,18 @@ export class AsterPlot implements IVisual {
                 this.renderService.renderArcs(this.slicesElement, true);
             }
 
-            if (this.settings.labels.show) {
+            if (this.formattingSettings.labels.show.value) {
                 this.renderService.renderLabels(this.mainLabelsElement, this.data.hasHighlights);
             } else {
                 this.renderService.cleanLabels(this.mainLabelsElement);
             }
 
-            if (this.settings.label.show) {
+            if (this.formattingSettings.label.show.value) {
                 this.renderService.drawCenterText(this.mainGroupElement);
             } else {
                 this.renderService.cleanCenterText(this.mainGroupElement);
             }
-            if (this.settings.outerLine.show) {
+            if (this.formattingSettings.outerLine.show.value) {
                 this.renderService.drawOuterLines(this.mainGroupElement);
             } else {
                 this.renderService.cleanOuterLines(this.mainGroupElement);
@@ -355,12 +358,10 @@ export class AsterPlot implements IVisual {
     }
 
     private renderLegend(): void {
-        if (this.settings.legend.show) {
-            // Force update for title text
-            const legendObject = clone(this.settings.legend);
-            legendObject.labelColor = <any>{ solid: { color: legendObject.labelColor } };
+        if (this.formattingSettings.legend.show.value) {
+            const legendObject = <any>{ solid: { color: this.formattingSettings.legend.labelColor.value.value } };
             legendData.update(this.data.legendData, <any>legendObject);
-            this.legend.changeOrientation(LegendPosition[this.settings.legend.position]);
+            this.legend.changeOrientation(LegendPosition[this.formattingSettings.legend.position.value.value]);
         }
 
         this.legend.drawLegend(this.data.legendData, this.layout.viewportCopy);
@@ -368,12 +369,12 @@ export class AsterPlot implements IVisual {
     }
 
     private updateViewPortAccordingToLegend(): void {
-        if (!this.settings.legend.show) {
+        if (!this.formattingSettings.legend.show.value) {
             return;
         }
 
         const legendMargins: IViewport = this.legend.getMargins();
-        const legendPosition: LegendPosition = LegendPosition[this.settings.legend.position];
+        const legendPosition: LegendPosition = LegendPosition[this.formattingSettings.legend.position.value.value];
 
         switch (legendPosition) {
             case LegendPosition.Top:
@@ -402,22 +403,26 @@ export class AsterPlot implements IVisual {
         this.legend.drawLegend({ dataPoints: [] }, this.layout.viewportCopy);
     }
 
+    public getFormattingModel(): FormattingModel {
+        return this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
+    }
+
     /* This function returns the values to be displayed in the property pane for each object.
      * Usually it is a bind pass of what the property pane gave you, but sometimes you may want to do
      * validation and return other values/defaults
      */
-    public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstanceEnumeration {
-        const instanceEnumeration: VisualObjectInstanceEnumeration =
-            AsterPlotSettings.enumerateObjectInstances(
-                this.settings || AsterPlotSettings.getDefault(),
-                options);
-
-        if (options.objectName === AsterPlot.PiesPropertyIdentifier.objectName) {
-            this.enumeratePies(instanceEnumeration);
-        }
-
-        return instanceEnumeration || [];
-    }
+    // public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstanceEnumeration {
+    //     const instanceEnumeration: VisualObjectInstanceEnumeration =
+    //         AsterPlotSettings.enumerateObjectInstances(
+    //             this.settings || AsterPlotSettings.getDefault(),
+    //             options);
+    //
+    //     if (options.objectName === AsterPlot.PiesPropertyIdentifier.objectName) {
+    //         this.enumeratePies(instanceEnumeration);
+    //     }
+    //
+    //     return instanceEnumeration || [];
+    // }
 
     public enumeratePies(instanceEnumeration: VisualObjectInstanceEnumeration): void {
         const pies: AsterDataPoint[] = this.data.dataPoints;

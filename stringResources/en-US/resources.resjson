@@ -16,6 +16,7 @@
 	"Visual_LegendName": "Legend Name",
 	"Visual_Color": "Color",
 	"Visual_TextSize": "Text Size",
+	"Visual_Font": "Font",
 	"Visual_CenterLabel": "Center Label",
 	"Visual_DetailLabels": "Detail Labels",
 	"Visual_DisplayUnits": "Display Units",
