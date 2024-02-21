@@ -49,6 +49,7 @@ import { interactivitySelectionService} from "powerbi-visuals-utils-interactivit
 import SelectableDataPoint = interactivitySelectionService.SelectableDataPoint;
 
 import {AsterPlotSettingsModel} from "./asterPlotSettingsModel";
+import ISelectionId = powerbi.visuals.ISelectionId;
 
 export interface AsterPlotData {
     dataPoints: AsterDataPoint[];
@@ -76,4 +77,5 @@ export interface AsterDataPoint extends SelectableDataPoint {
     tooltipInfo: VisualTooltipDataItem[];
     labelFontSize: string;
     categoryName: string;
+    identity: ISelectionId;
 }

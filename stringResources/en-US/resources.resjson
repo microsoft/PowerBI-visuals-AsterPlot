@@ -15,6 +15,7 @@
 	"Visual_Title": "Title",
 	"Visual_LegendName": "Legend Name",
 	"Visual_Color": "Color",
+	"Visual_Fill": "Fill",
 	"Visual_TextSize": "Text Size",
 	"Visual_Font": "Font",
 	"Visual_CenterLabel": "Center Label",
@@ -39,5 +40,6 @@
 	"Visual_OnObject_FormatCenterLabel": "Format center label",
 	"Visual_OnObject_ShowCenterLabel": "Show center label",
 	"Visual_OnObject_HideCenterLabel": "Hide center label",
-	"Visual_OnObject_FormatLabels": "Format data labels"
+	"Visual_OnObject_FormatLabels": "Format data labels",
+	"Visual_OnObject_FormatPies": "Format pies"
 }

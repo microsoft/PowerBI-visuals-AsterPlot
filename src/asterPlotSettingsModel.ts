@@ -1,14 +1,14 @@
 import powerbi from "powerbi-visuals-api";
 import {formattingSettings} from "powerbi-visuals-utils-formattingmodel"
 import {LegendPosition} from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
+import {AsterDataPoint} from "./dataInterfaces";
+import {ColorHelper} from "powerbi-visuals-utils-colorutils";
 import Card = formattingSettings.SimpleCard;
 import Model = formattingSettings.Model;
 import FormattingSettingsSlice = formattingSettings.Slice;
 import IEnumMember = powerbi.IEnumMember;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import ValidatorType = powerbi.visuals.ValidatorType;
-import {AsterDataPoint} from "./dataInterfaces";
-import {ColorHelper} from "powerbi-visuals-utils-colorutils";
 import ISelectionId = powerbi.visuals.ISelectionId;
 
 export const AsterPlotObjectNames = {
@@ -16,7 +16,7 @@ export const AsterPlotObjectNames = {
     LegendTitle: { name: "legendTitle", displayName: "Legend title" },
     Label: { name: "label", displayName: "Center Label" },
     Labels: { name: "labels", displayName: "Detail Labels" },
-    Pies: { name: "pies", displayName: "Pies" },
+    Pies: { name: "pies", displayName: "Pies colors" },
     OuterLine: { name: "outerLine", displayName: "Outer Line" },
 } as const;
 

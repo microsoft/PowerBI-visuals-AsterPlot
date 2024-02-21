@@ -40,7 +40,7 @@ import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
 
 // d3
 import * as d3 from "d3";
-import { arc } from "d3-shape";
+import {Arc, arc} from "d3-shape";
 
 import { AsterArcDescriptor, ArcDescriptor, Selection } from "../dataInterfaces";
 
@@ -107,22 +107,21 @@ export class DataRenderService {
     private static CircleText: ClassAndSelector = createClassAndSelector("circleText");
 
     private data: AsterPlotData;
-    private settings: AsterPlotSettingsModel;
     private formatMode: boolean;
     private layout: VisualLayout;
-    private hasHighlights: boolean;
-    private viewportRadius: number;
-    private innerRadius: number;
-    private outerRadius: number;
-    private maxHeight: number;
-    private totalWeight: number;
     private tooltipServiceWrapper: ITooltipServiceWrapper;
-    private dataPoints: AsterArcDescriptor[];
-    private highlightedDataPoints: AsterArcDescriptor[];
-    private arcSvg: AsterArcDescriptor;
-    private ticksOptions: CircleTicksOptions;
-    private ticksRadiusArray: number[];
-    private tickValuesArray: number[];
+    private readonly settings: AsterPlotSettingsModel;
+    private readonly viewportRadius: number;
+    private readonly maxHeight: number;
+    private readonly totalWeight: number;
+    private readonly dataPoints: AsterArcDescriptor[];
+    private readonly highlightedDataPoints: AsterArcDescriptor[];
+    private readonly arcSvg: Arc<any, AsterArcDescriptor>;
+    private readonly ticksOptions: CircleTicksOptions;
+    private readonly ticksRadiusArray: number[];
+    private readonly tickValuesArray: number[];
+    public innerRadius: number;
+    public outerRadius: number;
 
     constructor(data: AsterPlotData,
         settings: AsterPlotSettingsModel,
@@ -135,7 +134,6 @@ export class DataRenderService {
         this.layout = layout;
         this.formatMode = formatMode;
 
-        this.hasHighlights = data.hasHighlights;
         this.totalWeight = d3.sum(this.data.dataPoints, d => d.sliceWidth);
         this.dataPoints = this.createDataPoints(data, false, this.totalWeight);
         this.highlightedDataPoints = this.createDataPoints(data, true, this.totalWeight);
@@ -153,7 +151,7 @@ export class DataRenderService {
         }
 
         this.arcSvg = this.getArcSvg(this.innerRadius, this.viewportRadius, this.maxHeight);
-        this.outerRadius = max(this.dataPoints.map(d => this.arcSvg.outerRadius()(<any>d, undefined)));
+        this.outerRadius = max(this.dataPoints.map(d => this.arcSvg.outerRadius()(d)));
 
         if (showOuterLine) {
             this.outerRadius *= this.ticksOptions.diffPercent;
@@ -200,15 +198,15 @@ export class DataRenderService {
     }
 
     public renderArcs(slicesElement: Selection<any>, isHighlighted: boolean) {
-        const arc: AsterArcDescriptor = this.arcSvg,
-            classSelector: ClassAndSelector = this.getClassAndSelector(isHighlighted);
+        const arc: Arc<any, AsterArcDescriptor> = this.arcSvg;
+        const classSelector: ClassAndSelector = this.getClassAndSelector(isHighlighted);
 
         let selection = slicesElement
             .selectAll(classSelector.selectorName)
             .data(isHighlighted ? this.highlightedDataPoints : this.dataPoints, (d: AsterArcDescriptor, i: number) => {
                 return d.data
                     ? (<powerbi.visuals.ISelectionId>d.data.identity).getKey()
-                    : <any>i;
+                    : i;
             });
 
         selection
@@ -220,7 +218,12 @@ export class DataRenderService {
             .append("path")
             .attr("aria-selected", false)
             .attr("tabindex", 0)
-            .classed(classSelector.className, true));
+            .attr("center", (d) => arc.centroid(d).toString())
+            .classed(classSelector.className, true))
+            .classed(HtmlSubSelectableClass, this.formatMode)
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Pies.name)
+            .attr(SubSelectableDisplayNameAttribute, (d) => d.data.categoryName)
+            .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Shape);
 
         selection
             .attr("fill", d => d.data.fillColor)
@@ -303,8 +306,8 @@ export class DataRenderService {
             .innerRadius(this.settings.outerLine.showStraightLines.value ? this.innerRadius : this.outerRadius)
             .outerRadius(this.outerRadius);
 
-        const outerThickness: string = this.settings.outerLine.thickness.value + "px",
-            color: string = this.settings.outerLine.color.value.value;
+        const outerThickness: string = this.settings.outerLine.thickness.value + "px";
+        const color: string = this.settings.outerLine.color.value.value;
 
         let outerLine = element.selectAll(DataRenderService.OuterLine.selectorName).data(this.dataPoints);
         outerLine.exit().remove();
@@ -316,7 +319,6 @@ export class DataRenderService {
             .attr("stroke-width", outerThickness)
             .attr("d", <ArcDescriptor<any>>outlineArc)
             .classed(DataRenderService.OuterLine.className, true);
-
     }
 
     public drawOuterLines(element: Selection<any>): void {
@@ -411,7 +413,7 @@ export class DataRenderService {
             : data.dataPoints);
     }
 
-    private getDataPoints(isHighlight: boolean) {
+    public getDataPoints(isHighlight: boolean): AsterArcDescriptor[] {
         return isHighlight ? this.highlightedDataPoints : this.dataPoints;
     }
 
@@ -433,7 +435,32 @@ export class DataRenderService {
             });
     }
 
-    private getArcSvg(innerRadius: number, viewportRadius: number, maxHeight: number): any {
+    public computeOuterRadius(arcDescriptor: AsterArcDescriptor): number {
+        let height: number = 0;
+
+        if (this.maxHeight) {
+            const radius: number = this.viewportRadius - this.innerRadius;
+            const sliceHeight = arcDescriptor
+            && arcDescriptor.data
+            && !isNaN(arcDescriptor.data.sliceHeight)
+                ? arcDescriptor.data.sliceHeight
+                : 1;
+
+            height = radius * sliceHeight / this.maxHeight;
+        }
+
+        // The chart should shrink if data labels are on
+        let heightIsLabelsOn = this.innerRadius + (this.settings.labels.show.value ? height * DataRenderService.AsterRadiusRatio : height);
+        // let heightIsLabelsOn = this.innerRadius + height;
+        if (this.ticksOptions) {
+            heightIsLabelsOn /= this.ticksOptions.diffPercent;
+        }
+
+        // Prevent from data to be inside the inner radius
+        return Math.max(heightIsLabelsOn, this.innerRadius);
+    }
+
+    private getArcSvg(innerRadius: number = this.innerRadius, viewportRadius: number = this.viewportRadius, maxHeight: number = this.maxHeight) {
         return arc<AsterArcDescriptor>()
             .innerRadius(innerRadius)
             .outerRadius((arcDescriptor: AsterArcDescriptor) => {
@@ -462,26 +489,28 @@ export class DataRenderService {
             });
     }
 
+    private lineRadCalc(d: AsterDataPoint) {
+        let height: number = (this.viewportRadius - this.innerRadius) * (d && !isNaN(d.sliceHeight) ? d.sliceHeight : 1) / this.maxHeight;
+        height = this.innerRadius + height * DataRenderService.AsterRadiusRatio;
+        return Math.max(height, this.innerRadius);
+    }
+
+    private labelRadCalc(d: AsterDataPoint) {
+        const height: number = this.viewportRadius * (d && !isNaN(d.sliceHeight) ? d.sliceHeight : 1) / this.maxHeight + this.innerRadius;
+        return Math.max(height, this.innerRadius);
+    }
+
+
     public renderLabels(labelsElement: Selection<any>, isHighlight: boolean) {
         const dataPoints: AsterArcDescriptor[] = isHighlight ? this.highlightedDataPoints : this.dataPoints;
         if (!this.data.hasHighlights || (this.data.hasHighlights && isHighlight)) {
-            const labelRadCalc = (d: AsterDataPoint) => {
-                const height: number = this.viewportRadius * (d && !isNaN(d.sliceHeight) ? d.sliceHeight : 1) / this.maxHeight + this.innerRadius;
-                return Math.max(height, this.innerRadius);
-            };
-
             const labelArc = arc<AsterArcDescriptor>()
-                .innerRadius(d => labelRadCalc(d.data))
-                .outerRadius(d => labelRadCalc(d.data));
+                .innerRadius(d => this.labelRadCalc(d.data))
+                .outerRadius(d => this.labelRadCalc(d.data));
 
-            const lineRadCalc = (d: AsterDataPoint) => {
-                let height: number = (this.viewportRadius - this.innerRadius) * (d && !isNaN(d.sliceHeight) ? d.sliceHeight : 1) / this.maxHeight;
-                height = this.innerRadius + height * DataRenderService.AsterRadiusRatio;
-                return Math.max(height, this.innerRadius);
-            };
             const outlineArc = arc<AsterArcDescriptor>()
-                .innerRadius(d => lineRadCalc(d.data))
-                .outerRadius(d => lineRadCalc(d.data));
+                .innerRadius(d => this.lineRadCalc(d.data))
+                .outerRadius(d => this.lineRadCalc(d.data));
 
             const labelLayout: ILabelLayout = this.getLabelLayout(labelArc, this.layout.viewport);
             this.drawLabels(
