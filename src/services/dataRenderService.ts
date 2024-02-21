@@ -399,7 +399,7 @@ export class DataRenderService {
 
     private applyTooltipToSelection(selection: any): void {
         this.tooltipServiceWrapper.addTooltip(selection, (tooltipEvent: any) => {
-            return tooltipEvent.data.data.tooltipInfo;
+            return tooltipEvent.data.data?.tooltipInfo;
         });
     }
 
