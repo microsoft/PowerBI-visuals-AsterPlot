@@ -81,7 +81,9 @@ import {
 } from "../visualLayout";
 
 import { max, filter, isEmpty } from "lodash-es";
-import {AsterPlotSettingsModel, OuterLineCardSettings} from "../asterPlotSettingsModel";
+import {AsterPlotObjectNames, AsterPlotSettingsModel, OuterLineCardSettings} from "../asterPlotSettingsModel";
+import {HtmlSubSelectableClass, SubSelectableObjectNameAttribute, SubSelectableDisplayNameAttribute, SubSelectableTypeAttribute} from "powerbi-visuals-utils-onobjectformatting/src";
+import SubSelectionStylesType = powerbi.visuals.SubSelectionStylesType;
 
 export class DataRenderService {
     private static AsterRadiusRatio: number = 0.9;
@@ -104,6 +106,7 @@ export class DataRenderService {
 
     private data: AsterPlotData;
     private settings: AsterPlotSettingsModel;
+    private formatMode: boolean;
     private layout: VisualLayout;
     private hasHighlights: boolean;
     private viewportRadius: number;
@@ -122,11 +125,13 @@ export class DataRenderService {
     constructor(data: AsterPlotData,
         settings: AsterPlotSettingsModel,
         layout: VisualLayout,
-        tooltipServiceWrapper: ITooltipServiceWrapper) {
+        tooltipServiceWrapper: ITooltipServiceWrapper,
+        formatMode: boolean = false) {
 
         this.data = data;
         this.settings = settings;
         this.layout = layout;
+        this.formatMode = formatMode;
 
         this.hasHighlights = data.hasHighlights;
         this.totalWeight = d3.sum(this.data.dataPoints, d => d.sliceWidth);
@@ -171,9 +176,17 @@ export class DataRenderService {
         }
 
         centerText
+            .classed(HtmlSubSelectableClass, this.formatMode && this.settings.label.show.value)
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Label.name)
+            .attr(SubSelectableDisplayNameAttribute,  AsterPlotObjectNames.Label.displayName)
+            .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text)
             .style("line-height", 1)
             .style("font-weight", centerTextProperties.fontWeight)
             .style("font-size", this.settings.label.font.fontSize.value)
+            .style("font-family", this.settings.label.font.fontFamily.value || dataLabelUtils.StandardFontFamily)
+            .style("font-weight", this.settings.label.font.bold.value ? "bold" : "normal")
+            .style("font-style", this.settings.label.font.italic.value ? "italic" : "normal")
+            .style("text-decoration", this.settings.label.font.underline.value ? "underline" : "none")
             .style("fill", this.settings.label.color.value.value)
             .attr("dy", "0.35em")
             .attr("text-anchor", "middle")

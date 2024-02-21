@@ -11,6 +11,20 @@ import {AsterDataPoint} from "./dataInterfaces";
 import {ColorHelper} from "powerbi-visuals-utils-colorutils";
 import ISelectionId = powerbi.visuals.ISelectionId;
 
+export const AsterPlotObjectNames = {
+    Legend: { name: "legend", displayName: "Legend" },
+    LegendTitle: { name: "legendTitle", displayName: "Legend title" },
+    Label: { name: "label", displayName: "Center Label" },
+    Labels: { name: "labels", displayName: "Detail Labels" },
+    OuterLine: { name: "outerLine", displayName: "Outer Line" },
+} as const;
+
+class TextDefaultSizes {
+    public static readonly DefaultTextSize = 9;
+    public static readonly MinTextSize = 7;
+    public static readonly MaxTextSize = 30;
+}
+
 const legendPositionOptions: IEnumMember[] = [
     { value: LegendPosition[LegendPosition.Top], displayName: "Visual_Top" },
     { value: LegendPosition[LegendPosition.Bottom], displayName: "Visual_Bottom" },
@@ -20,7 +34,7 @@ const legendPositionOptions: IEnumMember[] = [
     { value: LegendPosition[LegendPosition.BottomCenter], displayName: "Visual_BottomCenter" },
     { value: LegendPosition[LegendPosition.LeftCenter], displayName: "Visual_LeftCenter" },
     { value: LegendPosition[LegendPosition.RightCenter], displayName: "Visual_RightCenter" },
-]
+];
 
 
 class BaseFontCardSettings extends Card {
@@ -32,10 +46,10 @@ class BaseFontCardSettings extends Card {
             name: "fontSize",
             displayName: "Text Size",
             displayNameKey: "Visual_TextSize",
-            value: 9,
+            value: TextDefaultSizes.DefaultTextSize,
             options: {
-                minValue: { value: 7, type: powerbi.visuals.ValidatorType.Min },
-                maxValue: { value: 30, type: powerbi.visuals.ValidatorType.Max },
+                minValue: { value: TextDefaultSizes.MinTextSize, type: powerbi.visuals.ValidatorType.Min },
+                maxValue: { value: TextDefaultSizes.MaxTextSize, type: powerbi.visuals.ValidatorType.Max },
             }
         }),
         fontFamily: new formattingSettings.FontPicker({
@@ -58,7 +72,7 @@ class BaseFontCardSettings extends Card {
 }
 
 
-class LegendCardSettings extends BaseFontCardSettings {
+class LegendCardSettings extends Card {
     show = new formattingSettings.ToggleSwitch({
         name: "show",
         displayName: "Show",
@@ -91,15 +105,26 @@ class LegendCardSettings extends BaseFontCardSettings {
         value: { value: "#666666" },
     });
 
-    name: string = "legend";
-    displayName: string = "Legend";
+    fontSize = new formattingSettings.NumUpDown({
+        name: "fontSize",
+        displayName: "Text Size",
+        displayNameKey: "Visual_TextSize",
+        value: TextDefaultSizes.DefaultTextSize,
+        options: {
+            minValue: {value: TextDefaultSizes.MinTextSize, type: powerbi.visuals.ValidatorType.Min},
+            maxValue: {value: TextDefaultSizes.MaxTextSize, type: powerbi.visuals.ValidatorType.Max},
+        }
+    });
+
+    name: string = AsterPlotObjectNames.Legend.name;
+    displayName: string = AsterPlotObjectNames.Legend.displayName;
     displayNameKey: string = "Visual_Legend";
     description: string = "Display legend options";
     descriptionKey: string = "Visual_Description_Legend";
-    slices = [this.position, this.titleText, this.labelColor, this.font];
+    slices = [this.position, this.titleText, this.labelColor, this.fontSize];
 }
 
-class CentralLabelCardSettings extends BaseFontCardSettings {
+class CenterLabelCardSettings extends BaseFontCardSettings {
     show = new formattingSettings.ToggleSwitch({
         name: "show",
         displayName: "Show",
@@ -116,8 +141,8 @@ class CentralLabelCardSettings extends BaseFontCardSettings {
         value: { value: "rgb(119, 119, 119)" },
     });
 
-    name: string = "label";
-    displayName: string = "Central Label";
+    name: string = AsterPlotObjectNames.Label.name;
+    displayName: string = AsterPlotObjectNames.Label.displayName;
     displayNameKey: string = "Visual_CenterLabel";
     slices = [this.color, this.font];
 }
@@ -243,7 +268,7 @@ export class OuterLineCardSettings extends BaseFontCardSettings {
 
 export class AsterPlotSettingsModel extends Model {
     legend = new LegendCardSettings();
-    label = new CentralLabelCardSettings();
+    label = new CenterLabelCardSettings();
     labels = new LabelsCardSettings();
     pies = new PiesCardSettings();
     outerLine = new OuterLineCardSettings();

@@ -94,28 +94,6 @@
                             "fontSize": true
                         }
                     }
-                },
-                "fontFamily": {
-                    "type": {
-                        "formatting": {
-                            "fontFamily": true
-                        }
-                    }
-                },
-                "fontBold": {
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "fontItalic": {
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "fontUnderline": {
-                    "type": {
-                        "bool": true
-                    }
                 }
             }
         },
@@ -321,5 +299,7 @@
     },
     "supportsHighlight": true,
     "supportsKeyboardFocus": true,
+    "supportsOnObjectFormatting": true,
+    "enablePointerEventsFormatMode": true,
     "privileges": []
 }
