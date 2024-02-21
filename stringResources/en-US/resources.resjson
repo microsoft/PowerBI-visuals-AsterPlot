@@ -38,5 +38,6 @@
 	"Visual_OnObject_HideLegend": "Hide legend",
 	"Visual_OnObject_FormatCenterLabel": "Format center label",
 	"Visual_OnObject_ShowCenterLabel": "Show center label",
-	"Visual_OnObject_HideCenterLabel": "Hide center label"
+	"Visual_OnObject_HideCenterLabel": "Hide center label",
+	"Visual_OnObject_FormatLabels": "Format data labels"
 }

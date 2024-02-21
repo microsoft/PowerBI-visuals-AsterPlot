@@ -100,6 +100,8 @@ export class DataRenderService {
     private static CenterLabelClass: ClassAndSelector = createClassAndSelector("centerLabel");
     private static labelGraphicsContextClass: ClassAndSelector = createClassAndSelector("labels");
     private static linesGraphicsContextClass: ClassAndSelector = createClassAndSelector("lines");
+    private static DataLabels: ClassAndSelector = createClassAndSelector("data-labels")
+    private static LineLabel: ClassAndSelector = createClassAndSelector("line-label")
     private static OuterLine: ClassAndSelector = createClassAndSelector("outerLine");
     private static CircleLine: ClassAndSelector = createClassAndSelector("circleLine");
     private static CircleText: ClassAndSelector = createClassAndSelector("circleText");
@@ -516,7 +518,7 @@ export class DataRenderService {
 
         let labels: Selection<any> = context
             .select(DataRenderService.labelGraphicsContextClass.selectorName)
-            .selectAll(".data-labels")
+            .selectAll(DataRenderService.DataLabels.selectorName)
             .data<LabelEnabledDataPoint>(
                 filteredData,
                 (d: AsterArcDescriptor) => (<ISelectionId>d.data.identity).getKey());
@@ -529,7 +531,11 @@ export class DataRenderService {
             labels
                 .enter()
                 .append("text")
-                .classed("data-labels", true));
+                .classed(DataRenderService.DataLabels.className, true))
+                .classed(HtmlSubSelectableClass, this.formatMode && this.settings.labels.show.value)
+                .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Labels.name)
+                .attr(SubSelectableDisplayNameAttribute, AsterPlotObjectNames.Labels.name)
+                .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text);
 
         if (!labels) {
             return;
@@ -571,9 +577,13 @@ export class DataRenderService {
             .remove();
 
         lines = lines.merge(
-            lines.enter()
+            lines
+                .enter()
                 .append("polyline")
-                .classed("line-label", true));
+                .classed(DataRenderService.LineLabel.className, true))
+                .classed(HtmlSubSelectableClass, this.formatMode && this.settings.labels.show.value)
+                .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Labels.name)
+                .attr(SubSelectableDisplayNameAttribute, AsterPlotObjectNames.Labels.name);
 
         lines
             .attr("points", (d) => {

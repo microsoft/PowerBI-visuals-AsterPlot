@@ -113,15 +113,24 @@ import CustomVisualSubSelection = powerbi.visuals.CustomVisualSubSelection;
 import CustomVisualObject = powerbi.visuals.CustomVisualObject;
 import VisualSubSelectionShortcuts = powerbi.visuals.VisualSubSelectionShortcuts;
 import SubSelectionStyles = powerbi.visuals.SubSelectionStyles;
-import SubSelectionStylesType = powerbi.visuals.SubSelectionStylesType;
 import DataViewObject = powerbi.DataViewObject;
 import SubSelectableDirectEditStyle = powerbi.visuals.SubSelectableDirectEditStyle;
 import SubSelectableDirectEdit = powerbi.visuals.SubSelectableDirectEdit;
+import SubSelectionStylesType = powerbi.visuals.SubSelectionStylesType;
+import FormattingId = powerbi.visuals.FormattingId;
 import VisualShortcutType = powerbi.visuals.VisualShortcutType;
 
 const AsterPlotVisualClassName: string = "asterPlot";
 
-const legendReference = {
+const legendReference: {
+    cardUid: string;
+    groupUid: string;
+    show: FormattingId;
+    position: FormattingId;
+    titleText: FormattingId;
+    labelColor: FormattingId;
+    fontSize: FormattingId;
+} = {
     cardUid: "Visual-legend-card",
     groupUid: "legend-group",
     show: {
@@ -146,7 +155,17 @@ const legendReference = {
     },
 };
 
-const labelReference = {
+const labelReference: {
+    cardUid: string;
+    groupUid: string;
+    show: FormattingId;
+    fontFamily: FormattingId;
+    bold: FormattingId;
+    italic: FormattingId;
+    underline: FormattingId;
+    fontSize: FormattingId;
+    color: FormattingId;
+} = {
     cardUid: "Visual-label-card",
     groupUid: "label-group",
     show: {
@@ -179,6 +198,59 @@ const labelReference = {
     },
 };
 
+const labelsReference: {
+    cardUid: string;
+    groupUid: string;
+    show: FormattingId;
+    color: FormattingId;
+    displayUnits: FormattingId;
+    precision: FormattingId;
+    fontFamily: FormattingId;
+    bold: FormattingId;
+    italic: FormattingId;
+    underline: FormattingId;
+    fontSize: FormattingId;
+} = {
+    cardUid: "Visual-labels-card",
+    groupUid: "labels-group",
+    show: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: "show"
+    },
+    color: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: "color"
+    },
+    displayUnits: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: "displayUnits"
+    },
+    precision: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: "precision"
+    },
+    fontFamily: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: "fontFamily"
+    },
+    bold: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: "fontBold"
+    },
+    italic: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: "fontItalic"
+    },
+    underline: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: "fontUnderline"
+    },
+    fontSize: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: "fontSize"
+    },
+}
+
 
 const TitleEdit: SubSelectableDirectEdit = {
     reference: {
@@ -203,7 +275,7 @@ export class AsterPlot implements IVisual {
 
     private static PiesPropertyIdentifier: DataViewObjectPropertyIdentifier = {
         objectName: "pies",
-        propertyName: "fill"
+        propertyName: "fill",
     };
 
     private svg: Selection<any>;
@@ -332,6 +404,7 @@ export class AsterPlot implements IVisual {
     }
 
     public update(options: VisualUpdateOptions): void {
+        this.events.renderingFinished(options);
         this.visualHost.eventService.renderingStarted(options);
         try {
             if (!this.areValidOptions(options)) {
@@ -409,10 +482,10 @@ export class AsterPlot implements IVisual {
             }
 
 
-            this.visualHost.eventService.renderingFinished(options);
+            this.events.renderingFinished(options);
         }
         catch (e) {
-            this.visualHost.eventService.renderingFailed(options, e);
+            this.events.renderingFailed(options, e);
             console.log(e);
         }
     }
@@ -597,6 +670,8 @@ export class AsterPlot implements IVisual {
                 return this.getLegendStyles();
             case AsterPlotObjectNames.Label.name:
                 return this.getLabelStyles();
+            case AsterPlotObjectNames.Labels.name:
+                return this.getLabelsStyles();
             default:
                 return undefined;
         }
@@ -620,6 +695,8 @@ export class AsterPlot implements IVisual {
                 return this.getLegendShortcuts();
             case AsterPlotObjectNames.Label.name:
                 return this.getLabelShortcuts();
+            case AsterPlotObjectNames.Labels.name:
+                return this.getLabelsShortcuts();
             default:
                 return undefined;
         }
@@ -667,6 +744,36 @@ export class AsterPlot implements IVisual {
             fontColor: {
                 reference: { ...labelReference.color },
                 label: labelReference.color.propertyName
+            },
+        }
+    }
+
+    private getLabelsStyles(): SubSelectionStyles {
+        return {
+            type: SubSelectionStylesType.Text,
+            fontFamily: {
+                reference: { ...labelsReference.fontFamily },
+                label: labelsReference.fontFamily.propertyName
+            },
+            bold: {
+                reference: { ...labelsReference.bold },
+                label: labelsReference.bold.propertyName
+            },
+            italic: {
+                reference: { ...labelsReference.italic },
+                label: labelsReference.italic.propertyName
+            },
+            underline: {
+                reference: { ...labelsReference.underline },
+                label: labelsReference.underline.propertyName
+            },
+            fontSize: {
+                reference: { ...labelsReference.fontSize },
+                label: labelsReference.fontSize.propertyName
+            },
+            fontColor: {
+                reference: { ...labelsReference.color },
+                label: labelsReference.color.propertyName
             },
         }
     }
@@ -726,6 +833,33 @@ export class AsterPlot implements IVisual {
                 type: VisualShortcutType.Navigate,
                 destinationInfo: { cardUid: labelReference.cardUid },
                 label: this.localizationManager.getDisplayName("Visual_OnObject_FormatCenterLabel"),
+            }
+        ];
+    }
+
+    private getLabelsShortcuts(): VisualSubSelectionShortcuts {
+        return [
+            {
+                type: VisualShortcutType.Reset,
+                relatedResetFormattingIds: [
+                    labelsReference.show,
+                    labelsReference.color,
+                    labelsReference.displayUnits,
+                    labelsReference.precision,
+                    labelsReference.fontFamily,
+                    labelsReference.bold,
+                    labelsReference.italic,
+                    labelsReference.underline,
+                    labelsReference.fontSize,
+                ],
+            },
+            {
+                type: VisualShortcutType.Divider,
+            },
+            {
+                type: VisualShortcutType.Navigate,
+                destinationInfo: { cardUid: labelsReference.cardUid },
+                label: this.localizationManager.getDisplayName("Visual_OnObject_FormatLabels"),
             }
         ];
     }
