@@ -16,6 +16,7 @@ export const AsterPlotObjectNames = {
     LegendTitle: { name: "legendTitle", displayName: "Legend title" },
     Label: { name: "label", displayName: "Center Label" },
     Labels: { name: "labels", displayName: "Detail Labels" },
+    Pies: { name: "pies", displayName: "Pies" },
     OuterLine: { name: "outerLine", displayName: "Outer Line" },
 } as const;
 
@@ -183,17 +184,24 @@ class LabelsCardSettings extends BaseFontCardSettings {
         }
     });
 
-    name: string = "labels";
-    displayName: string = "Detail Labels";
+    name: string = AsterPlotObjectNames.Labels.name;
+    displayName: string = AsterPlotObjectNames.Labels.displayName;
     displayNameKey: string = "Visual_DetailLabels";
     slices = [this.color, this.displayUnits, this.precision, this.font];
 }
 
 class PiesCardSettings extends Card {
-    name: string = "pies";
-    displayName: string = "Pies colors";
+    fill = new formattingSettings.ColorPicker({
+        name: "fill",
+        displayName: "Fill",
+        displayNameKey: "Visual_Fill",
+        value: { value: "" },
+    });
+
+    name: string = AsterPlotObjectNames.Pies.name;
+    displayName: string = AsterPlotObjectNames.Pies.displayName;
     displayNameKey: "Visual_PiesColors";
-    slices: FormattingSettingsSlice[] = [];
+    slices: FormattingSettingsSlice[] = [this.fill];
 }
 
 export class OuterLineCardSettings extends BaseFontCardSettings {
@@ -252,8 +260,8 @@ export class OuterLineCardSettings extends BaseFontCardSettings {
         value: { value: "rgb(119, 119, 119)" },
     });
 
-    name: string = "outerLine";
-    displayName: string = "Outer line"
+    name: string = AsterPlotObjectNames.OuterLine.name;
+    displayName: string = AsterPlotObjectNames.OuterLine.displayName
     displayNameKey: string = "Visual_Outerline";
     slices = [
         this.thickness,
@@ -289,19 +297,21 @@ export class AsterPlotSettingsModel extends Model {
 
         this.pies.slices = [];
 
-        const isVisible = !isHighContrast;
-        this.pies.visible = isVisible;
+        this.pies.visible = !isHighContrast;
 
-        // God, please help me with this
         for (const pie of pies) {
             const identity: ISelectionId = <ISelectionId>pie.identity;
             const displayName: string = pie.categoryName;
-            this.pies.slices.push({
-                name: "fill",
-                displayName,
-                value: { value: pie.fillColor },
-                selector: ColorHelper.normalizeSelector(identity.getSelector(), false),
-            });
+            const selector = identity.getSelector();
+
+            this.pies.slices.push(
+                new formattingSettings.ColorPicker({
+                    name: "fill",
+                    displayName,
+                    selector,
+                    value: { value: pie.fillColor },
+                })
+            );
         }
     }
 

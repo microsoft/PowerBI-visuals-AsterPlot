@@ -55,7 +55,7 @@ import {AsterPlotColumns} from "./asterPlotColumns";
 
 import {AsterPlotBehaviorOptions, AsterPlotWebBehavior} from "./behavior";
 
-import {AsterDataPoint, AsterPlotData} from "./dataInterfaces";
+import {AsterArcDescriptor, AsterDataPoint, AsterPlotData} from "./dataInterfaces";
 
 import {VisualLayout} from "./visualLayout";
 
@@ -76,18 +76,15 @@ import {
     SubSelectableDisplayNameAttribute,
     SubSelectableObjectNameAttribute
 } from "powerbi-visuals-utils-onobjectformatting/src"
+import {PieArcDatum} from "d3-shape";
 
 type Selection<T> = d3.Selection<any, T, any, any>;
 import IViewport = powerbi.IViewport;
 import DataView = powerbi.DataView;
-import DataViewObjectPropertyIdentifier = powerbi.DataViewObjectPropertyIdentifier;
-import VisualObjectInstance = powerbi.VisualObjectInstance;
 import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
 import IVisual = powerbi.extensibility.IVisual;
 import IColorPalette = powerbi.extensibility.IColorPalette;
-import VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnumerationObject;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
-import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 // powerbi.extensibility.visual
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
@@ -116,8 +113,10 @@ import SubSelectionStyles = powerbi.visuals.SubSelectionStyles;
 import DataViewObject = powerbi.DataViewObject;
 import SubSelectableDirectEditStyle = powerbi.visuals.SubSelectableDirectEditStyle;
 import SubSelectableDirectEdit = powerbi.visuals.SubSelectableDirectEdit;
-import SubSelectionStylesType = powerbi.visuals.SubSelectionStylesType;
 import FormattingId = powerbi.visuals.FormattingId;
+import SubSelectionRegionOutlineFragment = powerbi.visuals.SubSelectionRegionOutlineFragment;
+import SubSelectionOutlineType = powerbi.visuals.SubSelectionOutlineType;
+import SubSelectionStylesType = powerbi.visuals.SubSelectionStylesType;
 import VisualShortcutType = powerbi.visuals.VisualShortcutType;
 
 const AsterPlotVisualClassName: string = "asterPlot";
@@ -251,6 +250,19 @@ const labelsReference: {
     },
 }
 
+const piesReference: {
+    cardUid: string;
+    groupUid: string;
+    fill: FormattingId;
+} = {
+    cardUid: "Visual-pies-card",
+    groupUid: "pies-group",
+    fill: {
+        objectName: AsterPlotObjectNames.Pies.name,
+        propertyName: "fill"
+    }
+};
+
 
 const TitleEdit: SubSelectableDirectEdit = {
     reference: {
@@ -272,12 +284,6 @@ export class AsterPlot implements IVisual {
     private events: IVisualEventService;
 
     private layout: VisualLayout;
-
-    private static PiesPropertyIdentifier: DataViewObjectPropertyIdentifier = {
-        objectName: "pies",
-        propertyName: "fill",
-    };
-
     private svg: Selection<any>;
     private mainGroupElement: Selection<any>;
     private mainLabelsElement: Selection<any>;
@@ -316,6 +322,8 @@ export class AsterPlot implements IVisual {
         this.subSelectionHelper = HtmlSubSelectionHelper.createHtmlSubselectionHelper({
             hostElement: options.element,
             subSelectionService: options.host.subSelectionService,
+            selectionIdCallback: (e) => this.selectionIdCallback(e),
+            customOutlineCallback: (e) => this.customOutlineCallback(e),
         });
 
         this.visualOnObjectFormatting = {
@@ -428,7 +436,7 @@ export class AsterPlot implements IVisual {
                 return;
             }
 
-            // this.formattingSettings.populatePies(data.dataPoints, this.colorHelper.isHighContrast);
+            this.formattingSettings.populatePies(data.dataPoints, this.colorHelper.isHighContrast);
 
             this.layout.viewport = options.viewport;
             this.data = data;
@@ -549,13 +557,13 @@ export class AsterPlot implements IVisual {
         this.legendElement
             .classed(HtmlSubSelectableClass, this.formatMode && this.formattingSettings.legend.show.value)
             .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Legend.name)
-            .attr(SubSelectableDisplayNameAttribute, AsterPlotObjectNames.Legend.displayName);
+            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.Legend.displayName));
 
         this.legendElement
             .select(AsterPlot.LegendTitleSelector.selectorName)
             .classed(HtmlSubSelectableClass, this.formatMode && this.formattingSettings.legend.show.value && Boolean(this.formattingSettings.legend.titleText.value))
             .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.LegendTitle.name)
-            .attr(SubSelectableDisplayNameAttribute, AsterPlotObjectNames.LegendTitle.displayName)
+            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.LegendTitle.displayName))
             .attr(SubSelectableDirectEditAttr, this.visualTitleEditSubSelection);
     }
 
@@ -598,57 +606,54 @@ export class AsterPlot implements IVisual {
         return this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
     }
 
-    /* This function returns the values to be displayed in the property pane for each object.
-     * Usually it is a bind pass of what the property pane gave you, but sometimes you may want to do
-     * validation and return other values/defaults
-     */
-    // public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstanceEnumeration {
-    //     const instanceEnumeration: VisualObjectInstanceEnumeration =
-    //         AsterPlotSettings.enumerateObjectInstances(
-    //             this.settings || AsterPlotSettings.getDefault(),
-    //             options);
-    //
-    //     if (options.objectName === AsterPlot.PiesPropertyIdentifier.objectName) {
-    //         this.enumeratePies(instanceEnumeration);
-    //     }
-    //
-    //     return instanceEnumeration || [];
-    // }
+    private selectionIdCallback(e: HTMLElement) {
+        const elementType: string = select(e).attr(SubSelectableObjectNameAttribute);
 
-    public enumeratePies(instanceEnumeration: VisualObjectInstanceEnumeration): void {
-        const pies: AsterDataPoint[] = this.data.dataPoints;
-
-        if (!pies || !(pies.length > 0)) {
-            return;
+        switch (elementType) {
+            case AsterPlotObjectNames.Pies.name: {
+                const datum = select<Element, AsterArcDescriptor>(e).datum();
+                return datum?.data.identity;
+            }
+            default:
+                return undefined;
         }
-
-        pies.forEach((pie: AsterDataPoint) => {
-            const identity: ISelectionId = <ISelectionId>pie.identity,
-                displayName: string = `${pie.categoryName}`;
-
-            this.addAnInstanceToEnumeration(instanceEnumeration, {
-                displayName,
-                objectName: AsterPlot.PiesPropertyIdentifier.objectName,
-                selector: ColorHelper.normalizeSelector(identity.getSelector(), false),
-                properties: {
-                    fill: { solid: { color: pie.fillColor } }
-                }
-            });
-        });
     }
 
-    private addAnInstanceToEnumeration(
-        instanceEnumeration: VisualObjectInstanceEnumeration,
-        instance: VisualObjectInstance): void {
+    private customOutlineCallback(subSelection: powerbi.visuals.CustomVisualSubSelection) {
+        const elementType: string = subSelection?.customVisualObjects[0]?.objectName;
 
-        const objectInstanceEnumeration: VisualObjectInstanceEnumerationObject = <VisualObjectInstanceEnumerationObject>instanceEnumeration;
+        switch (elementType) {
+            case AsterPlotObjectNames.Pies.name: {
+                const selectionId: ISelectionId = subSelection.customVisualObjects[0].selectionId;
+                const selectedDataPoint = this.renderService
+                    .getDataPoints(this.data.hasHighlights)
+                    .find((d) => d.data.identity.equals(selectionId))
 
-        if (objectInstanceEnumeration.instances) {
-            objectInstanceEnumeration
-                .instances
-                .push(instance);
-        } else {
-            (<VisualObjectInstance[]>instanceEnumeration).push(instance);
+                const actualDataPoint = selectedDataPoint as unknown as PieArcDatum<AsterDataPoint>;
+
+                if (!selectedDataPoint) {
+                    return undefined;
+                }
+
+                const svgRect = this.mainGroupElement.node().getBBox();
+                const x = svgRect.width / 2 - this.layout.margin.top / 2;
+                const y = svgRect.height / 2 - this.layout.margin.left / 2;
+
+                const outlines: SubSelectionRegionOutlineFragment[] = [{
+                    id: AsterPlotObjectNames.Pies.name,
+                    outline: {
+                        type: SubSelectionOutlineType.Arc,
+                        center: { x, y },
+                        startAngle: actualDataPoint.startAngle,
+                        endAngle: actualDataPoint.endAngle,
+                        innerRadius: this.renderService.innerRadius,
+                        outerRadius: this.renderService.computeOuterRadius(selectedDataPoint),
+                    }
+                }];
+                return outlines;
+            }
+            default:
+                return undefined;
         }
     }
 
@@ -672,6 +677,8 @@ export class AsterPlot implements IVisual {
                 return this.getLabelStyles();
             case AsterPlotObjectNames.Labels.name:
                 return this.getLabelsStyles();
+            case AsterPlotObjectNames.Pies.name:
+                return this.getPiesStyles(subSelections);
             default:
                 return undefined;
         }
@@ -697,6 +704,8 @@ export class AsterPlot implements IVisual {
                 return this.getLabelShortcuts();
             case AsterPlotObjectNames.Labels.name:
                 return this.getLabelsShortcuts();
+            case AsterPlotObjectNames.Pies.name:
+                return this.getPiesShortcuts(subSelections);
             default:
                 return undefined;
         }
@@ -777,6 +786,22 @@ export class AsterPlot implements IVisual {
             },
         }
     }
+
+    private getPiesStyles(subSelections: CustomVisualSubSelection[]): SubSelectionStyles {
+        const selector = subSelections[0]?.customVisualObjects[0]?.selectionId?.getSelector();
+
+        return {
+            type: SubSelectionStylesType.Shape,
+            fill: {
+                reference: {
+                    ...piesReference.fill,
+                    selector,
+                },
+                label: this.localizationManager.getDisplayName("Visual_Fill"),
+            }
+        }
+    }
+
 
     private getLegendShortcuts(): VisualSubSelectionShortcuts {
         return [
@@ -861,6 +886,27 @@ export class AsterPlot implements IVisual {
                 destinationInfo: { cardUid: labelsReference.cardUid },
                 label: this.localizationManager.getDisplayName("Visual_OnObject_FormatLabels"),
             }
+        ];
+    }
+
+    private getPiesShortcuts(subSelections: CustomVisualSubSelection[]): VisualSubSelectionShortcuts {
+        const selector = subSelections[0]?.customVisualObjects[0]?.selectionId?.getSelector();
+        return [
+            {
+                type: VisualShortcutType.Reset,
+                relatedResetFormattingIds: [{
+                    ...piesReference.fill,
+                    selector,
+                }],
+            },
+            {
+                type: VisualShortcutType.Divider,
+            },
+            {
+                type: VisualShortcutType.Navigate,
+                destinationInfo: { cardUid: piesReference.cardUid },
+                label: this.localizationManager.getDisplayName("Visual_OnObject_FormatPies"),
+            },
         ];
     }
 }
