@@ -84,6 +84,8 @@ import { max, filter, isEmpty } from "lodash-es";
 import {AsterPlotObjectNames, AsterPlotSettingsModel, OuterLineCardSettings} from "../asterPlotSettingsModel";
 import {HtmlSubSelectableClass, SubSelectableObjectNameAttribute, SubSelectableDisplayNameAttribute, SubSelectableTypeAttribute} from "powerbi-visuals-utils-onobjectformatting/src";
 import SubSelectionStylesType = powerbi.visuals.SubSelectionStylesType;
+import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
+import {BaseType, select} from "d3";
 
 export class DataRenderService {
     private static AsterRadiusRatio: number = 0.9;
@@ -110,6 +112,7 @@ export class DataRenderService {
     private formatMode: boolean;
     private layout: VisualLayout;
     private tooltipServiceWrapper: ITooltipServiceWrapper;
+    private localizationManager: ILocalizationManager;
     private readonly settings: AsterPlotSettingsModel;
     private readonly viewportRadius: number;
     private readonly maxHeight: number;
@@ -127,11 +130,13 @@ export class DataRenderService {
         settings: AsterPlotSettingsModel,
         layout: VisualLayout,
         tooltipServiceWrapper: ITooltipServiceWrapper,
+        localizationManager: ILocalizationManager,
         formatMode: boolean = false) {
 
         this.data = data;
         this.settings = settings;
         this.layout = layout;
+        this.localizationManager = localizationManager;
         this.formatMode = formatMode;
 
         this.totalWeight = d3.sum(this.data.dataPoints, d => d.sliceWidth);
@@ -318,7 +323,23 @@ export class DataRenderService {
             .attr("stroke", color)
             .attr("stroke-width", outerThickness)
             .attr("d", <ArcDescriptor<any>>outlineArc)
-            .classed(DataRenderService.OuterLine.className, true);
+            .classed(DataRenderService.OuterLine.className, true)
+
+        // TODO: SubSelections disambiguous menu shows outline for each category, even if only one outline is rendered
+        if (this.settings.outerLine.showStraightLines.value) {
+            outerLine
+                .classed(HtmlSubSelectableClass, this.formatMode)
+                .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.OuterLine.name)
+                .attr(SubSelectableDisplayNameAttribute, (d: AsterArcDescriptor) => `${d.data.categoryName} ${this.localizationManager.getDisplayName(AsterPlotObjectNames.OuterLine.displayNameKey)}`)
+                .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Shape);
+        } else {
+            const singleOuterLine: d3.Selection<BaseType, AsterArcDescriptor, any, any> = select(outerLine.node())
+            singleOuterLine
+                .classed(HtmlSubSelectableClass, this.formatMode)
+                .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.OuterLine.name)
+                .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.OuterLine.displayNameKey))
+                .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Shape);
+        }
     }
 
     public drawOuterLines(element: Selection<any>): void {
@@ -326,7 +347,7 @@ export class DataRenderService {
 
         this.drawOuter(element);
 
-        if (settings.outerLine.showGrid || settings.outerLine.showGridTicksValues) {
+        if (settings.outerLine.showGrid.value || settings.outerLine.showGridTicksValues.value) {
             this.drawGrid(element, settings.outerLine);
         } else {
             this.cleanGrid(element);

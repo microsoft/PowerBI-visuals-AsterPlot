@@ -13,6 +13,7 @@
 	"Visual_RightCenter": "Right Center",
 	"Visual_Position": "Position",
 	"Visual_Title": "Title",
+	"Visual_LegendTitle": "Legend Title",
 	"Visual_LegendName": "Legend Name",
 	"Visual_Color": "Color",
 	"Visual_Fill": "Fill",
@@ -26,8 +27,11 @@
 	"Visual_Thickness": "Thickness",
 	"Visual_PiesColors": "Pies colors",
 	"Visual_ShowGrid": "Show Grid",
+	"Visual_HideGrid": "Hide Grid",
 	"Visual_ShowGridTicksValues": "Show Grid Ticks Values",
+	"Visual_HideGridTicksValues": "Hide Grid Ticks Values",
 	"Visual_ShowStraightLines": "Show Straight Lines",
+	"Visual_HideStraightLines": "Hide Straight Lines",
 	"Visual_TextColor": "Text Color",
 	"Visual_TicksColor": "Ticks Color",
 	"Visual_Description_Legend": "Display legend options",
@@ -41,5 +45,6 @@
 	"Visual_OnObject_ShowCenterLabel": "Show center label",
 	"Visual_OnObject_HideCenterLabel": "Hide center label",
 	"Visual_OnObject_FormatLabels": "Format data labels",
-	"Visual_OnObject_FormatPies": "Format pies"
+	"Visual_OnObject_FormatPies": "Format pies",
+	"Visual_OnObject_FormatOuterLine": "Format outer line"
 }

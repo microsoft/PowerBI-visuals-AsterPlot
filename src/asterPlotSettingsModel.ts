@@ -2,7 +2,6 @@ import powerbi from "powerbi-visuals-api";
 import {formattingSettings} from "powerbi-visuals-utils-formattingmodel"
 import {LegendPosition} from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
 import {AsterDataPoint} from "./dataInterfaces";
-import {ColorHelper} from "powerbi-visuals-utils-colorutils";
 import Card = formattingSettings.SimpleCard;
 import Model = formattingSettings.Model;
 import FormattingSettingsSlice = formattingSettings.Slice;
@@ -10,15 +9,189 @@ import IEnumMember = powerbi.IEnumMember;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import ValidatorType = powerbi.visuals.ValidatorType;
 import ISelectionId = powerbi.visuals.ISelectionId;
+import FormattingId = powerbi.visuals.FormattingId;
+
+const nameof = <T>(name: Extract<keyof T, string>): string => name;
 
 export const AsterPlotObjectNames = {
-    Legend: { name: "legend", displayName: "Legend" },
-    LegendTitle: { name: "legendTitle", displayName: "Legend title" },
-    Label: { name: "label", displayName: "Center Label" },
-    Labels: { name: "labels", displayName: "Detail Labels" },
-    Pies: { name: "pies", displayName: "Pies colors" },
-    OuterLine: { name: "outerLine", displayName: "Outer Line" },
+    Legend: { name: "legend", displayName: "Legend", displayNameKey: "Visual_Legend" },
+    LegendTitle: { name: "legendTitle", displayName: "Legend title", displayNameKey: "Visual_LegendTitle" },
+    Label: { name: "label", displayName: "Center Label", displayNameKey: "Visual_CenterLabel" },
+    Labels: { name: "labels", displayName: "Detail Labels", displayNameKey: "Visual_DetailLabels" },
+    Pies: { name: "pies", displayName: "Pies colors", displayNameKey: "Visual_PiesColors" },
+    OuterLine: { name: "outerLine", displayName: "Outer Line", displayNameKey: "Visual_Outerline" },
 } as const;
+
+
+export const legendReference: {
+    cardUid: string;
+    groupUid: string;
+    show: FormattingId;
+    position: FormattingId;
+    titleText: FormattingId;
+    labelColor: FormattingId;
+    fontSize: FormattingId;
+} = {
+    cardUid: "Visual-legend-card",
+    groupUid: "legend-group",
+    show: {
+        objectName: AsterPlotObjectNames.Legend.name,
+        propertyName: nameof<LegendCardSettings>("show"),
+    },
+    position: {
+        objectName: AsterPlotObjectNames.Legend.name,
+        propertyName: nameof<LegendCardSettings>("position"),
+    },
+    titleText: {
+        objectName: AsterPlotObjectNames.Legend.name,
+        propertyName: nameof<LegendCardSettings>("titleText"),
+    },
+    labelColor: {
+        objectName: AsterPlotObjectNames.Legend.name,
+        propertyName: nameof<LegendCardSettings>("labelColor")
+    },
+    fontSize: {
+        objectName: AsterPlotObjectNames.Legend.name,
+        propertyName: nameof<LegendCardSettings>("fontSize")
+    },
+};
+
+export const labelReference: {
+    cardUid: string;
+    groupUid: string;
+    show: FormattingId;
+    fontFamily: FormattingId;
+    bold: FormattingId;
+    italic: FormattingId;
+    underline: FormattingId;
+    fontSize: FormattingId;
+    color: FormattingId;
+} = {
+    cardUid: "Visual-label-card",
+    groupUid: "label-group",
+    show: {
+        objectName: AsterPlotObjectNames.Label.name,
+        propertyName: nameof<CenterLabelCardSettings>("show")
+    },
+    color: {
+        objectName: AsterPlotObjectNames.Label.name,
+        propertyName: nameof<CenterLabelCardSettings>("color")
+    },
+    fontFamily: {
+        objectName: AsterPlotObjectNames.Label.name,
+        propertyName: "fontFamily"
+    },
+    bold: {
+        objectName: AsterPlotObjectNames.Label.name,
+        propertyName: "fontBold"
+    },
+    italic: {
+        objectName: AsterPlotObjectNames.Label.name,
+        propertyName: "fontItalic"
+    },
+    underline: {
+        objectName: AsterPlotObjectNames.Label.name,
+        propertyName: "fontUnderline"
+    },
+    fontSize: {
+        objectName: AsterPlotObjectNames.Label.name,
+        propertyName: "fontSize"
+    },
+};
+
+export const labelsReference: {
+    cardUid: string;
+    groupUid: string;
+    show: FormattingId;
+    color: FormattingId;
+    displayUnits: FormattingId;
+    precision: FormattingId;
+    fontFamily: FormattingId;
+    bold: FormattingId;
+    italic: FormattingId;
+    underline: FormattingId;
+    fontSize: FormattingId;
+} = {
+    cardUid: "Visual-labels-card",
+    groupUid: "labels-group",
+    show: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: nameof<LabelsCardSettings>("show")
+    },
+    color: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: nameof<LabelsCardSettings>("color")
+    },
+    displayUnits: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: nameof<LabelsCardSettings>("displayUnits")
+    },
+    precision: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: nameof<LabelsCardSettings>("precision")
+    },
+    fontFamily: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: "fontFamily"
+    },
+    bold: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: "fontBold"
+    },
+    italic: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: "fontItalic"
+    },
+    underline: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: "fontUnderline"
+    },
+    fontSize: {
+        objectName: AsterPlotObjectNames.Labels.name,
+        propertyName: "fontSize"
+    },
+}
+
+export const piesReference: {
+    cardUid: string;
+    groupUid: string;
+    fill: FormattingId;
+} = {
+    cardUid: "Visual-pies-card",
+    groupUid: "pies-group",
+    fill: {
+        objectName: AsterPlotObjectNames.Pies.name,
+        propertyName: "fill"
+    }
+};
+
+export const outerLineReference: {
+    cardUid: string;
+    groupUid: string;
+    fill: FormattingId;
+    showGrid: FormattingId;
+    showGridTicksValues: FormattingId;
+    showStraightLines: FormattingId;
+} = {
+    cardUid: "Visual-outerLine-card",
+    groupUid: "outerLine-group",
+    fill: {
+        objectName: AsterPlotObjectNames.OuterLine.name,
+        propertyName: nameof<OuterLineCardSettings>("color")
+    },
+    showGrid: {
+        objectName: AsterPlotObjectNames.OuterLine.name,
+        propertyName: nameof<OuterLineCardSettings>("showGrid")
+    },
+    showGridTicksValues: {
+        objectName: AsterPlotObjectNames.OuterLine.name,
+        propertyName: nameof<OuterLineCardSettings>("showGridTicksValues")
+    },
+    showStraightLines: {
+        objectName: AsterPlotObjectNames.OuterLine.name,
+        propertyName: nameof<OuterLineCardSettings>("showStraightLines")
+    },
+}
 
 class TextDefaultSizes {
     public static readonly DefaultTextSize = 9;
@@ -119,7 +292,7 @@ class LegendCardSettings extends Card {
 
     name: string = AsterPlotObjectNames.Legend.name;
     displayName: string = AsterPlotObjectNames.Legend.displayName;
-    displayNameKey: string = "Visual_Legend";
+    displayNameKey: string = AsterPlotObjectNames.Label.displayNameKey;
     description: string = "Display legend options";
     descriptionKey: string = "Visual_Description_Legend";
     slices = [this.position, this.titleText, this.labelColor, this.fontSize];
@@ -144,7 +317,7 @@ class CenterLabelCardSettings extends BaseFontCardSettings {
 
     name: string = AsterPlotObjectNames.Label.name;
     displayName: string = AsterPlotObjectNames.Label.displayName;
-    displayNameKey: string = "Visual_CenterLabel";
+    displayNameKey: string = AsterPlotObjectNames.Label.displayNameKey;
     slices = [this.color, this.font];
 }
 
@@ -186,7 +359,7 @@ class LabelsCardSettings extends BaseFontCardSettings {
 
     name: string = AsterPlotObjectNames.Labels.name;
     displayName: string = AsterPlotObjectNames.Labels.displayName;
-    displayNameKey: string = "Visual_DetailLabels";
+    displayNameKey: string = AsterPlotObjectNames.Labels.displayNameKey;
     slices = [this.color, this.displayUnits, this.precision, this.font];
 }
 
@@ -200,7 +373,7 @@ class PiesCardSettings extends Card {
 
     name: string = AsterPlotObjectNames.Pies.name;
     displayName: string = AsterPlotObjectNames.Pies.displayName;
-    displayNameKey: "Visual_PiesColors";
+    displayNameKey: string = AsterPlotObjectNames.Pies.displayNameKey;
     slices: FormattingSettingsSlice[] = [this.fill];
 }
 
@@ -262,7 +435,7 @@ export class OuterLineCardSettings extends BaseFontCardSettings {
 
     name: string = AsterPlotObjectNames.OuterLine.name;
     displayName: string = AsterPlotObjectNames.OuterLine.displayName
-    displayNameKey: string = "Visual_Outerline";
+    displayNameKey: string = AsterPlotObjectNames.OuterLine.displayNameKey;
     slices = [
         this.thickness,
         this.color,
