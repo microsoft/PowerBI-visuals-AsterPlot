@@ -82,7 +82,7 @@ import {
 
 import { max, filter, isEmpty } from "lodash-es";
 import {AsterPlotObjectNames, AsterPlotSettingsModel, OuterLineCardSettings} from "../asterPlotSettingsModel";
-import {HtmlSubSelectableClass, SubSelectableObjectNameAttribute, SubSelectableDisplayNameAttribute, SubSelectableTypeAttribute} from "powerbi-visuals-utils-onobjectformatting/src";
+import {HtmlSubSelectableClass, SubSelectableObjectNameAttribute, SubSelectableDisplayNameAttribute, SubSelectableTypeAttribute} from "powerbi-visuals-utils-onobjectutils";
 import SubSelectionStylesType = powerbi.visuals.SubSelectionStylesType;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import {BaseType, select} from "d3";

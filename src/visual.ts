@@ -83,7 +83,7 @@ import {
     SubSelectableDirectEdit as SubSelectableDirectEditAttr,
     SubSelectableDisplayNameAttribute,
     SubSelectableObjectNameAttribute
-} from "powerbi-visuals-utils-onobjectformatting/src"
+} from "powerbi-visuals-utils-onobjectutils"
 import {PieArcDatum} from "d3-shape";
 
 type Selection<T> = d3.Selection<any, T, any, any>;

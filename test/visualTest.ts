@@ -24,12 +24,8 @@
  *  THE SOFTWARE.
  */
 
-import * as d3 from "d3";
-import "d3-selection-multi";
-
 import PrimitiveValue = powerbi.PrimitiveValue;
 
-import {  } from "powerbi-visuals-utils-colorutils";
 // powerbi
 // tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
