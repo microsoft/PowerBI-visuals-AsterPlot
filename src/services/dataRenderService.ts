@@ -325,21 +325,12 @@ export class DataRenderService {
             .attr("d", <ArcDescriptor<any>>outlineArc)
             .classed(DataRenderService.OuterLine.className, true)
 
-        // TODO: SubSelections disambiguous menu shows outline for each category, even if only one outline is rendered
-        if (this.settings.outerLine.showStraightLines.value) {
-            outerLine
-                .classed(HtmlSubSelectableClass, this.formatMode)
-                .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.OuterLine.name)
-                .attr(SubSelectableDisplayNameAttribute, (d: AsterArcDescriptor) => `${d.data.categoryName} ${this.localizationManager.getDisplayName(AsterPlotObjectNames.OuterLine.displayNameKey)}`)
-                .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Shape);
-        } else {
-            const singleOuterLine: d3.Selection<BaseType, AsterArcDescriptor, any, any> = select(outerLine.node())
-            singleOuterLine
-                .classed(HtmlSubSelectableClass, this.formatMode)
-                .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.OuterLine.name)
-                .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.OuterLine.displayNameKey))
-                .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Shape);
-        }
+        const singleOuterLine: d3.Selection<BaseType, AsterArcDescriptor, any, any> = select(outerLine.node())
+        singleOuterLine
+            .classed(HtmlSubSelectableClass, this.formatMode)
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.OuterLine.name)
+            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.OuterLine.displayNameKey))
+            .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Shape);
     }
 
     public drawOuterLines(element: Selection<any>): void {

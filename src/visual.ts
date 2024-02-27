@@ -541,37 +541,21 @@ export class AsterPlot implements IVisual {
                     return undefined;
                 }
 
-                const actualDataPoint = selectedDataPoint as unknown as PieArcDatum<AsterDataPoint>;
                 const svgRect = this.mainGroupElement.node().getBBox();
                 const x = svgRect.width / 2 - this.layout.margin.top / 2;
                 const y = svgRect.height / 2 - this.layout.margin.left / 2;
 
-                let outlines: powerbi.visuals.SubSelectionRegionOutlineFragment[];
-                if (this.formattingSettings.outerLine.showStraightLines.value) {
-                    outlines = [{
-                        id: `${actualDataPoint.data.categoryName} ${AsterPlotObjectNames.OuterLine.name}`,
-                        outline: {
-                            type: SubSelectionOutlineType.Arc,
-                            center: {x, y},
-                            startAngle: actualDataPoint.startAngle,
-                            endAngle: actualDataPoint.endAngle,
-                            innerRadius: this.renderService.innerRadius,
-                            outerRadius: this.renderService.outerRadius,
-                        }
-                    }];
-                } else {
-                    outlines = [{
-                        id: AsterPlotObjectNames.OuterLine.name,
-                        outline: {
-                            type: SubSelectionOutlineType.Arc,
-                            center: { x, y },
-                            startAngle: 0,
-                            endAngle: 360,
-                            innerRadius: this.renderService.outerRadius,
-                            outerRadius: this.renderService.outerRadius,
-                        }
-                    }];
-                }
+                const outlines: powerbi.visuals.SubSelectionRegionOutlineFragment[] = [{
+                    id: AsterPlotObjectNames.OuterLine.name,
+                    outline: {
+                        type: SubSelectionOutlineType.Arc,
+                        center: { x, y },
+                        startAngle: 0,
+                        endAngle: 360,
+                        innerRadius: this.renderService.outerRadius,
+                        outerRadius: this.renderService.outerRadius,
+                    }
+                }];
 
                 return outlines;
             }
