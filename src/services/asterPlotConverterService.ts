@@ -70,6 +70,7 @@ import LegendData = LegendUtil.legendInterfaces.LegendData;
 import ISelectionId = powerbi.visuals.ISelectionId;
 // powerbi.extensibility.utils.tooltip
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
+import {dataViewObjects} from "powerbi-visuals-utils-dataviewutils";
 
 
 const minStrokeWidth: number = 0;
@@ -215,14 +216,9 @@ export class AsterPlotConverterService {
                 tooltipInfo = this.buildOneMeasureTooltip(formattedCategoryValue, currentValue, localizationManager);
             }
 
-            const identity: powerbi.visuals.CustomVisualOpaqueIdentity = category.identity[i];
-            let fillColor: string;
-
-            if (category.objects && category.objects[i]) {
-                fillColor = this.colorHelper.getColorForMeasure(category.objects[i], "");
-            } else {
-                fillColor = this.colorHelper.getColorForMeasure(category.objects && category.objects[i], (<any>identity).identityIndex);
-            }
+            const colorFromPalette = this.colorHelper.getColorForMeasure(category.objects && category.objects[i], (<any>category.identity[i]).identityIndex)
+            const dataPointFillColor: string = dataViewObjects.getFillColor(category.objects && category.objects[i] || category.source.objects, AsterPlotConverterService.PiesPropertyIdentifier);
+            const fillColor: string = dataPointFillColor || colorFromPalette;
 
             const strokeColor = this.colorHelper.getHighContrastColor("foreground", fillColor);
             const strokeWidth = this.colorHelper.isHighContrast ? maxStrokeWidth : minStrokeWidth;
