@@ -29,22 +29,13 @@ import {
     VisualBuilderBase
 } from "powerbi-visuals-utils-testutils";
 
-// SankeyDiagram1446463184954
+// AsterPlot1443303142064
 import {
-    AsterPlot as VisualClass
+    AsterPlot
 } from "../src/visual";
-// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
-import DataView = powerbi.DataView;
-import {
-    AsterPlotData
-} from "../src/dataInterfaces";
-
-import { ColorHelper } from "powerbi-visuals-utils-colorutils";
-import { MockISelectionIdBuilder } from "powerbi-visuals-utils-testutils/lib/mocks/mockISelectionIdBuilder";
-
-import { createSelectionId } from "powerbi-visuals-utils-testutils";
+import { createSelectionId, MockISelectionIdBuilder } from "powerbi-visuals-utils-testutils";
 
 class FakeSelectionIdBuilder extends MockISelectionIdBuilder {
     private index = 0;
@@ -53,75 +44,64 @@ class FakeSelectionIdBuilder extends MockISelectionIdBuilder {
     }
 }
 
-export class AsterPlotBuilder extends VisualBuilderBase<VisualClass> {
+export class AsterPlotBuilder extends VisualBuilderBase<AsterPlot> {
     constructor(width: number, height: number) {
         super(width, height, "AsterPlot1443303142064");
     }
 
-    protected build(options: VisualConstructorOptions): VisualClass {
+    protected build(options: VisualConstructorOptions): AsterPlot {
         options.host.createSelectionIdBuilder = () => {
             return new FakeSelectionIdBuilder();
         };
-        return new VisualClass(options);
+        return new AsterPlot(options);
     }
 
-    public get mainElement(): JQuery {
-        return this.element.children("svg");
+    public get mainElement(): SVGElement {
+        return this.element.querySelector<SVGElement>("svg.asterPlot");
     }
 
-    public get legendGroup(): JQuery {
+    public get centerText(): HTMLElement {
+        return this.mainElement.querySelector<HTMLElement>(".asterPlot .centerLabel");
+    }
+
+    public get legendGroup(): HTMLElement {
         return this.element
-            .children(".legend")
-            .children("#legendGroup");
+            .querySelector(".legend")
+            .querySelector("#legendGroup");
     }
 
-    public get firstLegendText(): JQuery {
+    public get legendTitle(): HTMLElement {
         return this.legendGroup
-            .children(".legendItem")
-            .first()
-            .children(".legendText");
+            .querySelector<HTMLElement>(".legendTitle");
     }
 
-    public get dataLabels(): JQuery {
-        return this.mainElement
-            .children("g")
-            .children("g.labels")
-            .children("text.data-labels");
+    public get legendItems(): NodeListOf<HTMLElement> {
+        return this.legendGroup.querySelectorAll(".legendItem");
     }
 
-    public get lineLabel(): JQuery {
-        return this.mainElement
-            .children("g")
-            .children("g.lines")
-            .children("polyline.line-label");
+    public get firstLegendText(): HTMLElement {
+        return this.legendGroup
+            .querySelector(".legendItem")
+            .querySelector(".legendText");
     }
 
-    public get slices(): JQuery {
-        return this.mainElement
-            .children("g")
-            .children("g.asterSlices")
-            .children("path.asterSlice");
+    public get dataLabels(): NodeListOf<HTMLElement> {
+        return this.mainElement.querySelectorAll("text.data-labels");
     }
 
-    public get outerLine(): JQuery {
-        return this.mainElement
-            .children("g")
-            .children("path.outerLine");
+    public get lineLabels(): NodeListOf<HTMLElement> {
+        return this.mainElement.querySelectorAll("polyline.line-label");
     }
 
-    public get outerLineGrid(): JQuery {
-        return this.mainElement
-            .children("g")
-            .children("g.circleLine");
+    public get slices(): NodeListOf<HTMLElement> {
+        return this.mainElement.querySelectorAll("path.asterSlice");
     }
 
-    public converter(dataView: DataView): AsterPlotData {
-        return VisualClass.converter(
-            dataView,
-            this.visualHost.colorPalette,
-            new ColorHelper(this.visualHost.colorPalette),
-            this.visualHost,
-            this.visualHost.createLocalizationManager()
-        );
+    public get outerLine(): NodeListOf<HTMLElement> {
+        return this.mainElement.querySelectorAll("path.outerLine");
+    }
+
+    public get outerLineGrid(): NodeListOf<HTMLElement> {
+        return this.mainElement.querySelectorAll("g.circleLine");
     }
 }

@@ -223,6 +223,7 @@ export class DataRenderService {
             .append("path")
             .attr("aria-selected", false)
             .attr("tabindex", 0)
+            .attr("role", "option")
             .attr("center", (d) => arc.centroid(d).toString())
             .classed(classSelector.className, true))
             .classed(HtmlSubSelectableClass, this.formatMode)

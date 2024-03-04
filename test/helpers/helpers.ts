@@ -30,7 +30,7 @@ import {
     parseColorString
 } from "powerbi-visuals-utils-colorutils";
 
-export function getSolidColorStructuralObject(color: string): any {
+export function getSolidColorStructuralObject(color: string) {
     return { solid: { color } };
 }
 
@@ -44,12 +44,12 @@ export function areColorsEqual(firstColor: string, secondColor: string): boolean
 }
 
 export function isColorAppliedToElements(
-    elements: JQuery[],
+    elements: HTMLElement[],
     color?: string,
     colorStyleName: string = "fill"
 ): boolean {
-    return elements.some((element: JQuery) => {
-        const currentColor: string = element.css(colorStyleName);
+    return elements.some((element: HTMLElement) => {
+        const currentColor: string = element.style[colorStyleName];
 
         if (!currentColor || !color) {
             return currentColor === color;

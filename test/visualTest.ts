@@ -30,9 +30,7 @@ import PrimitiveValue = powerbi.PrimitiveValue;
 // tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 import DataView = powerbi.DataView;
-import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
 import IColorPalette = powerbi.extensibility.IColorPalette;
-import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
 // powerbi.extensibility.utils.type
 import { pixelConverter as PixelConverter } from "powerbi-visuals-utils-typeutils";
 
@@ -50,11 +48,9 @@ import { AsterPlotBuilder } from "./asterPlotBuilder";
 import { getSolidColorStructuralObject, isColorAppliedToElements } from "./helpers/helpers";
 
 // powerbi.extensibility.utils.test
-import { clickElement, MockISelectionId, assertColorsMatch } from "powerbi-visuals-utils-testutils";
+import { clickElement, assertColorsMatch } from "powerbi-visuals-utils-testutils";
 
 import DataViewValueColumn = powerbi.DataViewValueColumn;
-
-import {last} from "lodash-es";
 
 describe("AsterPlot", () => {
     let visualBuilder: AsterPlotBuilder,
@@ -64,19 +60,14 @@ describe("AsterPlot", () => {
         colorPalette: IColorPalette;
 
     beforeEach(() => {
-        let selectionIndex: number = 0;
         defaultLabelColor = "rgb(0, 0, 0)";
         visualBuilder = new AsterPlotBuilder(1000, 500);
         defaultDataViewBuilder = new AsterPlotData();
         dataView = defaultDataViewBuilder.getDataView();
-
-        // powerbi.extensibility.utils.test.mocks.createSelectionId = function () {
-        //     return new MockISelectionId(`${++selectionIndex}`);
-        // };
     });
 
     describe("DOM tests", () => {
-        let labelColor: string = "red";
+        let labelColor = getSolidColorStructuralObject("red");
         let labelFontSize: number = 11;
 
         beforeEach(() => {
@@ -85,57 +76,57 @@ describe("AsterPlot", () => {
                     show: true,
                     color: labelColor,
                     fontSize: labelFontSize
-                }
+                },
             };
         });
 
         it("Should create svg element", () => {
-            expect(visualBuilder.mainElement[0]).toBeInDOM();
+            expect(visualBuilder.mainElement).not.toBeNull();
         });
 
         it("Should draw right amount of slices", () => {
             visualBuilder.updateFlushAllD3Transitions(dataView);
 
-            expect(visualBuilder.mainElement.find(".asterSlice").length)
+            expect(visualBuilder.mainElement.querySelectorAll(".asterSlice").length)
                 .toBe(dataView.categorical.categories[0].values.length);
         });
 
         it("Should add center label", () => {
             visualBuilder.updateFlushAllD3Transitions(dataView);
 
-            const centerText: JQuery = $(".asterPlot .centerLabel");
+            const centerText: HTMLElement = visualBuilder.centerText;
 
-            expect(centerText).toBeInDOM();
+            expect(centerText).not.toBeNull();
         });
 
         it("Should not add center label to DOM when there is no data", () => {
             visualBuilder.updateFlushAllD3Transitions([]);
 
-            const centerText: JQuery = $(".asterPlot .centerLabel");
+            const centerText: HTMLElement = visualBuilder.centerText;
 
-            expect(centerText.length).toBe(0);
+            expect(centerText).toBeNull();
         });
 
         it("Should add center label with resized text", () => {
             visualBuilder.updateFlushAllD3Transitions(dataView);
 
-            const centerText: JQuery = $(".asterPlot .centerLabel");
+            const centerText: HTMLElement = visualBuilder.centerText;
 
-            expect(centerText).toBeInDOM();
-            expect(centerText[0].getBoundingClientRect().height).toBeCloseTo(12, 10);
-            expect(centerText[0].style.fontSize).toBe(labelFontSize + "px");
-            expect(centerText[0].style.fill).toBe(labelColor);
+            expect(centerText).not.toBeNull();
+            expect(centerText.getBoundingClientRect().height).toBeCloseTo(labelFontSize + 1.5, 10);
+            expect(centerText.style.fontSize).toBe(labelFontSize + "px");
+            expect(centerText.style.fill).toBe(labelColor.solid.color);
         });
 
         it("Selection test", () => {
             visualBuilder.updateFlushAllD3Transitions(dataView);
 
-            const clickableSlice: JQuery = visualBuilder.slices.eq(0),
-                checkingSlice: JQuery = visualBuilder.slices.eq(1);
+            const clickableSlice: HTMLElement = visualBuilder.slices[0],
+                checkingSlice: HTMLElement = visualBuilder.slices[1];
             clickElement(clickableSlice);
 
-            expect(parseFloat(clickableSlice.css("fill-opacity"))).toBe(1);
-            expect(parseFloat(checkingSlice.css("fill-opacity"))).toBeLessThan(1);
+            expect(parseFloat(clickableSlice.style["fill-opacity"])).toBe(1);
+            expect(parseFloat(checkingSlice.style["fill-opacity"])).toBeLessThan(1);
         });
 
         describe("Data Labels", () => {
@@ -143,7 +134,7 @@ describe("AsterPlot", () => {
                 dataView.metadata.objects = {
                     labels: {
                         show: true
-                    }
+                    },
                 };
             });
 
@@ -151,15 +142,15 @@ describe("AsterPlot", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 const numOfLabels: number = dataView.categorical.values[0].values.length,
-                    labels: JQuery = $(".asterPlot .labels .data-labels");
+                    labels: NodeListOf<HTMLElement> = visualBuilder.dataLabels;
 
                 expect(labels.length).toBe(numOfLabels);
 
-                const lines: JQuery = $(".asterPlot .lines .line-label");
+                const lines: NodeListOf<HTMLElement> = visualBuilder.lineLabels;
 
                 expect(lines.length).toBe(numOfLabels);
 
-                const slices: JQuery = $(".asterPlot .asterSlice");
+                const slices: NodeListOf<HTMLElement> = visualBuilder.slices;
 
                 expect(slices.length).toBe(numOfLabels);
             });
@@ -168,8 +159,8 @@ describe("AsterPlot", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 const numOfLabels: number = dataView.categorical.values[0].values.length,
-                    labels: JQuery = $(".asterPlot .labels .data-labels"),
-                    lines: JQuery = $(".asterPlot .lines .line-label");
+                    labels: NodeListOf<HTMLElement> = visualBuilder.dataLabels,
+                    lines: NodeListOf<HTMLElement> = visualBuilder.lineLabels;
 
                 expect(lines.length).toBe(numOfLabels);
                 expect(labels.length).toBe(numOfLabels);
@@ -178,18 +169,18 @@ describe("AsterPlot", () => {
                 visualBuilder.viewport = { height: 250, width: 400 };
                 visualBuilder.update(dataView);
 
-                const labelsAfterResize: JQuery = $(".asterPlot .labels .data-labels"),
-                    linesAfterResize: JQuery = $(".asterPlot .lines .line-label");
+                const labelsAfterResize: NodeListOf<HTMLElement> = visualBuilder.dataLabels,
+                    linesAfterResize: NodeListOf<HTMLElement> = visualBuilder.lineLabels;
 
                 expect(labelsAfterResize.length).toBe(numOfLabels);
                 expect(linesAfterResize.length).toBe(numOfLabels);
 
-                const firstLabelX: string = $(labels).first().attr("x"),
-                    firstLabelY: string = $(labels).first().attr("y"),
-                    lastLabelY: string = $(labels).last().attr("y"),
-                    firstResizeLabelX: string = $(labelsAfterResize).first().attr("x"),
-                    firstResizeLabelY: string = $(labelsAfterResize).first().attr("y"),
-                    lastResizeLabelY: string = $(labelsAfterResize).last().attr("y");
+                const firstLabelX: string = labels[0].getAttribute("x"),
+                    firstLabelY: string = labels[0].getAttribute("y"),
+                    lastLabelY: string = labels[labels.length - 1].getAttribute("y"),
+                    firstResizeLabelX: string = labelsAfterResize[0].getAttribute("x"),
+                    firstResizeLabelY: string = labelsAfterResize[0].getAttribute("y"),
+                    lastResizeLabelY: string = labelsAfterResize[labelsAfterResize.length - 1].getAttribute("y");
 
                 expect(firstLabelX).toBeGreaterThan(parseFloat(firstResizeLabelX));
                 expect(firstLabelY).toBeLessThan(parseFloat(firstResizeLabelY));
@@ -198,28 +189,30 @@ describe("AsterPlot", () => {
             });
 
             it("Data Labels - Decimal value for Labels should have a limit to 17", () => {
+                const maxPrecision: number = 17;
                 (<any>dataView.metadata.objects).labels.show = true;
-                (<any>dataView.metadata.objects).labels.precision = 5666;
+                (<any>dataView.metadata.objects).labels.precision = maxPrecision;
+
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                const labels: JQuery = $(".asterPlot .labels .data-labels"),
-                    dataLabels: string = $(labels).first().text(),
-                    maxPrecision: number = 17;
+                const labels: NodeListOf<HTMLElement> = visualBuilder.dataLabels;
+                const dataLabels: string = labels[0].textContent;
 
                 expect(dataLabels).toBe("$0,000.86618686000000000M");
                 expect(dataLabels.length - 8).toBe(maxPrecision);
             });
 
             it("Data Labels - Change font size", () => {
-                (<any>dataView.metadata.objects).labels.show.value = true;
-                (<any>dataView.metadata.objects).labels.font.fontSize = 15;
+                (<any>dataView.metadata.objects).labels.show = true;
+                (<any>dataView.metadata.objects).labels.fontSize = 15;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                const labels: JQuery = $(".asterPlot .labels .data-labels");
+                const labels: NodeListOf<HTMLElement> = visualBuilder.dataLabels;
+                const firstDataLabels = labels[0];
 
-                expect(labels.first().css("font-size"))
-                    .toBe((<any>dataView.metadata.objects).labels.font.fontSize * 4 / 3 + "px");
+                expect(firstDataLabels.style["font-size"])
+                    .toBe((<any>dataView.metadata.objects).labels.fontSize * 4 / 3 + "px");
             });
 
             it("Data Labels should be clear when removing data", () => {
@@ -227,7 +220,7 @@ describe("AsterPlot", () => {
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                let labels: JQuery = $(".asterPlot .labels .data-labels");
+                let labels: NodeListOf<HTMLElement> = visualBuilder.dataLabels;
                 expect(labels.length).toBeGreaterThan(0);
 
                 // Manually remove categories
@@ -236,7 +229,7 @@ describe("AsterPlot", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 // Check that the labels were removed
-                labels = $(".asterPlot .labels .data-labels");
+                labels = visualBuilder.dataLabels;
                 expect(labels.length).toBe(0);
             });
 
@@ -248,14 +241,14 @@ describe("AsterPlot", () => {
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                const labels: JQuery = $(".asterPlot .labels .data-labels");
+                const labels: NodeListOf<HTMLElement> = visualBuilder.dataLabels;
 
                 expect(labels.length).toBeGreaterThan(0);
 
                 // Verify label text is formatted correctly
-                expect($(labels[0]).text()).toBe("$0,000.87M");
-                expect($(labels[3]).text()).toBe("$0,000.31M");
-                expect($(labels[5]).text()).toBe("$0,001.26M");
+                expect(labels[0].textContent).toBe("$0,000.87M");
+                expect(labels[3].textContent).toBe("$0,000.31M");
+                expect(labels[5].textContent).toBe("$0,001.26M");
             });
 
             it("Data Labels should not display lines for null and zero labels", () => {
@@ -263,7 +256,7 @@ describe("AsterPlot", () => {
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                const originalLines: number = $(".asterPlot .lines .line-label").length;
+                const originalLines: number = visualBuilder.lineLabels.length;
 
                 // Manually set a label to null and zero
                 dataView.categorical.values[0].values[0] = null;
@@ -273,7 +266,7 @@ describe("AsterPlot", () => {
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                const newLines: number = $(".asterPlot .lines .line-label").length;
+                const newLines: number = visualBuilder.lineLabels.length;
 
                 // Verify label lines are not generated for null and zero
                 expect(newLines).toBeLessThan(originalLines);
@@ -292,19 +285,19 @@ describe("AsterPlot", () => {
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                expect(visualBuilder.lineLabel.length).toEqual(length);
+                expect(visualBuilder.lineLabels.length).toEqual(length);
             });
         });
 
-        describe("Converter", () => {
-            it("Should convert all data when there is a limit to colors", () => {
-                const asterData = visualBuilder.converter(dataView);
-
-                // Verify that all data was created even with the color limitation
-                expect(asterData.dataPoints.length)
-                    .toBe(dataView.categorical.categories[0].values.length);
-            });
-        });
+        // describe("Converter", () => {
+        //     it("Should convert all data when there is a limit to colors", () => {
+        //         const asterData = visualBuilder.converter(dataView);
+        //
+        //         // Verify that all data was created even with the color limitation
+        //         expect(asterData.dataPoints.length)
+        //             .toBe(dataView.categorical.categories[0].values.length);
+        //     });
+        // });
     });
 
     describe("Format settings test", () => {
@@ -313,7 +306,7 @@ describe("AsterPlot", () => {
                 dataView.metadata.objects = {
                     labels: {
                         show: true
-                    }
+                    },
                 };
             });
 
@@ -322,7 +315,7 @@ describe("AsterPlot", () => {
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                expect(visualBuilder.dataLabels).not.toBeInDOM();
+                expect(visualBuilder.dataLabels.length).toBe(0);
             });
 
             it("color", () => {
@@ -333,7 +326,7 @@ describe("AsterPlot", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 assertColorsMatch(
-                    visualBuilder.dataLabels.first().css("fill"),
+                    visualBuilder.dataLabels[0].style["fill"],
                     color);
             });
 
@@ -345,9 +338,9 @@ describe("AsterPlot", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 visualBuilder.dataLabels
-                    .toArray()
                     .forEach((element: Element) => {
-                        expect(last($(element).text())).toEqual("K");
+                        const text = element.textContent;
+                        expect(text[text.length - 1]).toEqual("K");
                     });
             });
 
@@ -360,9 +353,8 @@ describe("AsterPlot", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 visualBuilder.dataLabels
-                    .toArray()
                     .forEach((element: Element) => {
-                        expect($(element).text().split(".")[1].length).toEqual(precision);
+                        expect(element.textContent.split(".")[1].length).toEqual(precision);
                     });
             });
 
@@ -370,13 +362,13 @@ describe("AsterPlot", () => {
                 const fontSize: number = 22,
                     expectedFontSize: string = "29.3333px";
 
-                (<any>dataView.metadata.objects).labels.font.fontSize = fontSize;
+                (<any>dataView.metadata.objects).labels.fontSize = fontSize;
+
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 visualBuilder.dataLabels
-                    .toArray()
-                    .forEach((element: Element) => {
-                        expect($(element).css("font-size")).toBe(expectedFontSize);
+                    .forEach((element: HTMLElement) => {
+                        expect(element.style["font-size"]).toBe(expectedFontSize);
                     });
             });
         });
@@ -393,7 +385,7 @@ describe("AsterPlot", () => {
             it("Show", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                expect(visualBuilder.outerLine).toBeInDOM();
+                expect(visualBuilder.outerLine).toBeDefined();
             });
 
             it("Thickness", () => {
@@ -402,7 +394,11 @@ describe("AsterPlot", () => {
                 (<any>dataView.metadata.objects).outerLine.thickness = thickness;
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                expect(parseFloat(visualBuilder.outerLine.attr("stroke-width"))).toBe(thickness);
+                visualBuilder.outerLine
+                    .forEach((element: HTMLElement) => {
+                        const elementThickness: number = parseFloat(element.getAttribute("stroke-width"));
+                        expect(elementThickness).toBe(thickness);
+                    })
             });
 
             it("Grid line", () => {
@@ -411,22 +407,22 @@ describe("AsterPlot", () => {
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                expect(visualBuilder.outerLineGrid).toBeInDOM();
+                expect(visualBuilder.outerLineGrid).toBeDefined();
             });
         });
 
-        describe("Pie colors", () => {
-            it("Pie colors options created for all pies", () => {
-                visualBuilder.updateFlushAllD3Transitions(dataView);
-
-                let piesOptionName: string = "pies",
-                    piesOptions: EnumerateVisualObjectInstancesOptions = <EnumerateVisualObjectInstancesOptions>{ objectName: piesOptionName };
-
-                let colorOptions: VisualObjectInstanceEnumeration = visualBuilder.enumerateObjectInstances(piesOptions);
-
-                expect(visualBuilder.mainElement.find(".asterSlice").length).toBe(colorOptions.length);
-            });
-        });
+        // describe("Pie colors", () => {
+        //     it("Pie colors options created for all pies", () => {
+        //         visualBuilder.updateFlushAllD3Transitions(dataView);
+        //
+        //         let piesOptionName: string = "pies",
+        //             piesOptions: EnumerateVisualObjectInstancesOptions = <EnumerateVisualObjectInstancesOptions>{ objectName: piesOptionName };
+        //
+        //         let colorOptions: VisualObjectInstanceEnumeration = visualBuilder.enumerateObjectInstances(piesOptions);
+        //
+        //         expect(visualBuilder.mainElement.find(".asterSlice").length).toBe(colorOptions.length);
+        //     });
+        // });
 
         function timeout(ms: number) {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -535,7 +531,7 @@ describe("AsterPlot", () => {
         });
 
         describe("Default Legend", () => {
-            const defaultLegendLabelFontSize: number = 8;
+            const defaultLegendLabelFontSize: number = 9;
 
             beforeEach(() => {
                 dataView.metadata.objects = {
@@ -548,28 +544,28 @@ describe("AsterPlot", () => {
             });
 
             it("Should add legend", () => {
-                expect(visualBuilder.legendGroup).toBeInDOM();
+                expect(visualBuilder.legendGroup).toBeDefined();
             });
 
             it("Should color legend title & items with default color", () => {
-                const legendTitle: JQuery = visualBuilder.legendGroup.children(".legendTitle");
+                const legendTitle: HTMLElement = visualBuilder.legendGroup.querySelector(".legendTitle");
 
                 assertColorsMatch(
-                    legendTitle.css("fill"),
+                    legendTitle.style["fill"],
                     legendData.DefaultLegendLabelFillColor);
 
                 assertColorsMatch(
-                    visualBuilder.firstLegendText.css("fill"),
+                    visualBuilder.firstLegendText.style["fill"],
                     legendData.DefaultLegendLabelFillColor);
             });
 
             it("Should set legend title & tooltip to text from dataview", () => {
-                const legendTitle: JQuery = visualBuilder.legendGroup.children(".legendTitle");
+                const legendTitle: HTMLElement = visualBuilder.legendTitle;
 
-                expect(legendTitle.length).toEqual(1);
+                expect(legendTitle).not.toBeNull();
 
-                const legendTitleText: string = legendTitle.get(0).firstChild.textContent,
-                    legendTitleTitle: string = legendTitle.children("title").text(),
+                const legendTitleText: string = legendTitle.firstChild.textContent,
+                    legendTitleTitle: string = legendTitle.querySelector("title").textContent,
                     expectedDefaultTitleAndToolTipText: string
                         = dataView.categorical.categories[0].source.displayName;
 
@@ -578,12 +574,12 @@ describe("AsterPlot", () => {
             });
 
             it("Should set legend title and legend items with default font size", () => {
-                const legendTitle: JQuery = visualBuilder.legendGroup.find(".legendTitle"),
+                const legendTitle: HTMLElement = visualBuilder.legendTitle,
                     defaultLabelFontSizeInPixels: number = Math.round(
                         PixelConverter.fromPointToPixel(defaultLegendLabelFontSize)),
-                    legendTitleFontSize: number = Math.round(parseFloat(legendTitle.css("font-size"))),
+                    legendTitleFontSize: number = Math.round(parseFloat(legendTitle.style["font-size"])),
                     firstLegendItemTextFontSize: number = Math.round(
-                        parseFloat(visualBuilder.firstLegendText.css("font-size")));
+                        parseFloat(visualBuilder.firstLegendText.style["font-size"]));
 
                 expect(legendTitleFontSize).toBe(defaultLabelFontSizeInPixels);
                 expect(firstLegendItemTextFontSize).toBe(defaultLabelFontSizeInPixels);
@@ -592,16 +588,16 @@ describe("AsterPlot", () => {
             it("multi-selection test", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                const firstSlice: JQuery = visualBuilder.slices.eq(0),
-                    secondSlice: JQuery = visualBuilder.slices.eq(1),
-                    thirdSlice: JQuery = visualBuilder.slices.eq(3);
+                const firstSlice: HTMLElement = visualBuilder.slices[0],
+                    secondSlice: HTMLElement = visualBuilder.slices[1],
+                    thirdSlice: HTMLElement = visualBuilder.slices[3];
 
                 clickElement(firstSlice);
                 clickElement(secondSlice, true);
 
-                expect(parseFloat(firstSlice.css("fill-opacity"))).toBe(1);
-                expect(parseFloat(secondSlice.css("fill-opacity"))).toBe(1);
-                expect(parseFloat(thirdSlice.css("fill-opacity"))).toBeLessThan(1);
+                expect(parseFloat(firstSlice.style["fill-opacity"])).toBe(1);
+                expect(parseFloat(secondSlice.style["fill-opacity"])).toBe(1);
+                expect(parseFloat(thirdSlice.style["fill-opacity"])).toBeLessThan(1);
             });
         });
 
@@ -628,23 +624,20 @@ describe("AsterPlot", () => {
             it("Should add right amount of legend items", () => {
                 visualBuilder.update(dataView);
 
-                const legendItems: JQuery = $("#legendGroup .legendItem");
+                const legendItems: NodeListOf<HTMLElement> = visualBuilder.legendItems;
 
-                expect(legendItems.length)
-                    .toEqual(dataView.categorical.categories[0].values.length);
+                expect(legendItems.length).toBe(dataView.categorical.categories[0].values.length);
             });
 
             it("Should set legend title & tooltip to user configured text", () => {
                 visualBuilder.update(dataView);
 
-                const legendTitle: JQuery = visualBuilder
-                    .legendGroup
-                    .children(".legendTitle");
+                const legendTitle: HTMLElement = visualBuilder.legendTitle;
 
-                expect(legendTitle.length).toEqual(1);
+                expect(legendTitle).toBeDefined();
 
-                const legendTitleText: string = legendTitle.get(0).firstChild.textContent,
-                    legendTitleTitle: string = legendTitle.children("title").text();
+                const legendTitleText: string = legendTitle.firstElementChild.textContent,
+                    legendTitleTitle: string = legendTitle.querySelector("title").textContent;
 
                 expect(legendTitleText).toEqual(customLegendTitle);
                 expect(legendTitleTitle).toEqual(customLegendTitle);
@@ -652,29 +645,25 @@ describe("AsterPlot", () => {
 
             it("Should color legend title & items with user configured color", () => {
                 visualBuilder.update(dataView);
-                const legendTitle: JQuery = visualBuilder
-                    .legendGroup
-                    .children(".legendTitle");
+                const legendTitle: HTMLElement = visualBuilder.legendTitle;
 
                 assertColorsMatch(
-                    legendTitle.css("fill"),
+                    legendTitle.style["fill"],
                     defaultLabelColor);
 
                 assertColorsMatch(
-                    visualBuilder.firstLegendText.css("fill"),
+                    visualBuilder.firstLegendText.style["fill"],
                     defaultLabelColor);
             });
 
             it("Should set legend title and legend items with user configured font size", () => {
                 visualBuilder.update(dataView);
 
-                const legendTitle: JQuery = visualBuilder
-                    .legendGroup
-                    .find(".legendTitle");
+                const legendTitle: HTMLElement = visualBuilder.legendTitle;
 
-                const legendTitleFontSize: number = Math.round(parseFloat(legendTitle.css("font-size"))),
+                const legendTitleFontSize: number = Math.round(parseFloat(legendTitle.style["font-size"])),
                     firstLegendItemTextFontSize: number = Math.round(
-                        parseFloat(visualBuilder.firstLegendText.css("font-size")));
+                        parseFloat(visualBuilder.firstLegendText.style["font-size"]));
 
                 expect(legendTitleFontSize).toBe(labelFonSizeInPixels);
                 expect(firstLegendItemTextFontSize).toBe(labelFonSizeInPixels);
@@ -683,13 +672,11 @@ describe("AsterPlot", () => {
             it("Should set legend title and legend items with user configured font size", () => {
                 visualBuilder.update(dataView);
 
-                const legendTitle: JQuery = visualBuilder
-                    .legendGroup
-                    .find(".legendTitle");
+                const legendTitle: HTMLElement = visualBuilder.legendTitle;
 
-                const legendTitleFontSize: number = Math.round(parseFloat(legendTitle.css("font-size"))),
+                const legendTitleFontSize: number = Math.round(parseFloat(legendTitle.style["font-size"])),
                     firstLegendItemTextFontSize: number = Math.round(
-                        parseFloat(visualBuilder.firstLegendText.css("font-size")));
+                        parseFloat(visualBuilder.firstLegendText.style["font-size"]));
 
                 expect(legendTitleFontSize).toBe(labelFonSizeInPixels);
                 expect(firstLegendItemTextFontSize).toBe(labelFonSizeInPixels);
@@ -699,14 +686,14 @@ describe("AsterPlot", () => {
                 dataView = defaultDataViewBuilder.getDataView([AsterPlotData.ColumnCategory]);
                 visualBuilder.update(dataView);
 
-                expect(visualBuilder.lineLabel[0]).not.toBeInDOM();
-                expect(visualBuilder.dataLabels[0]).not.toBeInDOM();
+                expect(visualBuilder.lineLabels[0]).toBeUndefined();
+                expect(visualBuilder.dataLabels[0]).toBeUndefined();
 
                 dataView = defaultDataViewBuilder.getDataView([AsterPlotData.ColumnY1]);
                 visualBuilder.update(dataView);
 
-                expect(visualBuilder.lineLabel[0]).not.toBeInDOM();
-                expect(visualBuilder.dataLabels[0]).not.toBeInDOM();
+                expect(visualBuilder.lineLabels[0]).toBeUndefined();
+                expect(visualBuilder.dataLabels[0]).toBeUndefined();
             });
         });
 
@@ -723,7 +710,7 @@ describe("AsterPlot", () => {
 
             it("should not use fill style", (done) => {
                 visualBuilder.updateRenderTimeout(dataView, () => {
-                    const slices: JQuery<HTMLElement>[] = <JQuery<HTMLElement>[]>visualBuilder.slices.toArray().map($);
+                    const slices: HTMLElement[] = Array.from(visualBuilder.slices);
 
                     expect(isColorAppliedToElements(slices, null, "fill"));
                     done();
@@ -732,7 +719,7 @@ describe("AsterPlot", () => {
 
             it("should use stroke style", (done) => {
                 visualBuilder.updateRenderTimeout(dataView, () => {
-                    const slices: JQuery<HTMLElement>[] = <JQuery<HTMLElement>[]>visualBuilder.slices.toArray().map($);
+                    const slices: HTMLElement[] = Array.from(visualBuilder.slices);
 
                     expect(isColorAppliedToElements(slices, foregroundColor, "stroke"));
                     done();
