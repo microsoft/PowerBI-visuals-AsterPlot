@@ -292,7 +292,7 @@ class LegendCardSettings extends Card {
 
     name: string = AsterPlotObjectNames.Legend.name;
     displayName: string = AsterPlotObjectNames.Legend.displayName;
-    displayNameKey: string = AsterPlotObjectNames.Label.displayNameKey;
+    displayNameKey: string = AsterPlotObjectNames.Legend.displayNameKey;
     description: string = "Display legend options";
     descriptionKey: string = "Visual_Description_Legend";
     slices = [this.position, this.titleText, this.labelColor, this.fontSize];
@@ -469,7 +469,6 @@ export class AsterPlotSettingsModel extends Model {
         }
 
         this.pies.slices = [];
-
         this.pies.visible = !isHighContrast;
 
         for (const pie of pies) {
@@ -491,7 +490,6 @@ export class AsterPlotSettingsModel extends Model {
     public setLocalizedOptions(localizationManager: ILocalizationManager) {
         this.setLocalizedDisplayName(legendPositionOptions, localizationManager);
     }
-
 
     private setLocalizedDisplayName(options: IEnumMember[], localizationManager: ILocalizationManager) {
         options.forEach((option: IEnumMember) => {

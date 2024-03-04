@@ -149,11 +149,13 @@ export class AsterPlot implements IVisual {
     private events: IVisualEventService;
 
     private layout: VisualLayout;
+    private rootElement: HTMLElement;
     private svg: Selection<any>;
     private mainGroupElement: Selection<any>;
     private mainLabelsElement: Selection<any>;
     private slicesElement: Selection<AsterPlotData>;
     private clearCatcher: Selection<any>;
+    private legendGroup: Selection<any>;
     private legendElement: Selection<any>;
 
     private colorPalette: IColorPalette;
@@ -183,6 +185,7 @@ export class AsterPlot implements IVisual {
         this.visualHost = options.host;
         this.localizationManager = this.visualHost.createLocalizationManager();
         this.formattingSettingsService = new FormattingSettingsService(this.localizationManager);
+        this.rootElement = options.element;
 
         this.subSelectionHelper = HtmlSubSelectionHelper.createHtmlSubselectionHelper({
             hostElement: options.element,
@@ -208,7 +211,9 @@ export class AsterPlot implements IVisual {
             left: 10
         });
 
-        const svg: Selection<any> = this.svg = d3.select(options.element)
+        const rootElement = select(options.element);
+
+        const svg: Selection<any> = this.svg = rootElement
             .append("svg")
             .classed(AsterPlotVisualClassName, true)
             .style("position", "absolute");
@@ -235,7 +240,8 @@ export class AsterPlot implements IVisual {
             this.interactivityService,
             true);
 
-        this.legendElement = select(options.element).select("g#legendGroup");
+        this.legendElement = rootElement.select("svg.legend");
+        this.legendGroup = this.legendElement.select("g#legendGroup");
     }
 
     // tslint:disable-next-line: function-name
@@ -420,12 +426,12 @@ export class AsterPlot implements IVisual {
         this.legend.drawLegend(this.data.legendData, this.layout.viewportCopy);
         positionChartArea(this.svg, this.legend);
 
-        this.legendElement
+        this.legendGroup
             .classed(HtmlSubSelectableClass, this.formatMode && this.formattingSettings.legend.show.value)
             .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Legend.name)
             .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.Legend.displayName));
 
-        this.legendElement
+        this.legendGroup
             .select(AsterPlot.LegendTitleSelector.selectorName)
             .classed(HtmlSubSelectableClass, this.formatMode && this.formattingSettings.legend.show.value && Boolean(this.formattingSettings.legend.titleText.value))
             .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.LegendTitle.name)
@@ -511,7 +517,12 @@ export class AsterPlot implements IVisual {
 
                 const svgRect = this.mainGroupElement.node().getBBox();
                 const x = svgRect.width / 2 - this.layout.margin.top / 2;
-                const y = svgRect.height / 2 - this.layout.margin.left / 2;
+                let y = svgRect.height / 2 - this.layout.margin.left / 2;
+
+                if (!this.legendElement.empty() && this.formattingSettings.legend.show.value) {
+                    const height: number = Number(this.legendElement.attr("height")) || 0;
+                    y += height;
+                }
 
                 const outlines: SubSelectionRegionOutlineFragment[] = [{
                     id: AsterPlotObjectNames.Pies.name,
@@ -543,7 +554,12 @@ export class AsterPlot implements IVisual {
 
                 const svgRect = this.mainGroupElement.node().getBBox();
                 const x = svgRect.width / 2 - this.layout.margin.top / 2;
-                const y = svgRect.height / 2 - this.layout.margin.left / 2;
+                let y = svgRect.height / 2 - this.layout.margin.left / 2;
+
+                if (!this.legendElement.empty() && this.formattingSettings.legend.show.value) {
+                    const height: number = Number(this.legendElement.attr("height")) || 0;
+                    y += height;
+                }
 
                 const outlines: powerbi.visuals.SubSelectionRegionOutlineFragment[] = [{
                     id: AsterPlotObjectNames.OuterLine.name,
