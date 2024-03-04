@@ -115,7 +115,7 @@ export class AsterPlotConverterService {
         this.legendData = {
             dataPoints: [],
             title: null,
-            fontSize: this.settings.legend.fontSize.value,
+            fontSize: this.settings.legend.font.fontSize.value,
             labelColor: this.colorHelper.getHighContrastColor("foreground", legendData.DefaultLegendLabelFillColor)
         };
 

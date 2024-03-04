@@ -125,6 +125,7 @@ import SubSelectionRegionOutlineFragment = powerbi.visuals.SubSelectionRegionOut
 import SubSelectionOutlineType = powerbi.visuals.SubSelectionOutlineType;
 import SubSelectionStylesType = powerbi.visuals.SubSelectionStylesType;
 import VisualShortcutType = powerbi.visuals.VisualShortcutType;
+import {StandardFontFamily} from "powerbi-visuals-utils-chartutils/lib/dataLabel/dataLabelUtils";
 
 const AsterPlotVisualClassName: string = "asterPlot";
 
@@ -145,6 +146,7 @@ export class AsterPlot implements IVisual {
     private static OuterLine: ClassAndSelector = createClassAndSelector("outerLine");
     private static CenterLabelClass: ClassAndSelector = createClassAndSelector("centerLabel");
     private static LegendTitleSelector: ClassAndSelector = createClassAndSelector("legendTitle");
+    private static LegendItemSelector: ClassAndSelector = createClassAndSelector("legendItem");
 
     private events: IVisualEventService;
 
@@ -155,8 +157,9 @@ export class AsterPlot implements IVisual {
     private mainLabelsElement: Selection<any>;
     private slicesElement: Selection<AsterPlotData>;
     private clearCatcher: Selection<any>;
-    private legendGroup: Selection<any>;
     private legendElement: Selection<any>;
+    private legendGroup: Selection<any>;
+    private legendItems: Selection<any>;
 
     private colorPalette: IColorPalette;
     private colorHelper: ColorHelper;
@@ -242,6 +245,7 @@ export class AsterPlot implements IVisual {
 
         this.legendElement = rootElement.select("svg.legend");
         this.legendGroup = this.legendElement.select("g#legendGroup");
+        this.legendItems = this.legendGroup.selectAll(AsterPlot.LegendItemSelector.selectorName);
     }
 
     // tslint:disable-next-line: function-name
@@ -396,11 +400,13 @@ export class AsterPlot implements IVisual {
         if (this.interactivityService) {
             const behaviorOptions: AsterPlotBehaviorOptions = {
                 selection: this.slicesElement.selectAll(AsterPlot.AsterSlice.selectorName + ", " + AsterPlot.AsterHighlightedSlice.selectorName),
+                legendItems: this.legendItems,
                 clearCatcher: this.clearCatcher,
                 interactivityService: this.interactivityService,
                 hasHighlights: this.data.hasHighlights,
                 dataPoints: this.data.dataPoints,
-                behavior: this.behavior
+                behavior: this.behavior,
+                formatMode: this.formatMode,
             };
 
             this.interactivityService.bind(behaviorOptions);
@@ -416,7 +422,7 @@ export class AsterPlot implements IVisual {
                     }
                 },
                 titleText: this.formattingSettings.legend.titleText.value,
-                fontSize: this.formattingSettings.legend.fontSize.value,
+                fontSize: this.formattingSettings.legend.font.fontSize.value,
             };
 
             legendData.update(this.data.legendData, legendObject);
@@ -437,6 +443,12 @@ export class AsterPlot implements IVisual {
             .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.LegendTitle.name)
             .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.LegendTitle.displayNameKey))
             .attr(SubSelectableDirectEditAttr, this.visualTitleEditSubSelection);
+
+        this.legendItems
+            .style("font-family", this.formattingSettings.legend.font.fontFamily.value || StandardFontFamily)
+            .style("font-weight", this.formattingSettings.legend.font.bold.value ? "bold" : "normal")
+            .style("font-style", this.formattingSettings.legend.font.italic.value ? "italic" : "normal")
+            .style("text-decoration", this.formattingSettings.legend.font.underline.value ? "underline" : "none")
     }
 
     private updateViewPortAccordingToLegend(): void {
@@ -744,7 +756,16 @@ export class AsterPlot implements IVisual {
         return [
             {
                 type: VisualShortcutType.Reset,
-                relatedResetFormattingIds: [legendReference.show, legendReference.position, legendReference.labelColor],
+                relatedResetFormattingIds: [
+                    legendReference.show,
+                    legendReference.position,
+                    legendReference.labelColor,
+                    legendReference.fontSize,
+                    legendReference.fontFamily,
+                    legendReference.bold,
+                    legendReference.italic,
+                    legendReference.underline,
+                ],
             },
             {
                 type: VisualShortcutType.Picker,

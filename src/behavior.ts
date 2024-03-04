@@ -45,9 +45,11 @@ const getEvent = (): MouseEvent => <MouseEvent>require("d3-selection").event;
 
 export interface AsterPlotBehaviorOptions extends IBehaviorOptions<SelectableDataPoint> {
     selection: Selection<AsterPlotData>;
+    legendItems: Selection<any>;
     clearCatcher: Selection<any>;
     interactivityService: IInteractivityService<SelectableDataPoint>;
     hasHighlights: boolean;
+    formatMode: boolean;
 }
 
 const EnterCode = "Enter";
@@ -55,16 +57,27 @@ const SpaceCode = "Space";
 
 export class AsterPlotWebBehavior implements IInteractiveBehavior {
     private selection: Selection<any>;
+    private legendItems: Selection<any>;
     private clearCatcher: Selection<any>;
     private interactivityService: IInteractivityService<SelectableDataPoint>;
     private hasHighlights: boolean;
 
     public bindEvents(options: AsterPlotBehaviorOptions, selectionHandler: ISelectionHandler) {
         this.selection = options.selection;
+        this.legendItems = options.legendItems;
         this.clearCatcher = options.clearCatcher;
         this.interactivityService = options.interactivityService;
         this.hasHighlights = options.hasHighlights;
 
+        if (options.formatMode) {
+            this.removeEventListeners();
+            selectionHandler.handleClearSelection();
+        } else {
+            this.addEventListeners(options, selectionHandler);
+        }
+    }
+
+    private addEventListeners(options: AsterPlotBehaviorOptions, selectionHandler: ISelectionHandler) {
         this.selection.on("click", (event: MouseEvent, d: any) => {
             selectionHandler.handleSelection(d.data, event.ctrlKey);
         });
@@ -83,6 +96,17 @@ export class AsterPlotWebBehavior implements IInteractiveBehavior {
         this.renderSelection(this.interactivityService.hasSelection());
         this.bindContextMenuToClearCatcher(options, selectionHandler);
         this.bindContextMenu(options, selectionHandler);
+    }
+
+    /**
+     * Remove event listeners which are irrelevant for format mode.
+     */
+    private removeEventListeners() {
+        this.selection.on("click", null);
+        this.selection.on("contextmenu", null);
+        this.legendItems.on("click", null);
+        this.clearCatcher.on("click", null);
+        this.clearCatcher.on("contextmenu", null);
     }
 
     protected bindContextMenu(options: AsterPlotBehaviorOptions, selectionHandler: ISelectionHandler) {

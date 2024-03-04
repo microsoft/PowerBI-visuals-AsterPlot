@@ -31,6 +31,10 @@ export const legendReference: {
     titleText: FormattingId;
     labelColor: FormattingId;
     fontSize: FormattingId;
+    fontFamily: FormattingId;
+    bold: FormattingId;
+    italic: FormattingId;
+    underline: FormattingId;
 } = {
     cardUid: "Visual-legend-card",
     groupUid: "legend-group",
@@ -52,7 +56,23 @@ export const legendReference: {
     },
     fontSize: {
         objectName: AsterPlotObjectNames.Legend.name,
-        propertyName: nameof<LegendCardSettings>("fontSize")
+        propertyName: "fontSize"
+    },
+    fontFamily: {
+        objectName: AsterPlotObjectNames.Legend.name,
+        propertyName: "fontFamily"
+    },
+    bold: {
+        objectName: AsterPlotObjectNames.Legend.name,
+        propertyName: "bold"
+    },
+    italic: {
+        objectName: AsterPlotObjectNames.Legend.name,
+        propertyName: "italic"
+    },
+    underline: {
+        objectName: AsterPlotObjectNames.Legend.name,
+        propertyName: "underline"
     },
 };
 
@@ -246,7 +266,7 @@ class BaseFontCardSettings extends Card {
 }
 
 
-class LegendCardSettings extends Card {
+class LegendCardSettings extends BaseFontCardSettings {
     show = new formattingSettings.ToggleSwitch({
         name: "show",
         displayName: "Show",
@@ -279,23 +299,12 @@ class LegendCardSettings extends Card {
         value: { value: "#666666" },
     });
 
-    fontSize = new formattingSettings.NumUpDown({
-        name: "fontSize",
-        displayName: "Text Size",
-        displayNameKey: "Visual_TextSize",
-        value: TextDefaultSizes.DefaultTextSize,
-        options: {
-            minValue: {value: TextDefaultSizes.MinTextSize, type: powerbi.visuals.ValidatorType.Min},
-            maxValue: {value: TextDefaultSizes.MaxTextSize, type: powerbi.visuals.ValidatorType.Max},
-        }
-    });
-
     name: string = AsterPlotObjectNames.Legend.name;
     displayName: string = AsterPlotObjectNames.Legend.displayName;
     displayNameKey: string = AsterPlotObjectNames.Legend.displayNameKey;
     description: string = "Display legend options";
     descriptionKey: string = "Visual_Description_Legend";
-    slices = [this.position, this.titleText, this.labelColor, this.fontSize];
+    slices = [this.position, this.titleText, this.labelColor, this.font];
 }
 
 class CenterLabelCardSettings extends BaseFontCardSettings {

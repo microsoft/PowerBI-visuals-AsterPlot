@@ -219,7 +219,7 @@ describe("AsterPlot", () => {
                 const labels: JQuery = $(".asterPlot .labels .data-labels");
 
                 expect(labels.first().css("font-size"))
-                    .toBe((<any>dataView.metadata.objects).labels.fontSize * 4 / 3 + "px");
+                    .toBe((<any>dataView.metadata.objects).labels.font.fontSize * 4 / 3 + "px");
             });
 
             it("Data Labels should be clear when removing data", () => {
