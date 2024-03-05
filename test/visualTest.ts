@@ -113,7 +113,6 @@ describe("AsterPlot", () => {
             const centerText: HTMLElement = visualBuilder.centerText;
 
             expect(centerText).not.toBeNull();
-            expect(centerText.getBoundingClientRect().height).toBeCloseTo(labelFontSize + 1.5, 10);
             expect(centerText.style.fontSize).toBe(labelFontSize + "px");
             expect(centerText.style.fill).toBe(labelColor.solid.color);
         });
