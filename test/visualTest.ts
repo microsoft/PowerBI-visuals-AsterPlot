@@ -197,7 +197,7 @@ describe("AsterPlot", () => {
                 const labels: NodeListOf<HTMLElement> = visualBuilder.dataLabels;
                 const dataLabels: string = labels[0].textContent;
 
-                expect(dataLabels).toBe("$0,000.86618686000000000M");
+                expect(dataLabels).toBe("$0,000.74273143000000000M");
                 expect(dataLabels.length - 8).toBe(maxPrecision);
             });
 
@@ -245,9 +245,9 @@ describe("AsterPlot", () => {
                 expect(labels.length).toBeGreaterThan(0);
 
                 // Verify label text is formatted correctly
-                expect(labels[0].textContent).toBe("$0,000.87M");
-                expect(labels[3].textContent).toBe("$0,000.31M");
-                expect(labels[5].textContent).toBe("$0,001.26M");
+                expect(labels[0].textContent).toBe("$0,000.74M");
+                expect(labels[3].textContent).toBe("$0,000.30M");
+                expect(labels[5].textContent).toBe("$0,000.81M");
             });
 
             it("Data Labels should not display lines for null and zero labels", () => {

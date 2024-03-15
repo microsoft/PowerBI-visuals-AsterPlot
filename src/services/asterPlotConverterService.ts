@@ -210,8 +210,6 @@ export class AsterPlotConverterService {
             if (this.isMoreThanOneMeasure(categoricalColumns)) {
                 const secondMeasureValue: number = <number>categoricalColumns.Y[1].values[i];
                 tooltipInfo = this.buildTwoMeasuresTooltip(formattedCategoryValue, currentValue, secondMeasureValue, localizationManager);
-
-                currentValue += secondMeasureValue;
             } else {
                 tooltipInfo = this.buildOneMeasureTooltip(formattedCategoryValue, currentValue, localizationManager);
             }
@@ -270,8 +268,6 @@ export class AsterPlotConverterService {
                 if (this.isMoreThanOneMeasure(categoricalColumns)) {
                     const secondMeasureValue: number = <number>categoricalColumns.Y[1].highlights[i] !== null ? <number>categoricalColumns.Y[1].highlights[i] : 0;
                     tooltipInfo = this.buildTwoMeasuresTooltip(formattedCategoryValue, currentValue, secondMeasureValue, localizationManager);
-
-                    currentValue += secondMeasureValue;
                 } else {
                     tooltipInfo = this.buildOneMeasureTooltip(formattedCategoryValue, currentValue, localizationManager);
                 }
