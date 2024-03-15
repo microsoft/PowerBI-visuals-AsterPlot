@@ -36,6 +36,11 @@ import {
 import powerbi from "powerbi-visuals-api";
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 import { createSelectionId, MockISelectionIdBuilder } from "powerbi-visuals-utils-testutils";
+import {AsterPlotSettingsModel} from "../src/asterPlotSettingsModel";
+import {FormattingSettingsService} from "powerbi-visuals-utils-formattingmodel";
+import {AsterPlotConverterService} from "../src/services/asterPlotConverterService";
+import { AsterPlotData } from "../src/dataInterfaces";
+import {AsterPlotColumns} from "../src/asterPlotColumns";
 
 class FakeSelectionIdBuilder extends MockISelectionIdBuilder {
     private index = 0;
@@ -45,15 +50,35 @@ class FakeSelectionIdBuilder extends MockISelectionIdBuilder {
 }
 
 export class AsterPlotBuilder extends VisualBuilderBase<AsterPlot> {
+    public settings: AsterPlotSettingsModel;
+
+    private formattingSettingsService: FormattingSettingsService;
+    private localizationManager: powerbi.extensibility.ILocalizationManager;
+    private host: powerbi.extensibility.visual.IVisualHost;
+
     constructor(width: number, height: number) {
         super(width, height, "AsterPlot1443303142064");
+        this.formattingSettingsService = new FormattingSettingsService();
     }
 
     protected build(options: VisualConstructorOptions): AsterPlot {
         options.host.createSelectionIdBuilder = () => {
             return new FakeSelectionIdBuilder();
         };
+
+        this.host = options.host;
+        this.localizationManager = options.host.createLocalizationManager();
+        this.formattingSettingsService = new FormattingSettingsService(this.localizationManager);
+
         return new AsterPlot(options);
+    }
+
+    public getConvertedData(dataView: powerbi.DataView): AsterPlotData {
+        const categorical = <any>AsterPlotColumns.getCategoricalColumns(dataView);
+
+        this.settings = this.formattingSettingsService.populateFormattingSettingsModel(AsterPlotSettingsModel, null);
+        const converter = new AsterPlotConverterService(dataView, this.settings, this.host.colorPalette, this.host, categorical);
+        return converter.getConvertedData(this.localizationManager);
     }
 
     public get mainElement(): SVGElement {

@@ -288,6 +288,14 @@ describe("AsterPlot", () => {
             });
         });
 
+        describe("Converter", () => {
+            it("Should convert all data when there is a limit to colors", () => {
+                const asterData = visualBuilder.getConvertedData(dataView);
+
+                expect(asterData.dataPoints.length).toBe(dataView.categorical.categories[0].values.length);
+            })
+        })
+
         // describe("Converter", () => {
         //     it("Should convert all data when there is a limit to colors", () => {
         //         const asterData = visualBuilder.converter(dataView);
