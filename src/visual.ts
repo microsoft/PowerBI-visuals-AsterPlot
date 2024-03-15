@@ -498,10 +498,6 @@ export class AsterPlot implements IVisual {
                 const datum = select<Element, AsterArcDescriptor>(e).datum();
                 return datum?.data.identity;
             }
-            case AsterPlotObjectNames.OuterLine.name: {
-                const datum = select<Element, AsterArcDescriptor>(e).datum();
-                return datum?.data.identity;
-            }
             default:
                 return undefined;
         }
@@ -551,16 +547,9 @@ export class AsterPlot implements IVisual {
                 return outlines;
             }
             case AsterPlotObjectNames.OuterLine.name: {
-                const selectionId: ISelectionId = subSelection.customVisualObjects[0].selectionId;
-                if (!selectionId) {
-                    return undefined;
-                }
+                const firstDataPoint = this.renderService.getDataPoints(this.data.hasHighlights)[0];
 
-                const selectedDataPoint = this.renderService
-                    .getDataPoints(this.data.hasHighlights)
-                    .find((d) => d.data.identity.equals(selectionId))
-
-                if (!selectedDataPoint) {
+                if (!firstDataPoint) {
                     return undefined;
                 }
 
