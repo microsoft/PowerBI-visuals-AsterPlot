@@ -40,7 +40,7 @@ import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
 
 // d3
 import * as d3 from "d3";
-import {Arc, arc} from "d3-shape";
+import {Arc, arc, PieArcDatum} from "d3-shape";
 
 import { AsterArcDescriptor, ArcDescriptor, Selection } from "../dataInterfaces";
 
@@ -412,9 +412,9 @@ export class DataRenderService {
         return array;
     }
 
-    private applyTooltipToSelection(selection: any): void {
-        this.tooltipServiceWrapper.addTooltip(selection, (tooltipEvent: any) => {
-            return tooltipEvent.data.data?.tooltipInfo;
+    private applyTooltipToSelection(selection: d3.Selection<d3.BaseType, AsterArcDescriptor, any, any>): void {
+        this.tooltipServiceWrapper.addTooltip(selection, (tooltipEvent: PieArcDatum<AsterDataPoint>) => {
+            return tooltipEvent.data?.tooltipInfo;
         });
     }
 
