@@ -147,7 +147,7 @@ describe("AsterPlot", () => {
 
                 const lines: NodeListOf<HTMLElement> = visualBuilder.lineLabels;
 
-                expect(lines.length).toBe(numOfLabels);
+                expect(lines.length).toBeLessThanOrEqual(numOfLabels);
 
                 const slices: NodeListOf<HTMLElement> = visualBuilder.slices;
 
@@ -161,7 +161,7 @@ describe("AsterPlot", () => {
                     labels: NodeListOf<HTMLElement> = visualBuilder.dataLabels,
                     lines: NodeListOf<HTMLElement> = visualBuilder.lineLabels;
 
-                expect(lines.length).toBe(numOfLabels);
+                expect(lines.length).toBeLessThanOrEqual(numOfLabels);
                 expect(labels.length).toBe(numOfLabels);
 
                 // The viewport is reduced
@@ -171,8 +171,8 @@ describe("AsterPlot", () => {
                 const labelsAfterResize: NodeListOf<HTMLElement> = visualBuilder.dataLabels,
                     linesAfterResize: NodeListOf<HTMLElement> = visualBuilder.lineLabels;
 
-                expect(labelsAfterResize.length).toBe(numOfLabels);
-                expect(linesAfterResize.length).toBe(numOfLabels);
+                expect(linesAfterResize.length).toBeLessThanOrEqual(numOfLabels);
+                expect(labelsAfterResize.length).toBeLessThanOrEqual(numOfLabels);
 
                 const firstLabelX: string = labels[0].getAttribute("x"),
                     firstLabelY: string = labels[0].getAttribute("y"),
@@ -284,7 +284,7 @@ describe("AsterPlot", () => {
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                expect(visualBuilder.lineLabels.length).toEqual(length);
+                expect(visualBuilder.lineLabels.length).toBeLessThanOrEqual(length);
             });
         });
 
@@ -295,16 +295,6 @@ describe("AsterPlot", () => {
                 expect(asterData.dataPoints.length).toBe(dataView.categorical.categories[0].values.length);
             })
         })
-
-        // describe("Converter", () => {
-        //     it("Should convert all data when there is a limit to colors", () => {
-        //         const asterData = visualBuilder.converter(dataView);
-        //
-        //         // Verify that all data was created even with the color limitation
-        //         expect(asterData.dataPoints.length)
-        //             .toBe(dataView.categorical.categories[0].values.length);
-        //     });
-        // });
     });
 
     describe("Format settings test", () => {

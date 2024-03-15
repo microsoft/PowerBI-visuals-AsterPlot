@@ -24,8 +24,6 @@
  *  THE SOFTWARE.
  */
 
-import * as d3 from "d3";
-
 // powerbi
 // tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
@@ -154,11 +152,11 @@ export class AsterPlotConverterService {
     }
 
     private getMinValue(categorical: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>): number {
-        return Math.min(0, d3.min(<number[]>categorical.Y[0].values));
+        return Math.min.apply(null, <number[]>categorical.Y[0].values);
     }
 
     private getMaxValue(categorical: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>): number {
-        return Math.max(d3.min(<number[]>categorical.Y[0].values));
+        return Math.max.apply(null, <number[]>categorical.Y[0].values);
     }
 
     private createFormatter(column: DataViewMetadataColumn, precision?: number, value?: number): IValueFormatter {
