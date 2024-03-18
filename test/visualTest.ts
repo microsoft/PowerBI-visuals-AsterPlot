@@ -290,7 +290,8 @@ describe("AsterPlot", () => {
 
         describe("Converter", () => {
             it("Should convert all data when there is a limit to colors", () => {
-                const asterData = visualBuilder.getConvertedData(dataView);
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+                const asterData = visualBuilder.asterPlot.data;
 
                 expect(asterData.dataPoints.length).toBe(dataView.categorical.categories[0].values.length);
             })
@@ -408,18 +409,16 @@ describe("AsterPlot", () => {
             });
         });
 
-        // describe("Pie colors", () => {
-        //     it("Pie colors options created for all pies", () => {
-        //         visualBuilder.updateFlushAllD3Transitions(dataView);
-        //
-        //         let piesOptionName: string = "pies",
-        //             piesOptions: EnumerateVisualObjectInstancesOptions = <EnumerateVisualObjectInstancesOptions>{ objectName: piesOptionName };
-        //
-        //         let colorOptions: VisualObjectInstanceEnumeration = visualBuilder.enumerateObjectInstances(piesOptions);
-        //
-        //         expect(visualBuilder.mainElement.find(".asterSlice").length).toBe(colorOptions.length);
-        //     });
-        // });
+        describe("Pie colors", () => {
+            it("Pie colors options created for all pies", () => {
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                const slices = visualBuilder.slices;
+                const pies = visualBuilder.asterPlot.formattingSettings.pies.slices;
+
+                expect(pies.length).toBe(slices.length);
+            });
+        });
 
         function timeout(ms: number) {
             return new Promise(resolve => setTimeout(resolve, ms));

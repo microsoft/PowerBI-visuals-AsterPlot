@@ -167,21 +167,25 @@ export class AsterPlot implements IVisual {
     private visualHost: IVisualHost;
     private localizationManager: ILocalizationManager;
     private formattingSettingsService: FormattingSettingsService;
-    private formattingSettings: AsterPlotSettingsModel;
+
     private interactivityService: IInteractivityService<any>;
     private subSelectionHelper: HtmlSubSelectionHelper;
     private formatMode: boolean = false;
     private visualTitleEditSubSelection = JSON.stringify(TitleEdit);
-    public visualOnObjectFormatting: VisualOnObjectFormatting;
 
     private renderService: DataRenderService;
 
     private legend: ILegend;
-    private data: AsterPlotData;
 
     private behavior: IInteractiveBehavior;
 
     private tooltipServiceWrapper: ITooltipServiceWrapper;
+
+    public visualOnObjectFormatting: VisualOnObjectFormatting;
+
+    // public for tests
+    public data: AsterPlotData;
+    public formattingSettings: AsterPlotSettingsModel;
 
     constructor(options: VisualConstructorOptions) {
         this.events = options.host.eventService;
