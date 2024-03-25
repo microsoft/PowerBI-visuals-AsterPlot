@@ -40,10 +40,10 @@ import { toArray, mapValues } from "lodash-es";
 export class AsterPlotColumns<T> {
     // tslint:disable-next-line: function-name
     public static getCategoricalValues(dataView: DataView) {
-        let categorical = dataView && dataView.categorical;
-        let categories: (DataViewCategoryColumn | DataViewValueColumn)[] = categorical && categorical.categories || [];
-        let values = categorical && categorical.values || <DataViewValueColumns>[];
-        let series = categorical && values.source && this.getSeriesValues(dataView);
+        const categorical = dataView && dataView.categorical;
+        const categories: (DataViewCategoryColumn | DataViewValueColumn)[] = categorical && categorical.categories || [];
+        const values = categorical && categorical.values || <DataViewValueColumns>[];
+        const series = categorical && values.source && this.getSeriesValues(dataView);
         return categorical && mapValues(new this<any[]>(), (n, i) =>
             (<(DataViewCategoryColumn | DataViewValueColumn)[]>toArray(categories)).concat(toArray(values))
                 .filter(x => x.source.roles && x.source.roles[i]).map(x => x.values)[0]
@@ -58,9 +58,9 @@ export class AsterPlotColumns<T> {
 
     // tslint:disable-next-line: function-name
     public static getCategoricalColumns(dataView: DataView) {
-        let categorical = dataView && dataView.categorical;
-        let categories = categorical && categorical.categories || [];
-        let values = categorical && categorical.values || <DataViewValueColumns>[];
+        const categorical = dataView && dataView.categorical;
+        const categories = categorical && categorical.categories || [];
+        const values = categorical && categorical.values || <DataViewValueColumns>[];
         return categorical && mapValues(
             new this<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>(),
             (n, i) => {

@@ -1,3 +1,16 @@
+## 1.7.1
+* Fix scaling when outerline is enabled
+* Update packages
+
+## 1.7.0
+* Add OnObject formatting support
+* Packages update
+* Migrate to formatting model
+* Update build.yml to use node 18, 20
+* Fix eslint errors
+* Remove redundant dependencies
+* Fix context menu not showing at correct position
+
 ## 1.6.0
 * Added keyboard navigation (feature)
 * Focus outline (styles)

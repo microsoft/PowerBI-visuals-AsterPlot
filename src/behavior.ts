@@ -26,11 +26,11 @@
 
 // d3
 // import Selection = d3.Selection;
-import { Selection, AsterPlotData, AsterArcDescriptor } from "./dataInterfaces";
+import { Selection, AsterPlotData } from "./dataInterfaces";
 // powerbi.extensibility.utils.interactivity
-import { interactivityBaseService, interactivitySelectionService, interactivityUtils } from "powerbi-visuals-utils-interactivityutils";
-import appendClearCatcher = interactivityBaseService.appendClearCatcher;
-import createInteractivitySelectionService = interactivitySelectionService.createInteractivitySelectionService;
+import { interactivityBaseService, interactivitySelectionService } from "powerbi-visuals-utils-interactivityutils";
+
+
 import IInteractivityService = interactivityBaseService.IInteractivityService;
 import IInteractiveBehavior = interactivityBaseService.IInteractiveBehavior;
 import SelectableDataPoint = interactivitySelectionService.SelectableDataPoint;
@@ -40,15 +40,16 @@ import IBehaviorOptions = interactivityBaseService.IBehaviorOptions;
 import ISelectionHandler = interactivityBaseService.ISelectionHandler;
 
 import * as asterPlotUtils from "./utils";
-import * as d3 from "d3";
 import { BaseDataPoint } from "powerbi-visuals-utils-interactivityutils/lib/interactivityBaseService";
 const getEvent = (): MouseEvent => <MouseEvent>require("d3-selection").event;
 
 export interface AsterPlotBehaviorOptions extends IBehaviorOptions<SelectableDataPoint> {
     selection: Selection<AsterPlotData>;
+    legendItems: Selection<any>;
     clearCatcher: Selection<any>;
     interactivityService: IInteractivityService<SelectableDataPoint>;
     hasHighlights: boolean;
+    formatMode: boolean;
 }
 
 const EnterCode = "Enter";
@@ -56,16 +57,27 @@ const SpaceCode = "Space";
 
 export class AsterPlotWebBehavior implements IInteractiveBehavior {
     private selection: Selection<any>;
+    private legendItems: Selection<any>;
     private clearCatcher: Selection<any>;
     private interactivityService: IInteractivityService<SelectableDataPoint>;
     private hasHighlights: boolean;
 
     public bindEvents(options: AsterPlotBehaviorOptions, selectionHandler: ISelectionHandler) {
         this.selection = options.selection;
+        this.legendItems = options.legendItems;
         this.clearCatcher = options.clearCatcher;
         this.interactivityService = options.interactivityService;
         this.hasHighlights = options.hasHighlights;
 
+        if (options.formatMode) {
+            this.removeEventListeners();
+            selectionHandler.handleClearSelection();
+        } else {
+            this.addEventListeners(options, selectionHandler);
+        }
+    }
+
+    private addEventListeners(options: AsterPlotBehaviorOptions, selectionHandler: ISelectionHandler) {
         this.selection.on("click", (event: MouseEvent, d: any) => {
             selectionHandler.handleSelection(d.data, event.ctrlKey);
         });
@@ -86,9 +98,20 @@ export class AsterPlotWebBehavior implements IInteractiveBehavior {
         this.bindContextMenu(options, selectionHandler);
     }
 
+    /**
+     * Remove event listeners which are irrelevant for format mode.
+     */
+    private removeEventListeners() {
+        this.selection.on("click", null);
+        this.selection.on("contextmenu", null);
+        this.legendItems.on("click", null);
+        this.clearCatcher.on("click", null);
+        this.clearCatcher.on("contextmenu", null);
+    }
+
     protected bindContextMenu(options: AsterPlotBehaviorOptions, selectionHandler: ISelectionHandler) {
         options.selection.on("contextmenu",
-            (datum: any, event: any) => {
+            (event: any, datum: any) => {
                 const mouseEvent: MouseEvent = <MouseEvent>event;
                 selectionHandler.handleContextMenu(datum.data, {
                     x: mouseEvent.clientX,

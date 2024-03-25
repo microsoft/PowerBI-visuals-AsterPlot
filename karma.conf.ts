@@ -28,18 +28,23 @@
 
 const webpackConfig = require("./test.webpack.config.js");
 const tsconfig = require("./test.tsconfig.json");
-const path = require("path");
 
 const testRecursivePath = "test/visualTest.ts";
 const srcOriginalRecursivePath = "src/**/*.ts";
 
-process.env.CHROME_BIN = require("playwright").chromium.executablePath();
+process.env.CHROME_BIN = require("playwright-chromium").chromium.executablePath();
 
 module.exports = (config) => {
     config.set({
         mode: "development",
         browserNoActivityTimeout: 100000,
         browsers: ["ChromeHeadless"],
+        customLaunchers: {
+            ChromeDebugging: {
+                base: "ChromeHeadless",
+                flags: ["--remote-debugging-port=9333"]
+            }
+        },
         colors: true,
         frameworks: ["jasmine"],
         reporters: ["progress"],

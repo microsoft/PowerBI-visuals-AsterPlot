@@ -36,8 +36,6 @@ import powerbi from "powerbi-visuals-api";
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 
 export type Selection<T> = d3.Selection<any, T, any, any>;
-export type UpdateSelection<T> = d3.Selection<any, T, any, any>;
-
 // powerbi.extensibility.utils.chart
 import * as LegendUtil from "powerbi-visuals-utils-chartutils";
 import LegendData = LegendUtil.legendInterfaces.LegendData;
@@ -50,14 +48,13 @@ import IValueFormatter = valueFormatter.IValueFormatter;
 import { interactivitySelectionService} from "powerbi-visuals-utils-interactivityutils";
 import SelectableDataPoint = interactivitySelectionService.SelectableDataPoint;
 
-import { AsterPlotSettings } from "./settings";
-
-import {} from "powerbi-visuals-utils-tooltiputils";
+import {AsterPlotSettingsModel} from "./asterPlotSettingsModel";
+import ISelectionId = powerbi.visuals.ISelectionId;
 
 export interface AsterPlotData {
     dataPoints: AsterDataPoint[];
     highlightedDataPoints?: AsterDataPoint[];
-    settings: AsterPlotSettings;
+    settings: AsterPlotSettingsModel;
     hasHighlights: boolean;
     legendData: LegendData;
     labelFormatter: IValueFormatter;
@@ -80,4 +77,5 @@ export interface AsterDataPoint extends SelectableDataPoint {
     tooltipInfo: VisualTooltipDataItem[];
     labelFontSize: string;
     categoryName: string;
+    identity: ISelectionId;
 }
