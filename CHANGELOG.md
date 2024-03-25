@@ -1,3 +1,7 @@
+## 1.7.1
+* Fix scaling when outerline is enabled
+* Update packages
+
 ## 1.7.0
 * Add OnObject formatting support
 * Packages update

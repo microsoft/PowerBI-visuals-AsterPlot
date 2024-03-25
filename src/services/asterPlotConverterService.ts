@@ -93,7 +93,6 @@ export class AsterPlotConverterService {
     private hasHighlights: boolean;
 
     private maxValue: number;
-    private minValue: number;
 
     private labelFormatter: IValueFormatter;
     private fontSizeInPx: string;
@@ -119,7 +118,6 @@ export class AsterPlotConverterService {
 
         this.hasHighlights = this.containsHighlights(this.categoricalColumns);
         this.maxValue = this.getMaxValue(this.categoricalColumns);
-        this.minValue = this.getMinValue(this.categoricalColumns);
 
         this.labelFormatter = this.createFormatter(
             this.categoricalColumns.Y[0].source,
@@ -149,10 +147,6 @@ export class AsterPlotConverterService {
 
     private containsCategoryOnly(categorical: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>): boolean {
         return !categorical || !categorical.Y || !categorical.Y[0];
-    }
-
-    private getMinValue(categorical: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>): number {
-        return Math.min.apply(null, <number[]>categorical.Y[0].values);
     }
 
     private getMaxValue(categorical: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>): number {
@@ -227,7 +221,7 @@ export class AsterPlotConverterService {
 
             if (sliceWidth > 0) {
                 this.dataPoints.push({
-                    sliceHeight: values[i] - this.minValue,
+                    sliceHeight: values[i],
                     sliceWidth,
                     label: this.labelFormatter.format(<any>currentValue),
                     fillColor,
@@ -271,7 +265,7 @@ export class AsterPlotConverterService {
                 }
 
                 this.highlightedDataPoints.push({
-                    sliceHeight: isNotNull ? highlightValues[i] - this.minValue : null,
+                    sliceHeight: isNotNull ? highlightValues[i] : null,
                     sliceWidth: Math.max(0, (categoricalColumns.Y.length > 1 && categoricalColumns.Y[1].highlights[i] !== null) ? <number>categoricalColumns.Y[1].highlights[i] : sliceWidth),
                     label: this.labelFormatter.format(<any>currentValue),
                     fillColor,

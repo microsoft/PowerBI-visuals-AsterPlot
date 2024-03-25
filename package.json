@@ -1,7 +1,7 @@
 {
   "name": "powerbi-visuals-asterplot",
   "description": "An Aster plot is a twist on a standard donut chart, using a second value to drive sweep angle.",
-  "version": "1.7.0.0",
+  "version": "1.7.1.0",
   "author": {
     "name": "Microsoft",
     "email": "pbicvsupport@microsoft.com"
@@ -24,11 +24,11 @@
     "@types/d3": "7.4.3",
     "@types/jasmine": "5.1.4",
     "@types/karma": "6.3.8",
-    "@types/lodash": "4.14.202",
-    "@typescript-eslint/eslint-plugin": "^7.1.1",
+    "@types/lodash": "4.17.0",
+    "@typescript-eslint/eslint-plugin": "^7.3.1",
     "coveralls": "3.1.1",
     "css-loader": "^6.10.0",
-    "d3": "7.8.5",
+    "d3": "7.9.0",
     "jasmine": "5.1.0",
     "karma": "6.4.3",
     "karma-chrome-launcher": "3.2.0",
@@ -47,7 +47,7 @@
     "powerbi-models": "^1.14.0",
     "powerbi-visuals-api": "~5.8.0",
     "powerbi-visuals-tools": "5.4.2",
-    "powerbi-visuals-utils-chartutils": "^6.0.2",
+    "powerbi-visuals-utils-chartutils": "^6.0.3",
     "powerbi-visuals-utils-colorutils": "^6.0.3",
     "powerbi-visuals-utils-dataviewutils": "^6.0.1",
     "powerbi-visuals-utils-formattingmodel": "^6.0.1",
@@ -60,7 +60,7 @@
     "powerbi-visuals-utils-typeutils": "^6.0.1",
     "style-loader": "^3.3.4",
     "ts-node": "^10.9.2",
-    "typescript": "5.3.3"
+    "typescript": "5.4.3"
   },
   "dependencies": {
     "eslint": "^8.57.0",
