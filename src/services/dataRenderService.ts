@@ -202,13 +202,13 @@ export class DataRenderService {
         mainGroupElement.select(DataRenderService.CenterLabelClass.selectorName).remove();
     }
 
-    public renderArcs(slicesElement: Selection<any>, isHighlighted: boolean) {
+    public renderArcs(slicesElement: Selection<PieArcDatum<AsterDataPoint>>, isHighlighted: boolean) {
         const arc: Arc<any, AsterArcDescriptor> = this.arcSvg;
         const classSelector: ClassAndSelector = this.getClassAndSelector(isHighlighted);
 
         let selection = slicesElement
             .selectAll(classSelector.selectorName)
-            .data(isHighlighted ? this.highlightedDataPoints : this.dataPoints, (d: AsterArcDescriptor, i: number) => {
+            .data(isHighlighted ? this.highlightedDataPoints : this.dataPoints, (d: PieArcDatum<AsterDataPoint>, i: number) => {
                 return d.data
                     ? (<powerbi.visuals.ISelectionId>d.data.identity).getKey()
                     : i;

@@ -43,9 +43,7 @@ import LegendData = LegendUtil.legendInterfaces.LegendData;
 import {valueFormatter} from "powerbi-visuals-utils-formattingutils";
 import IValueFormatter = valueFormatter.IValueFormatter;
 
-// powerbi.extensibility.utils.interactivity
-import { interactivitySelectionService} from "powerbi-visuals-utils-interactivityutils";
-import SelectableDataPoint = interactivitySelectionService.SelectableDataPoint;
+import { SelectableDataPoint } from "./behavior";
 
 import {AsterPlotSettingsModel} from "./asterPlotSettingsModel";
 import ISelectionId = powerbi.visuals.ISelectionId;

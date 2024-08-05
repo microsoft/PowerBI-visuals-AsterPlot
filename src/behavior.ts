@@ -24,19 +24,8 @@
  *  THE SOFTWARE.
  */
 
-import { Selection, AsterPlotData } from "./dataInterfaces";
-// powerbi.extensibility.utils.interactivity
-import { interactivityBaseService, interactivitySelectionService } from "powerbi-visuals-utils-interactivityutils";
-
-
-import IInteractivityService = interactivityBaseService.IInteractivityService;
-import IInteractiveBehavior = interactivityBaseService.IInteractiveBehavior;
-import SelectableDataPoint = interactivitySelectionService.SelectableDataPoint;
-import IBehaviorOptions = interactivityBaseService.IBehaviorOptions;
-
-// powerbi.extensibility.utils.interactivity
-import ISelectionHandler = interactivityBaseService.ISelectionHandler;
-
+import powerbi from "powerbi-visuals-api";
+import { Selection, AsterDataPoint } from "./dataInterfaces";
 import * as asterPlotUtils from "./utils";
 import ISelectionId = powerbi.visuals.ISelectionId;
 import ISelectionManager = powerbi.extensibility.ISelectionManager;
@@ -65,46 +54,63 @@ export interface BehaviorOptions {
     centerLabel: Selection<any>;
     lineLabels: Selection<LabelEnabledDataPoint>;
     clearCatcher: Selection<any>;
-    interactivityService: IInteractivityService<SelectableDataPoint>;
     hasHighlights: boolean;
     formatMode: boolean;
+    dataPoints: AsterDataPoint[];
 }
 
-const EnterCode = "Enter";
-const SpaceCode = "Space";
+export class Behavior {
+    private options: BehaviorOptions;
+    private colorHelper: ColorHelper;
+    private selectionManager: ISelectionManager;
 
-export class AsterPlotWebBehavior implements IInteractiveBehavior {
-    private selection: Selection<any>;
-    private legendItems: Selection<any>;
-    private clearCatcher: Selection<any>;
-    private interactivityService: IInteractivityService<SelectableDataPoint>;
-    private hasHighlights: boolean;
+    private legendDataPoints: LegendDataPoint[];
 
-    public bindEvents(options: AsterPlotBehaviorOptions, selectionHandler: ISelectionHandler) {
-        this.selection = options.selection;
-        this.legendItems = options.legendItems;
-        this.clearCatcher = options.clearCatcher;
-        this.interactivityService = options.interactivityService;
-        this.hasHighlights = options.hasHighlights;
+    constructor(colorHelper: ColorHelper, selectionManager: ISelectionManager) {
+        this.colorHelper = colorHelper;
+        this.selectionManager = selectionManager;
+        this.selectionManager.registerOnSelectCallback(this.onSelectCallback.bind(this));
+    }
+
+    public get isInitialized(): boolean {
+        return !!this.options;
+    }
+
+    public bindEvents(options: BehaviorOptions) {
+        this.options = options;
+        this.legendDataPoints = options.legendItems.data();
 
         if (options.formatMode) {
             this.removeEventListeners();
-            selectionHandler.handleClearSelection();
+            this.selectionManager.clear();
         } else {
-            this.addEventListeners(options, selectionHandler);
+            this.addEventListeners();
+            this.onSelectCallback();
         }
     }
 
-    private addEventListeners(options: AsterPlotBehaviorOptions, selectionHandler: ISelectionHandler) {
-        this.selection.on("click", (event: MouseEvent, d: any) => {
-            selectionHandler.handleSelection(d.data, event.ctrlKey);
-        });
+    public get hasSelection(): boolean {
+        const selectionIds = this.selectionManager.getSelectionIds();
+        return selectionIds.length > 0;
+    }
 
-        this.selection.on("keydown", (event: KeyboardEvent, d: any) => {
-            if (event.code !== EnterCode && event.code !== SpaceCode) {
-                return;
-            }
-            selectionHandler.handleSelection(d.data, event.ctrlKey);
+    private removeEventListeners(): void {
+        this.options.selection.on("click contextmenu", null);
+        this.options.legendItems.on("click", null);
+        this.options.clearCatcher.on("click contextmenu", null);
+    }
+
+    private addEventListeners(): void {
+        this.bindClickEvents();
+        this.bindContextMenuEvents();
+        this.bindKeyboardEvents();
+    }
+
+    private bindClickEvents(): void {
+        this.options.selection.on("click", (event: MouseEvent, d: PieArcDatum<AsterDataPoint>) => {
+            event.stopPropagation();
+            this.selectDataPoint(d.data, event.ctrlKey || event.metaKey || event.shiftKey);
+            this.onSelectCallback();
         });
 
         this.options.legendItems.on("click", (event: MouseEvent, d: LegendDataPoint) => {
@@ -153,11 +159,11 @@ export class AsterPlotWebBehavior implements IInteractiveBehavior {
             event.preventDefault();
             event.stopPropagation();
 
-        const emptySelection = {
-            "measures": [],
-            "dataMap": {
-            }
-        };
+            const emptySelection = {
+                "measures": [],
+                "dataMap": {
+                }
+            };
 
             this.selectionManager.showContextMenu(emptySelection, {
                 x: event.clientX,
@@ -175,26 +181,102 @@ export class AsterPlotWebBehavior implements IInteractiveBehavior {
         this.options.selection.on("keydown", (event: KeyboardEvent, d: PieArcDatum<AsterDataPoint>) => {
             if (event.code == EnterCode || event.code == SpaceCode) {
                 event.preventDefault();
-                event.stopPropagation();
+                this.selectDataPoint(d.data, event.ctrlKey || event.metaKey || event.shiftKey);
+                this.onSelectCallback();
             }
         });
     }
 
-    public renderSelection(hasSelection: boolean) {
-        this.selection.attr("aria-selected", (d) => {
-            return d.data.selected;
-        })
-        this.changeOpacityAttribute("fill-opacity", hasSelection);
-        this.changeOpacityAttribute("stroke-opacity", hasSelection);
+    private selectDataPoint(dataPoint: AsterDataPoint | LegendDataPoint, multiSelect: boolean = false): void {
+        if (!dataPoint || !dataPoint.identity) return;        
+
+        const selectedIds: ISelectionId[] = <ISelectionId[]>this.selectionManager.getSelectionIds();
+        const isSelected: boolean = this.isDataPointSelected(dataPoint, selectedIds);
+
+        const selectionIdsToSelect: ISelectionId[] = [];
+        if (!isSelected) {
+            dataPoint.selected = true;
+            selectionIdsToSelect.push(dataPoint.identity);
+        } else {
+            // toggle selected back to false
+            dataPoint.selected = false;
+            if (multiSelect) {
+                selectionIdsToSelect.push(dataPoint.identity);
+            }
+        }
+
+        this.selectionManager.select(selectionIdsToSelect, multiSelect);
     }
 
+    private onSelectCallback(selectionIds?: ISelectionId[]): void {
+        this.applySelectionStateToData(selectionIds);
+        this.renderSelection();
+    }
+
+    private applySelectionStateToData(selectionIds?: ISelectionId[]): void {
+        const selectedIds: ISelectionId[] = selectionIds || <ISelectionId[]>this.selectionManager.getSelectionIds();
+        this.setSelectedToDataPoints(this.options.dataPoints, selectedIds);
+        this.setSelectedToDataPoints(this.legendDataPoints, selectedIds);
+        this.renderSelection();
+    }
+
+    public setSelectedToDataPointsDefault(dataPoints: AsterDataPoint[] | LegendDataPoint[], hasHighlights: boolean): void {
+        const ids: ISelectionId[] = <ISelectionId[]>this.selectionManager.getSelectionIds();
+        this.setSelectedToDataPoints(dataPoints, ids, hasHighlights);
+    }
+
+    private setSelectedToDataPoints(dataPoints: AsterDataPoint[] | LegendDataPoint[], ids: ISelectionId[], hasHighlightsParameter?: boolean): void {
+        const hasHighlights: boolean = hasHighlightsParameter || (this.options && this.options.hasHighlights);
+
+        if (hasHighlights && this.hasSelection) {
+            this.selectionManager.clear();
+        }
+
+        for (const dataPoint of dataPoints) { 
+            dataPoint.selected = this.isDataPointSelected(dataPoint, ids);
+        }
+    }
+
+    private isDataPointSelected(dataPoint: AsterDataPoint | LegendDataPoint, selectedIds: ISelectionId[]): boolean {
+        return selectedIds.some((value: ISelectionId) => value.equals(<ISelectionId>dataPoint.identity));
+    }
+
+    private renderSelection(): void {
+        const dataPointHasSelection: boolean = this.options.dataPoints.some((dataPoint: AsterDataPoint) => dataPoint.selected);
+        const legendHasSelection: boolean = this.legendDataPoints.some((dataPoint: LegendDataPoint) => dataPoint.selected);
+
+        this.options.legendIcons.style("fill-opacity", (legendDataPoint: LegendDataPoint) => {
+            return asterPlotUtils.getLegendFillOpacity(
+                legendDataPoint.selected,
+                legendHasSelection,
+                this.colorHelper.isHighContrast
+            );
+        });
+
+        this.options.legendIcons.style("fill", (legendDataPoint: LegendDataPoint) => {
+            return asterPlotUtils.getLegendFill(
+                legendDataPoint.selected,
+                legendHasSelection,
+                legendDataPoint.color,
+                this.colorHelper.isHighContrast
+            );
+        });
+
+        this.options.selection.attr("aria-selected", (d: any) => {
+            return d.data.selected;
+        })
+        this.changeOpacityAttribute("fill-opacity", dataPointHasSelection);
+        this.changeOpacityAttribute("stroke-opacity", dataPointHasSelection);
+    }
+    
     private changeOpacityAttribute(attributeName: string, hasSelection: boolean) {
-        this.selection.style(attributeName, (d) => {
+        this.options.selection.style(attributeName, (d: any) => {
             return asterPlotUtils.getFillOpacity(
                 d.data.selected,
                 d.data.highlight,
                 hasSelection,
-                this.hasHighlights);
+                this.options.hasHighlights);
         });
     }
 }
+

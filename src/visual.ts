@@ -38,9 +38,6 @@ import {pixelConverter as PixelConverter} from "powerbi-visuals-utils-typeutils"
 // powerbi.extensibility.utils.chart
 import * as LegendUtil from "powerbi-visuals-utils-chartutils";
 
-// powerbi.extensibility.utils.interactivity
-import {interactivityBaseService, interactivitySelectionService} from "powerbi-visuals-utils-interactivityutils";
-
 // powerbi.extensibility.utils.color
 import {ColorHelper} from "powerbi-visuals-utils-colorutils";
 
@@ -51,7 +48,7 @@ import {AsterPlotConverterService} from "./services/asterPlotConverterService";
 
 import {AsterPlotColumns} from "./asterPlotColumns";
 
-import {AsterPlotBehaviorOptions, AsterPlotWebBehavior} from "./behavior";
+import {BehaviorOptions, Behavior} from "./behavior";
 
 import {AsterArcDescriptor, AsterDataPoint, AsterPlotData} from "./dataInterfaces";
 
@@ -59,8 +56,11 @@ import {VisualLayout} from "./visualLayout";
 
 import {DataRenderService} from "./services/dataRenderService";
 
-import {LegendPosition} from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
-import {createLegend} from "powerbi-visuals-utils-chartutils/lib/legend/legend";
+import { legend as LegendModule } from "powerbi-visuals-utils-chartutils";
+import createLegend = LegendModule.createLegend;
+import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
+
+
 import {isEmpty} from "lodash-es";
 import "../style/asterPlot.less";
 import {FormattingSettingsService} from "powerbi-visuals-utils-formattingmodel";
@@ -95,6 +95,7 @@ import IVisual = powerbi.extensibility.IVisual;
 import IColorPalette = powerbi.extensibility.IColorPalette;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
+import ISelectionManager = powerbi.extensibility.ISelectionManager;
 // powerbi.extensibility.visual
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
@@ -107,10 +108,6 @@ import ILegend = LegendUtil.legendInterfaces.ILegend;
 import legendData = LegendUtil.legendData;
 import dataLabelUtils = LegendUtil.dataLabelUtils;
 import positionChartArea = LegendUtil.legend.positionChartArea;
-import appendClearCatcher = interactivityBaseService.appendClearCatcher;
-import createInteractivitySelectionService = interactivitySelectionService.createInteractivitySelectionService;
-import IInteractivityService = interactivityBaseService.IInteractivityService;
-import IInteractiveBehavior = interactivityBaseService.IInteractiveBehavior;
 
 import IVisualEventService = powerbi.extensibility.IVisualEventService;
 import FormattingModel = powerbi.visuals.FormattingModel;
@@ -149,6 +146,7 @@ export class AsterPlot implements IVisual {
     private static CenterLabelClass: ClassAndSelector = createClassAndSelector("centerLabel");
     private static LegendTitleSelector: ClassAndSelector = createClassAndSelector("legendTitle");
     private static LegendItemSelector: ClassAndSelector = createClassAndSelector("legendItem");
+    private static LegendIconSelector: ClassAndSelector = createClassAndSelector("legendIcon");
 
     private events: IVisualEventService;
 
@@ -157,7 +155,7 @@ export class AsterPlot implements IVisual {
     private svg: Selection<any>;
     private mainGroupElement: Selection<any>;
     private mainLabelsElement: Selection<any>;
-    private slicesElement: Selection<AsterPlotData>;
+    private slicesElement: Selection<PieArcDatum<AsterDataPoint>>;
     private clearCatcher: Selection<any>;
     private legendElement: Selection<any>;
     private legendGroup: Selection<any>;
@@ -168,9 +166,9 @@ export class AsterPlot implements IVisual {
 
     private visualHost: IVisualHost;
     private localizationManager: ILocalizationManager;
+    private selectionManager: ISelectionManager;
     private formattingSettingsService: FormattingSettingsService;
 
-    private interactivityService: IInteractivityService<any>;
     private subSelectionHelper: HtmlSubSelectionHelper;
     private formatMode: boolean = false;
     private visualTitleEditSubSelection = JSON.stringify(TitleEdit);
@@ -179,7 +177,7 @@ export class AsterPlot implements IVisual {
 
     private legend: ILegend;
 
-    private behavior: IInteractiveBehavior;
+    private behavior: Behavior;
 
     private tooltipServiceWrapper: ITooltipServiceWrapper;
 
@@ -193,6 +191,7 @@ export class AsterPlot implements IVisual {
         this.events = options.host.eventService;
         this.visualHost = options.host;
         this.localizationManager = this.visualHost.createLocalizationManager();
+        this.selectionManager = this.visualHost.createSelectionManager();
         this.formattingSettingsService = new FormattingSettingsService(this.localizationManager);
         this.rootElement = options.element;
 
@@ -232,8 +231,12 @@ export class AsterPlot implements IVisual {
         this.mainGroupElement = svg.append("g").attr("id", "mainGroup");
         this.mainLabelsElement = svg.append("g").attr("id", "mainLabels");
 
-        this.behavior = new AsterPlotWebBehavior();
-        this.clearCatcher = appendClearCatcher(this.mainGroupElement);
+        this.behavior = new Behavior(this.colorHelper, this.selectionManager);
+        this.clearCatcher = this.mainGroupElement
+            .append("rect")
+            .classed("clearCatcher", true)
+            .attr("width", "100%")
+            .attr("height", "100%");
 
         this.slicesElement = this.mainGroupElement
             .append("g")
@@ -241,13 +244,8 @@ export class AsterPlot implements IVisual {
             .attr("aria-multiselectable", "true")
             .classed(AsterPlot.AsterSlices.className, true);
 
-        this.interactivityService = createInteractivitySelectionService(options.host);
-
-        this.legend = createLegend(
-            options.element,
-            options.host && false,
-            this.interactivityService,
-            true);
+        const isScrollable: boolean = false;
+        this.legend = createLegend(options.element, isScrollable);
 
         this.legendElement = rootElement.select("svg.legend");
         this.legendGroup = this.legendElement.select("g#legendGroup");
@@ -285,11 +283,10 @@ export class AsterPlot implements IVisual {
     }
 
     private applySelectionStateToData(): void {
-        if (this.interactivityService) {
-            this.interactivityService.applySelectionStateToData(
-                this.data.dataPoints.concat(this.data.highlightedDataPoints),
-                this.data.hasHighlights);
-        }
+        this.behavior.setSelectedToDataPointsDefault(
+            this.data.dataPoints.concat(this.data.highlightedDataPoints),
+            this.data.hasHighlights
+        );
     }
 
     public update(options: VisualUpdateOptions): void {
@@ -361,7 +358,7 @@ export class AsterPlot implements IVisual {
                 this.renderService.cleanOuterLines(this.mainGroupElement);
             }
 
-            this.bindInteractivityBehaviour();
+            this.bindBehaviorOptions();
 
             this.subSelectionHelper.setFormatMode(options.formatMode);
             const shouldUpdateSubSelection = options.type & (powerbi.VisualUpdateType.Data
@@ -428,6 +425,7 @@ export class AsterPlot implements IVisual {
                 },
                 titleText: this.formattingSettings.legend.titleText.value,
                 fontSize: this.formattingSettings.legend.font.fontSize.value,
+                // TODO: pass font family and other properties
             };
 
             legendData.update(this.data.legendData, legendObject);
@@ -435,6 +433,7 @@ export class AsterPlot implements IVisual {
         }
 
         this.legend.drawLegend(this.data.legendData, this.layout.viewportCopy);
+        this.legendItems = this.legendGroup.selectAll(AsterPlot.LegendItemSelector.selectorName);
         positionChartArea(this.svg, this.legend);
 
         this.legendGroup
