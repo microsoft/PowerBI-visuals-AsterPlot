@@ -39,8 +39,9 @@ import ILabelLayout = dataLabelInterfaces.ILabelLayout;
 import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
 
 // d3
-import * as d3 from "d3";
-import {Arc, arc, PieArcDatum} from "d3-shape";
+import { Selection as d3Selection, BaseType, select } from 'd3-selection';
+import { sum as d3Sum, max as d3Max } from "d3-array";
+import {Arc, arc, PieArcDatum, pie} from "d3-shape";
 
 import { AsterArcDescriptor, ArcDescriptor, Selection } from "../dataInterfaces";
 
@@ -85,7 +86,6 @@ import {AsterPlotObjectNames, AsterPlotSettingsModel, OuterLineCardSettings} fro
 import {HtmlSubSelectableClass, SubSelectableObjectNameAttribute, SubSelectableDisplayNameAttribute, SubSelectableTypeAttribute} from "powerbi-visuals-utils-onobjectutils";
 import SubSelectionStylesType = powerbi.visuals.SubSelectionStylesType;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
-import {BaseType, select} from "d3";
 
 export class DataRenderService {
     private static AsterRadiusRatio: number = 0.9;
@@ -139,10 +139,10 @@ export class DataRenderService {
         this.localizationManager = localizationManager;
         this.formatMode = formatMode;
 
-        this.totalWeight = d3.sum(this.data.dataPoints, d => d.sliceWidth);
+        this.totalWeight = d3Sum(this.data.dataPoints, d => d.sliceWidth);
         this.dataPoints = this.createDataPoints(data, false, this.totalWeight);
         this.highlightedDataPoints = this.createDataPoints(data, true, this.totalWeight);
-        this.maxHeight = d3.max(this.data.dataPoints, d => d.sliceHeight);
+        this.maxHeight = d3Max(this.data.dataPoints, d => d.sliceHeight);
         this.viewportRadius = Math.min(this.layout.viewportIn.width, this.layout.viewportIn.height) / 2;
         this.tooltipServiceWrapper = tooltipServiceWrapper;
 
@@ -326,7 +326,7 @@ export class DataRenderService {
             .attr("d", <ArcDescriptor<any>>outlineArc)
             .classed(DataRenderService.OuterLine.className, true)
 
-        const singleOuterLine: d3.Selection<BaseType, AsterArcDescriptor, any, any> = select(outerLine.node())
+        const singleOuterLine: d3Selection<BaseType, AsterArcDescriptor, any, any> = select(outerLine.node())
         singleOuterLine
             .classed(HtmlSubSelectableClass, this.formatMode)
             .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.OuterLine.name)
@@ -412,7 +412,7 @@ export class DataRenderService {
         return array;
     }
 
-    private applyTooltipToSelection(selection: d3.Selection<d3.BaseType, AsterArcDescriptor, any, any>): void {
+    private applyTooltipToSelection(selection: d3Selection<BaseType, AsterArcDescriptor, any, any>): void {
         this.tooltipServiceWrapper.addTooltip(selection, (tooltipEvent: PieArcDatum<AsterDataPoint>) => {
             return tooltipEvent.data?.tooltipInfo;
         });
@@ -437,7 +437,7 @@ export class DataRenderService {
     }
 
     private getPieLayout(totalWeight: number): any {
-        return d3.pie<AsterDataPoint>()
+        return pie<AsterDataPoint>()
             .sort(null)
             .value((dataPoint: AsterDataPoint) => {
                 if (!this.totalWeight || !dataPoint || isNaN(dataPoint.sliceWidth)) {
@@ -644,7 +644,7 @@ export class DataRenderService {
 
     }
 
-    private getLabelLayout(arc: d3.Arc<any, AsterArcDescriptor>, viewport: IViewport): ILabelLayout {
+    private getLabelLayout(arc: Arc<any, AsterArcDescriptor>, viewport: IViewport): ILabelLayout {
         const midAngle = (d: any) => {
             return d.startAngle + (d.endAngle - d.startAngle) / 2;
         };

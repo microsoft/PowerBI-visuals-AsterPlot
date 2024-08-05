@@ -24,8 +24,7 @@
  *  THE SOFTWARE.
  */
 
-
-import * as d3 from "d3";
+import { Selection as d3Selection } from "d3-selection";
 import { Arc } from "d3-shape";
 // d3
 export type ArcDescriptor<T> = Arc<any, T>;
@@ -35,7 +34,7 @@ export type ArcDescriptor<T> = Arc<any, T>;
 import powerbi from "powerbi-visuals-api";
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 
-export type Selection<T> = d3.Selection<any, T, any, any>;
+export type Selection<T> = d3Selection<any, T, any, any>;
 // powerbi.extensibility.utils.chart
 import * as LegendUtil from "powerbi-visuals-utils-chartutils";
 import LegendData = LegendUtil.legendInterfaces.LegendData;

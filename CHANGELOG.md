@@ -1,3 +1,8 @@
+## 1.7.2
+* Update API to 5.11.0, tools to 5.5.1 and other packages
+* Create custom styles for keyboard focus of aster slices
+* Split d3 into submodules
+
 ## 1.7.1
 * Fix scaling when outerline is enabled
 * Update packages

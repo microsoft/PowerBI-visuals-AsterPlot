@@ -25,8 +25,6 @@
  */
 
 
-import * as d3 from "d3";
-import {select} from "d3";
 // powerbi
 // tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
@@ -84,9 +82,12 @@ import {
     SubSelectableDisplayNameAttribute,
     SubSelectableObjectNameAttribute
 } from "powerbi-visuals-utils-onobjectutils"
+
+// d3
+import { select, Selection as d3Selection } from "d3-selection";
 import {PieArcDatum} from "d3-shape";
 
-type Selection<T> = d3.Selection<any, T, any, any>;
+type Selection<T> = d3Selection<any, T, any, any>;
 import IViewport = powerbi.IViewport;
 import DataView = powerbi.DataView;
 import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;

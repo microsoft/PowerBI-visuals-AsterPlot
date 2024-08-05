@@ -25,7 +25,8 @@
  */
 
 import {Selection} from "./dataInterfaces";
-import * as d3 from "d3";
+import { interpolate } from "d3-interpolate";
+import "d3-transition";
 
 export class Helpers {
     // tslint:disable-next-line: function-name
@@ -59,7 +60,7 @@ export class Helpers {
                 return () => arc(data);
             }
 
-            const interpolation = d3.interpolate(this.oldData, data);
+            const interpolation = interpolate(this.oldData, data);
             this.oldData = interpolation(0);
             return (x) => arc(interpolation(x));
         };
