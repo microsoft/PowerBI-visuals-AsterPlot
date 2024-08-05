@@ -24,20 +24,52 @@
  *  THE SOFTWARE.
  */
 
-@import (less) "powerbi-visuals-utils-interactivityutils/lib/index.css";
-@import (less) "powerbi-visuals-utils-chartutils/lib/index.css";
+@keyframes pulse {
+    0% {
+        stroke-width: 2;
+    }
+    50% {
+        stroke-width: 4;
+    }
+    100% {
+        stroke-width: 2;
+    }
+}
+
+// powerbi-visuals-utils-interactivityutils/lib/index.css
+.clearCatcher {
+    fill-opacity: 0;
+}
+
+// powerbi-visuals-utils-chartutils/lib/index.css
+.legend .navArrow {
+    fill: #333333;
+    cursor: pointer;
+    /* stroke enabled for a bigger click target, but smaller visible arrow size */
+    stroke: #FFF;
+    stroke-width: 2px;
+}
+
+// powerbi-visuals-utils-chartutils/lib/index.css
+.data-labels {
+    font-size: 12px;
+    text-anchor: middle;
+    font-family: helvetica, arial, sans-serif;
+    pointer-events: none;
+}
 
 .circleLine .text {
     line-height: 1;
     font-weight: 12;
 }
 
-&:focus {
-    outline: none;
-}
+.asterSlice {
+    &:focus, &:focus-visible {
+        outline: none;
+    }
 
-&:focus-visible {
-    outline: none;
-    stroke: black;
-    stroke-width: 2px;
+    &:focus-visible {
+        filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+        animation: pulse 1s infinite;
+    }
 }
