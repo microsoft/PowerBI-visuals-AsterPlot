@@ -88,7 +88,7 @@ describe("AsterPlot", () => {
             visualBuilder.updateFlushAllD3Transitions(dataView);
 
             expect(visualBuilder.mainElement.querySelectorAll(".asterSlice").length)
-                .toBe(dataView.categorical.categories[0].values.length);
+                .toBe(dataView.categorical!.categories![0].values.length);
         });
 
         it("Should add center label", () => {
@@ -140,7 +140,7 @@ describe("AsterPlot", () => {
             it("Default Data Labels", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                const numOfLabels: number = dataView.categorical.values[0].values.length,
+                const numOfLabels: number = dataView.categorical!.values![0].values.length,
                     labels: NodeListOf<HTMLElement> = visualBuilder.dataLabels;
 
                 expect(labels.length).toBe(numOfLabels);
@@ -157,7 +157,7 @@ describe("AsterPlot", () => {
             it("Data Labels have conflict with viewport", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                const numOfLabels: number = dataView.categorical.values[0].values.length,
+                const numOfLabels: number = dataView.categorical!.values![0].values.length,
                     labels: NodeListOf<HTMLElement> = visualBuilder.dataLabels,
                     lines: NodeListOf<HTMLElement> = visualBuilder.lineLabels;
 
@@ -174,12 +174,12 @@ describe("AsterPlot", () => {
                 expect(linesAfterResize.length).toBeLessThanOrEqual(numOfLabels);
                 expect(labelsAfterResize.length).toBeLessThanOrEqual(numOfLabels);
 
-                const firstLabelX: string = labels[0].getAttribute("x"),
-                    firstLabelY: string = labels[0].getAttribute("y"),
-                    lastLabelY: string = labels[labels.length - 1].getAttribute("y"),
-                    firstResizeLabelX: string = labelsAfterResize[0].getAttribute("x"),
-                    firstResizeLabelY: string = labelsAfterResize[0].getAttribute("y"),
-                    lastResizeLabelY: string = labelsAfterResize[labelsAfterResize.length - 1].getAttribute("y");
+                const firstLabelX: string = labels[0].getAttribute("x")!,
+                    firstLabelY: string = labels[0].getAttribute("y")!,
+                    lastLabelY: string = labels[labels.length - 1].getAttribute("y")!,
+                    firstResizeLabelX: string = labelsAfterResize[0].getAttribute("x")!,
+                    firstResizeLabelY: string = labelsAfterResize[0].getAttribute("y")!,
+                    lastResizeLabelY: string = labelsAfterResize[labelsAfterResize.length - 1].getAttribute("y")!;
 
                 expect(firstLabelX).toBeGreaterThan(parseFloat(firstResizeLabelX));
                 expect(firstLabelY).toBeLessThan(parseFloat(firstResizeLabelY));
@@ -195,7 +195,7 @@ describe("AsterPlot", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 const labels: NodeListOf<HTMLElement> = visualBuilder.dataLabels;
-                const dataLabels: string = labels[0].textContent;
+                const dataLabels: string = labels[0].textContent!;
 
                 expect(dataLabels).toBe("$0,000.74273143000000000M");
                 expect(dataLabels.length - 8).toBe(maxPrecision);
@@ -223,7 +223,7 @@ describe("AsterPlot", () => {
                 expect(labels.length).toBeGreaterThan(0);
 
                 // Manually remove categories
-                dataView.categorical.categories = undefined;
+                dataView.categorical!.categories = undefined;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -236,7 +236,7 @@ describe("AsterPlot", () => {
                 (<any>dataView.metadata.objects).labels.show = true;
 
                 // Manually change the category format to be a date format
-                dataView.categorical.categories[0].source.format = "dddd\, MMMM %d\, yyyy";
+                dataView.categorical!.categories![0].source.format = "dddd\, MMMM %d\, yyyy";
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -258,10 +258,10 @@ describe("AsterPlot", () => {
                 const originalLines: number = visualBuilder.lineLabels.length;
 
                 // Manually set a label to null and zero
-                dataView.categorical.values[0].values[0] = null;
-                dataView.categorical.values[1].values[0] = null;
-                dataView.categorical.values[0].values[3] = 0;
-                dataView.categorical.values[1].values[3] = 0;
+                (dataView.categorical!.values![0].values![0] as any) = null;
+                (dataView.categorical!.values![1].values![0] as any) = null;
+                dataView.categorical!.values![0].values[3] = 0;
+                dataView.categorical!.values![1].values[3] = 0;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -274,11 +274,11 @@ describe("AsterPlot", () => {
             it("Data labels shouldn't be displayed for non highlighted values", () => {
                 (<any>dataView.metadata.objects).labels.show = true;
 
-                const length: number = Math.round(dataView.categorical.values[0].values.length / 2);
+                const length: number = Math.round(dataView.categorical!.values![0].values.length / 2);
 
-                dataView.categorical.values.forEach((column: DataViewValueColumn) => {
-                    column.highlights = column.values.map((value: PrimitiveValue, index: number) => {
-                        return index >= length ? null : value;
+                dataView.categorical!.values!.forEach((column: DataViewValueColumn) => {
+                    column.highlights = column.values.map((value: PrimitiveValue, index: number): PrimitiveValue => {
+                        return index >= length ? <PrimitiveValue>(null as unknown as PrimitiveValue) : value;
                     });
                 });
 
@@ -293,7 +293,7 @@ describe("AsterPlot", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
                 const asterData = visualBuilder.asterPlot.data;
 
-                expect(asterData.dataPoints.length).toBe(dataView.categorical.categories[0].values.length);
+                expect(asterData.dataPoints.length).toBe(dataView.categorical!.categories![0].values.length);
             })
         })
     });
@@ -337,7 +337,7 @@ describe("AsterPlot", () => {
 
                 visualBuilder.dataLabels
                     .forEach((element: Element) => {
-                        const text = element.textContent;
+                        const text: string = element.textContent!;
                         expect(text[text.length - 1]).toEqual("K");
                     });
             });
@@ -352,7 +352,7 @@ describe("AsterPlot", () => {
 
                 visualBuilder.dataLabels
                     .forEach((element: Element) => {
-                        expect(element.textContent.split(".")[1].length).toEqual(precision);
+                        expect(element.textContent!.split(".")[1].length).toEqual(precision);
                     });
             });
 
@@ -394,7 +394,7 @@ describe("AsterPlot", () => {
 
                 visualBuilder.outerLine
                     .forEach((element: HTMLElement) => {
-                        const elementThickness: number = parseFloat(element.getAttribute("stroke-width"));
+                        const elementThickness: number = parseFloat(element.getAttribute("stroke-width")!);
                         expect(elementThickness).toBe(thickness);
                     })
             });
@@ -544,7 +544,7 @@ describe("AsterPlot", () => {
             });
 
             it("Should color legend title & items with default color", () => {
-                const legendTitle: HTMLElement = visualBuilder.legendGroup.querySelector(".legendTitle");
+                const legendTitle: HTMLElement = visualBuilder.legendGroup.querySelector(".legendTitle")!;
 
                 assertColorsMatch(
                     legendTitle.style["fill"],
@@ -560,10 +560,10 @@ describe("AsterPlot", () => {
 
                 expect(legendTitle).not.toBeNull();
 
-                const legendTitleText: string = legendTitle.firstChild.textContent,
-                    legendTitleTitle: string = legendTitle.querySelector("title").textContent,
+                const legendTitleText: string = legendTitle.firstChild!.textContent!,
+                    legendTitleTitle: string = legendTitle.querySelector("title")!.textContent!,
                     expectedDefaultTitleAndToolTipText: string
-                        = dataView.categorical.categories[0].source.displayName;
+                        = dataView.categorical!.categories![0].source.displayName;
 
                 expect(legendTitleText).toEqual(expectedDefaultTitleAndToolTipText);
                 expect(legendTitleTitle).toEqual(expectedDefaultTitleAndToolTipText);
@@ -622,7 +622,7 @@ describe("AsterPlot", () => {
 
                 const legendItems: NodeListOf<HTMLElement> = visualBuilder.legendItems;
 
-                expect(legendItems.length).toBe(dataView.categorical.categories[0].values.length);
+                expect(legendItems.length).toBe(dataView.categorical!.categories![0].values.length);
             });
 
             it("Should set legend title & tooltip to user configured text", () => {
@@ -632,8 +632,8 @@ describe("AsterPlot", () => {
 
                 expect(legendTitle).toBeDefined();
 
-                const legendTitleText: string = legendTitle.firstElementChild.textContent,
-                    legendTitleTitle: string = legendTitle.querySelector("title").textContent;
+                const legendTitleText: string = legendTitle.firstElementChild!.textContent!,
+                    legendTitleTitle: string = legendTitle.querySelector("title")!.textContent!;
 
                 expect(legendTitleText).toEqual(customLegendTitle);
                 expect(legendTitleTitle).toEqual(customLegendTitle);
@@ -708,7 +708,7 @@ describe("AsterPlot", () => {
                 visualBuilder.updateRenderTimeout(dataView, () => {
                     const slices: HTMLElement[] = Array.from(visualBuilder.slices);
 
-                    expect(isColorAppliedToElements(slices, null, "fill"));
+                    expect(isColorAppliedToElements(slices, undefined, "fill"));
                     done();
                 });
             });
