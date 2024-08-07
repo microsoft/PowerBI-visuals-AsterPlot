@@ -145,6 +145,7 @@ export class AsterPlot implements IVisual {
     private static AsterSlice: ClassAndSelector = createClassAndSelector("asterSlice");
     private static AsterHighlightedSlice: ClassAndSelector = createClassAndSelector("asterHighlightedSlice");
     private static OuterLine: ClassAndSelector = createClassAndSelector("outerLine");
+    private static LineLabel: ClassAndSelector = createClassAndSelector("line-label")
     private static CenterLabelClass: ClassAndSelector = createClassAndSelector("centerLabel");
     private static LegendTitleSelector: ClassAndSelector = createClassAndSelector("legendTitle");
     private static LegendItemSelector: ClassAndSelector = createClassAndSelector("legendItem");
@@ -228,8 +229,8 @@ export class AsterPlot implements IVisual {
 
         this.colorPalette = options.host.colorPalette;
         this.colorHelper = new ColorHelper(this.colorPalette);
-        this.mainGroupElement = svg.append("g");
-        this.mainLabelsElement = svg.append("g");
+        this.mainGroupElement = svg.append("g").attr("id", "mainGroup");
+        this.mainLabelsElement = svg.append("g").attr("id", "mainLabels");
 
         this.behavior = new AsterPlotWebBehavior();
         this.clearCatcher = appendClearCatcher(this.mainGroupElement);
@@ -401,21 +402,20 @@ export class AsterPlot implements IVisual {
         this.clearCatcher.attr("transform", translate(-transformX, -transformY));
     }
 
-    private bindInteractivityBehaviour(): void {
-        if (this.interactivityService) {
-            const behaviorOptions: AsterPlotBehaviorOptions = {
-                selection: this.slicesElement.selectAll(AsterPlot.AsterSlice.selectorName + ", " + AsterPlot.AsterHighlightedSlice.selectorName),
-                legendItems: this.legendItems,
-                clearCatcher: this.clearCatcher,
-                interactivityService: this.interactivityService,
-                hasHighlights: this.data.hasHighlights,
-                dataPoints: this.data.dataPoints,
-                behavior: this.behavior,
-                formatMode: this.formatMode,
-            };
-
-            this.interactivityService.bind(behaviorOptions);
-        }
+    private bindBehaviorOptions(): void {
+        const behaviorOptions: BehaviorOptions = {
+            selection: this.slicesElement.selectAll(AsterPlot.AsterSlice.selectorName + ", " + AsterPlot.AsterHighlightedSlice.selectorName),
+            legendItems: this.legendItems,
+            legendIcons: this.legendElement.selectAll(AsterPlot.LegendIconSelector.selectorName),
+            centerLabel: this.mainGroupElement.select(AsterPlot.CenterLabelClass.selectorName),
+            lineLabels: this.mainGroupElement.selectAll(AsterPlot.LineLabel.selectorName),
+            outerLine: this.mainGroupElement.selectAll(AsterPlot.OuterLine.selectorName),
+            clearCatcher: this.clearCatcher,
+            hasHighlights: this.data.hasHighlights,
+            dataPoints: this.data.dataPoints,
+            formatMode: this.formatMode,
+        };
+        this.behavior.bindEvents(behaviorOptions);
     }
 
     private renderLegend(): void {

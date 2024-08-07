@@ -38,11 +38,32 @@ import IBehaviorOptions = interactivityBaseService.IBehaviorOptions;
 import ISelectionHandler = interactivityBaseService.ISelectionHandler;
 
 import * as asterPlotUtils from "./utils";
-import { BaseDataPoint } from "powerbi-visuals-utils-interactivityutils/lib/interactivityBaseService";
+import ISelectionId = powerbi.visuals.ISelectionId;
+import ISelectionManager = powerbi.extensibility.ISelectionManager;
+import { PieArcDatum } from "d3-shape";
+import { LegendDataPoint } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
+import { ColorHelper } from "powerbi-visuals-utils-colorutils";
+import { LabelEnabledDataPoint } from "powerbi-visuals-utils-chartutils/lib/dataLabel/dataLabelInterfaces";
 
-export interface AsterPlotBehaviorOptions extends IBehaviorOptions<SelectableDataPoint> {
-    selection: Selection<AsterPlotData>;
-    legendItems: Selection<any>;
+const EnterCode = "Enter";
+const SpaceCode = "Space";
+
+export interface BaseDataPoint {
+    selected: boolean;
+}
+
+export interface SelectableDataPoint extends BaseDataPoint {
+    identity: ISelectionId;
+    specificIdentity?: ISelectionId;
+}
+
+export interface BehaviorOptions {
+    selection: Selection<PieArcDatum<AsterDataPoint>>;
+    legendItems: Selection<LegendDataPoint>;
+    legendIcons: Selection<any>;
+    outerLine: Selection<PieArcDatum<AsterDataPoint>>;
+    centerLabel: Selection<any>;
+    lineLabels: Selection<LabelEnabledDataPoint>;
     clearCatcher: Selection<any>;
     interactivityService: IInteractivityService<SelectableDataPoint>;
     hasHighlights: boolean;
@@ -86,42 +107,51 @@ export class AsterPlotWebBehavior implements IInteractiveBehavior {
             selectionHandler.handleSelection(d.data, event.ctrlKey);
         });
 
-        this.clearCatcher.on("click", () => {
-            selectionHandler.handleClearSelection();
+        this.options.legendItems.on("click", (event: MouseEvent, d: LegendDataPoint) => {
+            event.stopPropagation();
+            this.selectDataPoint(d, event.ctrlKey || event.metaKey || event.shiftKey);
+            this.onSelectCallback();
         });
 
-        this.renderSelection(this.interactivityService.hasSelection());
-        this.bindContextMenuToClearCatcher(options, selectionHandler);
-        this.bindContextMenu(options, selectionHandler);
+        this.options.clearCatcher.on("click", () => {
+            this.selectionManager.clear();
+            this.onSelectCallback();
+        });
     }
 
-    /**
-     * Remove event listeners which are irrelevant for format mode.
-     */
-    private removeEventListeners() {
-        this.selection.on("click", null);
-        this.selection.on("contextmenu", null);
-        this.legendItems.on("click", null);
-        this.clearCatcher.on("click", null);
-        this.clearCatcher.on("contextmenu", null);
-    }
+    private bindContextMenuEvents(): void {
+        this.options.selection.on("contextmenu", (event: MouseEvent, dataPoint: PieArcDatum<AsterDataPoint>) => {
+            event.preventDefault();
+            event.stopPropagation();
 
-    protected bindContextMenu(options: AsterPlotBehaviorOptions, selectionHandler: ISelectionHandler) {
-        options.selection.on("contextmenu",
-            (event: any, datum: any) => {
-                const mouseEvent: MouseEvent = <MouseEvent>event;
-                selectionHandler.handleContextMenu(datum.data, {
-                    x: mouseEvent.clientX,
-                    y: mouseEvent.clientY
-                });
-                mouseEvent.preventDefault();
+            this.selectionManager.showContextMenu(dataPoint?.data?.identity ?? {}, {
+                x: event.clientX,
+                y: event.clientY
             });
-    }
+        });
 
-    protected bindContextMenuToClearCatcher(options: AsterPlotBehaviorOptions, selectionHandler: ISelectionHandler) {
-        const {
-            clearCatcher
-        } = options;
+        this.options.legendItems.on("contextmenu", (event: MouseEvent, dataPoint: LegendDataPoint) => {
+            event.preventDefault();
+            event.stopPropagation();
+            this.selectionManager.showContextMenu(dataPoint.identity, {
+                x: event.clientX,
+                y: event.clientY
+            });
+        });
+
+        this.options.outerLine.on("contextmenu", (event: MouseEvent, dataPoint: PieArcDatum<AsterDataPoint>) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            this.selectionManager.showContextMenu(dataPoint.data.identity, {
+                x: event.clientX,
+                y: event.clientY
+            });
+        });
+
+        const handleEmptyContextMenu = (event: MouseEvent) => {
+            event.preventDefault();
+            event.stopPropagation();
 
         const emptySelection = {
             "measures": [],
@@ -129,17 +159,21 @@ export class AsterPlotWebBehavior implements IInteractiveBehavior {
             }
         };
 
-        clearCatcher.on("contextmenu", (event: MouseEvent) => {
-            if (event) {
-                selectionHandler.handleContextMenu(
-                    <BaseDataPoint>{
-                        identity: emptySelection,
-                        selected: false
-                    },
-                    {
-                        x: event.clientX,
-                        y: event.clientY
-                    });
+            this.selectionManager.showContextMenu(emptySelection, {
+                x: event.clientX,
+                y: event.clientY
+            });
+
+        };
+
+        this.options.centerLabel.on("contextmenu", handleEmptyContextMenu);
+        this.options.lineLabels.on("contextmenu", handleEmptyContextMenu);
+        this.options.clearCatcher.on("contextmenu", handleEmptyContextMenu);
+    }
+
+    private bindKeyboardEvents(): void {
+        this.options.selection.on("keydown", (event: KeyboardEvent, d: PieArcDatum<AsterDataPoint>) => {
+            if (event.code == EnterCode || event.code == SpaceCode) {
                 event.preventDefault();
                 event.stopPropagation();
             }
