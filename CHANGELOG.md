@@ -4,6 +4,7 @@
 * Split d3 into submodules
 * Fix context menu for center label, outer lines and legends
 * Remove interactivity-utils
+* Add report page tooltip support
 
 ## 1.7.1
 * Fix scaling when outerline is enabled
