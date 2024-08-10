@@ -209,11 +209,6 @@ export class Behavior {
     }
 
     private onSelectCallback(selectionIds?: ISelectionId[]): void {
-        this.applySelectionStateToData(selectionIds);
-        this.renderSelection();
-    }
-
-    private applySelectionStateToData(selectionIds?: ISelectionId[]): void {
         const selectedIds: ISelectionId[] = selectionIds || <ISelectionId[]>this.selectionManager.getSelectionIds();
         this.setSelectedToDataPoints(this.options.dataPoints, selectedIds);
         this.setSelectedToDataPoints(this.legendDataPoints, selectedIds);
