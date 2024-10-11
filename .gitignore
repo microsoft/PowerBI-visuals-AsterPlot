@@ -7,3 +7,6 @@ typings
 *.log
 /coverage
 *.html
+
+## VSCode
+.vscode/
