@@ -9,6 +9,7 @@
 * Split d3 into submodules
 * Remove interactivity-utils
 * Remove "coveralls" package
+* Update eslint to v9
 
 ## 1.7.1
 * Fix scaling when outerline is enabled
