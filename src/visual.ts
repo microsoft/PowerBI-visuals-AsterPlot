@@ -416,25 +416,24 @@ export class AsterPlot implements IVisual {
     }
 
     private renderLegend(): void {
-        if (this.formattingSettings.legend.show.value) {
-            const legendObject: DataViewObject = {
-                labelColor: {
-                    solid: {
-                        color: this.formattingSettings.legend.labelColor.value.value
-                    }
-                },
-                titleText: this.formattingSettings.legend.titleText.value,
-                fontSize: this.formattingSettings.legend.font.fontSize.value,
-                // TODO: pass font family and other properties
-            };
+        const legendObject: DataViewObject = {
+            show: this.formattingSettings.legend.show.value,
+            showTitle: this.formattingSettings.legend.showTitle.value,
+            position: LegendPosition[this.formattingSettings.legend.position.value.value],
+            titleText: this.formattingSettings.legend.titleText.value,
+            fontSize: this.formattingSettings.legend.font.fontSize.value,
+            labelColor: {
+                solid: {
+                    color: this.formattingSettings.legend.labelColor.value.value
+                }
+            },
+        };
 
-            legendData.update(this.data.legendData, legendObject);
-            this.legend.changeOrientation(LegendPosition[this.formattingSettings.legend.position.value.value]);
-        }
-
+        legendData.update(this.data.legendData, legendObject);
+        this.legend.changeOrientation(LegendPosition[this.formattingSettings.legend.position.value.value]);
         this.legend.drawLegend(this.data.legendData, this.layout.viewportCopy);
-        this.legendItems = this.legendGroup.selectAll(AsterPlot.LegendItemSelector.selectorName);
         positionChartArea(this.svg, this.legend);
+        this.legendItems = this.legendGroup.selectAll(AsterPlot.LegendItemSelector.selectorName);
 
         this.legendGroup
             .classed(HtmlSubSelectableClass, this.formatMode && this.formattingSettings.legend.show.value)
@@ -446,7 +445,11 @@ export class AsterPlot implements IVisual {
             .classed(HtmlSubSelectableClass, this.formatMode && this.formattingSettings.legend.show.value && Boolean(this.formattingSettings.legend.titleText.value))
             .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.LegendTitle.name)
             .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.LegendTitle.displayNameKey))
-            .attr(SubSelectableDirectEditAttr, this.visualTitleEditSubSelection);
+            .attr(SubSelectableDirectEditAttr, this.visualTitleEditSubSelection)
+            .style("font-family", this.formattingSettings.legend.font.fontFamily.value || StandardFontFamily)
+            .style("font-weight", this.formattingSettings.legend.font.bold.value ? "bold" : "normal")
+            .style("font-style", this.formattingSettings.legend.font.italic.value ? "italic" : "normal")
+            .style("text-decoration", this.formattingSettings.legend.font.underline.value ? "underline" : "none");
 
         this.legendItems
             .style("font-family", this.formattingSettings.legend.font.fontFamily.value || StandardFontFamily)

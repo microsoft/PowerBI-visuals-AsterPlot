@@ -284,6 +284,13 @@ class LegendCardSettings extends BaseFontCardSettings {
         items: legendPositionOptions,
     });
 
+    showTitle = new formattingSettings.ToggleSwitch({
+        name: "showTitle",
+        displayName: "Show Title",
+        displayNameKey: "Visual_ShowTitle",
+        value: true,
+    });
+
     titleText = new formattingSettings.TextInput({
         name: "titleText",
         displayName: "Title",
@@ -304,7 +311,7 @@ class LegendCardSettings extends BaseFontCardSettings {
     displayNameKey: string = AsterPlotObjectNames.Legend.displayNameKey;
     description: string = "Display legend options";
     descriptionKey: string = "Visual_Description_Legend";
-    slices = [this.position, this.titleText, this.labelColor, this.font];
+    slices = [this.position, this.showTitle, this.titleText, this.labelColor, this.font];
 }
 
 class CenterLabelCardSettings extends BaseFontCardSettings {
