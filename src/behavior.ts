@@ -24,15 +24,18 @@
  *  THE SOFTWARE.
  */
 
+import { Selection as d3Selection } from "d3-selection";
+import { PieArcDatum } from "d3-shape";
 import powerbi from "powerbi-visuals-api";
-import { Selection, AsterDataPoint } from "./dataInterfaces";
+import { legendInterfaces, dataLabelInterfaces } from "powerbi-visuals-utils-chartutils";
+import { ColorHelper } from "powerbi-visuals-utils-colorutils";
+import { AsterDataPoint } from "./dataInterfaces";
 import * as asterPlotUtils from "./utils";
+
 import ISelectionId = powerbi.visuals.ISelectionId;
 import ISelectionManager = powerbi.extensibility.ISelectionManager;
-import { PieArcDatum } from "d3-shape";
-import { LegendDataPoint } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
-import { ColorHelper } from "powerbi-visuals-utils-colorutils";
-import { LabelEnabledDataPoint } from "powerbi-visuals-utils-chartutils/lib/dataLabel/dataLabelInterfaces";
+import LegendDataPoint = legendInterfaces.LegendDataPoint;
+import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
 
 const EnterCode = "Enter";
 const SpaceCode = "Space";
@@ -47,13 +50,13 @@ export interface SelectableDataPoint extends BaseDataPoint {
 }
 
 export interface BehaviorOptions {
-    selection: Selection<PieArcDatum<AsterDataPoint>>;
-    legendItems: Selection<LegendDataPoint>;
-    legendIcons: Selection<any>;
-    outerLine: Selection<PieArcDatum<AsterDataPoint>>;
-    centerLabel: Selection<any>;
-    lineLabels: Selection<LabelEnabledDataPoint>;
-    clearCatcher: Selection<any>;
+    selection: d3Selection<SVGPathElement, PieArcDatum<AsterDataPoint>, SVGGElement, null>;
+    legendItems: d3Selection<SVGGElement, LegendDataPoint, SVGGElement, null>;
+    legendIcons: d3Selection<SVGElement, LegendDataPoint, null, undefined>;
+    outerLine: d3Selection<SVGPathElement, PieArcDatum<AsterDataPoint>, SVGGElement, null>;
+    centerLabel: d3Selection<SVGTextElement, null, HTMLElement, null>;
+    lineLabels: d3Selection<SVGLineElement, PieArcDatum<AsterDataPoint> & LabelEnabledDataPoint, SVGGElement, null>;
+    clearCatcher: d3Selection<SVGRectElement, null, HTMLElement, null>;
     hasHighlights: boolean;
     formatMode: boolean;
     dataPoints: AsterDataPoint[];
@@ -257,7 +260,7 @@ export class Behavior {
             );
         });
 
-        this.options.selection.attr("aria-selected", (d: any) => {
+        this.options.selection.attr("aria-selected", (d: PieArcDatum<AsterDataPoint>) => {
             return d.data.selected;
         })
         this.changeOpacityAttribute("fill-opacity", dataPointHasSelection);
@@ -265,7 +268,7 @@ export class Behavior {
     }
     
     private changeOpacityAttribute(attributeName: string, hasSelection: boolean) {
-        this.options.selection.style(attributeName, (d: any) => {
+        this.options.selection.style(attributeName, (d: PieArcDatum<AsterDataPoint>) => {
             return asterPlotUtils.getFillOpacity(
                 d.data.selected,
                 d.data.highlight,

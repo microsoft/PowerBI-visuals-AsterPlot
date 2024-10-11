@@ -115,7 +115,7 @@ export class VisualLayout {
     }
 
     private static createNotifyChangedObject<T>(object: T, objectChanged: (o?: T, key?: string) => void): T {
-        const result: T = <any>{};
+        const result: T = <T>{};
         _.keys(object).forEach(key => Object.defineProperty(result, key, {
             get: () => object[key],
             set: (value) => { object[key] = value; objectChanged(object, key); },

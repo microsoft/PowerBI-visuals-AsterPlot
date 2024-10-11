@@ -50,15 +50,16 @@ import {AsterPlotColumns} from "./asterPlotColumns";
 
 import {BehaviorOptions, Behavior} from "./behavior";
 
-import {AsterArcDescriptor, AsterDataPoint, AsterPlotData} from "./dataInterfaces";
+import {AsterDataPoint, AsterPlotData} from "./dataInterfaces";
 
 import {VisualLayout} from "./visualLayout";
 
 import {DataRenderService} from "./services/dataRenderService";
 
-import { legend as LegendModule } from "powerbi-visuals-utils-chartutils";
+import { legend as LegendModule, legendInterfaces } from "powerbi-visuals-utils-chartutils";
 import createLegend = LegendModule.createLegend;
-import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
+import LegendPosition = legendInterfaces.LegendPosition;
+import LegendDataPoint = legendInterfaces.LegendDataPoint;
 
 
 import {isEmpty} from "lodash-es";
@@ -87,7 +88,6 @@ import {
 import { select, Selection as d3Selection } from "d3-selection";
 import {PieArcDatum} from "d3-shape";
 
-type Selection<T> = d3Selection<any, T, any, any>;
 import IViewport = powerbi.IViewport;
 import DataView = powerbi.DataView;
 import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
@@ -152,14 +152,14 @@ export class AsterPlot implements IVisual {
 
     private layout: VisualLayout;
     private rootElement: HTMLElement;
-    private svg: Selection<any>;
-    private mainGroupElement: Selection<any>;
-    private mainLabelsElement: Selection<any>;
-    private slicesElement: Selection<PieArcDatum<AsterDataPoint>>;
-    private clearCatcher: Selection<any>;
-    private legendElement: Selection<any>;
-    private legendGroup: Selection<any>;
-    private legendItems: Selection<any>;
+    private svg: d3Selection<SVGSVGElement, null, HTMLElement, null>;
+    private mainGroupElement: d3Selection<SVGGElement, null, HTMLElement, null>;
+    private mainLabelsElement: d3Selection<SVGGElement, null, HTMLElement, null>;
+    private slicesElement: d3Selection<SVGGElement, null, HTMLElement, null>;
+    private clearCatcher: d3Selection<SVGRectElement, null, HTMLElement, null>;
+    private legendElement: d3Selection<SVGSVGElement, null, HTMLElement, null>;
+    private legendGroup: d3Selection<SVGGElement, null, HTMLElement, null>;
+    private legendItems: d3Selection<SVGGElement, LegendDataPoint, SVGGElement, null>;
 
     private colorPalette: IColorPalette;
     private colorHelper: ColorHelper;
@@ -219,9 +219,9 @@ export class AsterPlot implements IVisual {
             left: 10
         });
 
-        const rootElement = select(options.element);
+        const rootElement: d3Selection<HTMLElement, null, HTMLElement, null> = select(options.element);
 
-        const svg: Selection<any> = this.svg = rootElement
+        const svg = this.svg = rootElement
             .append("svg")
             .classed(AsterPlotVisualClassName, true)
             .style("position", "absolute");
@@ -240,21 +240,21 @@ export class AsterPlot implements IVisual {
 
         this.slicesElement = this.mainGroupElement
             .append("g")
+            .classed(AsterPlot.AsterSlices.className, true)
             .attr("role", "listbox")
-            .attr("aria-multiselectable", "true")
-            .classed(AsterPlot.AsterSlices.className, true);
+            .attr("aria-multiselectable", "true");
 
         const isScrollable: boolean = false;
         this.legend = createLegend(options.element, isScrollable);
 
-        this.legendElement = rootElement.select("svg.legend");
-        this.legendGroup = this.legendElement.select("g#legendGroup");
-        this.legendItems = this.legendGroup.selectAll(AsterPlot.LegendItemSelector.selectorName);
+        this.legendElement = rootElement.select<SVGSVGElement>("svg.legend");
+        this.legendGroup = this.legendElement.selectChild<SVGGElement>("g#legendGroup");
+        this.legendItems = this.legendGroup.selectChildren<SVGGElement, null>(AsterPlot.LegendItemSelector.selectorName);
     }
 
     // tslint:disable-next-line: function-name
     public static converter(dataView: DataView, settings: AsterPlotSettingsModel, colors: IColorPalette, colorHelper: ColorHelper, visualHost: IVisualHost, localizationManager: ILocalizationManager): AsterPlotData {
-        const categorical = <any>AsterPlotColumns.getCategoricalColumns(dataView);
+        const categorical = AsterPlotColumns.getCategoricalColumns(dataView);
 
         if (!AsterPlotConverterService.isDataValid(categorical)) {
             return;
@@ -403,8 +403,8 @@ export class AsterPlot implements IVisual {
         const behaviorOptions: BehaviorOptions = {
             selection: this.slicesElement.selectAll(AsterPlot.AsterSlice.selectorName + ", " + AsterPlot.AsterHighlightedSlice.selectorName),
             legendItems: this.legendItems,
-            legendIcons: this.legendElement.selectAll(AsterPlot.LegendIconSelector.selectorName),
-            centerLabel: this.mainGroupElement.select(AsterPlot.CenterLabelClass.selectorName),
+            legendIcons: <d3Selection<SVGElement, LegendDataPoint, null, undefined>>this.legendElement.selectAll(AsterPlot.LegendIconSelector.selectorName),
+            centerLabel: this.mainGroupElement.select<SVGTextElement>(AsterPlot.CenterLabelClass.selectorName),
             lineLabels: this.mainGroupElement.selectAll(AsterPlot.LineLabel.selectorName),
             outerLine: this.mainGroupElement.selectAll(AsterPlot.OuterLine.selectorName),
             clearCatcher: this.clearCatcher,
@@ -502,7 +502,7 @@ export class AsterPlot implements IVisual {
 
         switch (elementType) {
             case AsterPlotObjectNames.Pies.name: {
-                const datum = select<Element, AsterArcDescriptor>(e).datum();
+                const datum = select<Element, PieArcDatum<AsterDataPoint>>(e).datum();
                 return datum?.data.identity;
             }
             default:

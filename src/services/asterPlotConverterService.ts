@@ -54,8 +54,7 @@ import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
-import DataViewValueColumn = powerbi.DataViewValueColumn;
-import DataViewValueColumns = powerbi.DataViewValueColumns;
+import PrimitiveValue = powerbi.PrimitiveValue;
 import IValueFormatter = valueFormatter.IValueFormatter;
 
 import IColorPalette = powerbi.extensibility.IColorPalette;
@@ -81,8 +80,8 @@ export class AsterPlotConverterService {
     };
 
     private dataView: DataView;
-    private categoricalColumns: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>;
-    private categoricalValueColumns: AsterPlotColumns<any[]>;
+    private categoricalColumns: { Category: powerbi.DataViewCategoryColumn; Y: powerbi.DataViewValueColumn[]; };
+    private categoricalValueColumns: { Category: powerbi.PrimitiveValue[]; Y: powerbi.PrimitiveValue[]; };
     private settings: AsterPlotSettingsModel;
     private visualHost: IVisualHost;
 
@@ -101,9 +100,9 @@ export class AsterPlotConverterService {
         settings: AsterPlotSettingsModel,
         colors: IColorPalette,
         visualHost: IVisualHost,
-        categorical?: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>) {
+        categorical?: { Category: powerbi.DataViewCategoryColumn; Y: powerbi.DataViewValueColumn[]; }) {
         this.dataView = dataView;
-        this.categoricalColumns = categorical ? categorical : <any>AsterPlotColumns.getCategoricalColumns(dataView);
+        this.categoricalColumns = categorical ? categorical : AsterPlotColumns.getCategoricalColumns(dataView);
         this.categoricalValueColumns = AsterPlotColumns.getCategoricalValues(dataView);
         this.settings = settings;
         this.colorHelper = new ColorHelper(colors, AsterPlotConverterService.PiesPropertyIdentifier, "");
@@ -133,8 +132,7 @@ export class AsterPlotConverterService {
         this.highlightedDataPoints = [];
     }
 
-    // tslint:disable-next-line: function-name
-    public static isDataValid(categorical: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>): boolean {
+    public static isDataValid(categorical: { Category: powerbi.DataViewCategoryColumn; Y: powerbi.DataViewValueColumn[]; }): boolean {
         return categorical
             && categorical.Category
             && !isEmpty(categorical.Category.values)
@@ -142,15 +140,15 @@ export class AsterPlotConverterService {
             && !isEmpty(categorical.Y[0].values);
     }
 
-    private containsHighlights(categorical: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>): boolean {
+    private containsHighlights(categorical: { Category: powerbi.DataViewCategoryColumn; Y: powerbi.DataViewValueColumn[]; }): boolean {
         return categorical && categorical.Y && categorical.Y[0] && !!(categorical.Y[0].highlights);
     }
 
-    private containsCategoryOnly(categorical: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>): boolean {
+    private containsCategoryOnly(categorical: { Category: powerbi.DataViewCategoryColumn; Y: powerbi.DataViewValueColumn[]; }): boolean {
         return !categorical || !categorical.Y || !categorical.Y[0];
     }
 
-    private getMaxValue(categorical: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>): number {
+    private getMaxValue(categorical: { Category: powerbi.DataViewCategoryColumn; Y: powerbi.DataViewValueColumn[]; }): number {
         return Math.max.apply(null, <number[]>categorical.Y[0].values);
     }
 
@@ -162,15 +160,15 @@ export class AsterPlotConverterService {
         });
     }
 
-    private isMoreThanOneMeasure(categoricalColumns: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>) {
+    private isMoreThanOneMeasure(categoricalColumns: { Category: powerbi.DataViewCategoryColumn; Y: powerbi.DataViewValueColumn[]; }) {
         return categoricalColumns.Y.length > 1;
     }
 
-    private buildOneMeasureTooltip(formattedCategoryValue: any, value: number, localizationManager: ILocalizationManager): VisualTooltipDataItem[] {
+    private buildOneMeasureTooltip(formattedCategoryValue: PrimitiveValue, value: number, localizationManager: ILocalizationManager): VisualTooltipDataItem[] {
         return createTooltipInfo(this.dataView.categorical, formattedCategoryValue, localizationManager, value, 0);
     }
 
-    private buildTwoMeasuresTooltip(formattedCategoryValue: any, value: number, secondValue: number, localizationManager: ILocalizationManager): VisualTooltipDataItem[] {
+    private buildTwoMeasuresTooltip(formattedCategoryValue: PrimitiveValue, value: number, secondValue: number, localizationManager: ILocalizationManager): VisualTooltipDataItem[] {
         const tooltipInfo: VisualTooltipDataItem[] = this.buildOneMeasureTooltip(formattedCategoryValue, value, localizationManager);
 
         const toolTip: VisualTooltipDataItem = createTooltipInfo(
@@ -189,13 +187,13 @@ export class AsterPlotConverterService {
 
     // tslint:disable-next-line: max-func-body-length
     public getConvertedData(localizationManager: ILocalizationManager): AsterPlotData {
-        const categoryValue: any = this.categoricalValueColumns.Category,
+        const categoryValue = this.categoricalValueColumns.Category,
             category: DataViewCategoryColumn = this.categoricalColumns.Category,
             values: number[] = <number[]>this.categoricalColumns.Y[0].values,
-            categoricalColumns: AsterPlotColumns<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns> = this.categoricalColumns;
+            categoricalColumns: { Category: powerbi.DataViewCategoryColumn; Y: powerbi.DataViewValueColumn[]; } = this.categoricalColumns;
 
         for (let i = 0; i < categoryValue.length; i++) {
-            const formattedCategoryValue = categoryValue[i];
+            const formattedCategoryValue: PrimitiveValue = categoryValue[i];
             let currentValue = values[i];
 
             let tooltipInfo: VisualTooltipDataItem[];
@@ -207,7 +205,7 @@ export class AsterPlotConverterService {
                 tooltipInfo = this.buildOneMeasureTooltip(formattedCategoryValue, currentValue, localizationManager);
             }
 
-            const colorFromPalette = this.colorHelper.getColorForMeasure(category.objects && category.objects[i], (<any>category.identity[i]).identityIndex)
+            const colorFromPalette = this.colorHelper.getColorForMeasure(category.objects && category.objects[i], (<{ identityIndex: number }>category.identity[i]).identityIndex)
             const dataPointFillColor: string = dataViewObjects.getFillColor(category.objects && category.objects[i] || category.source.objects, AsterPlotConverterService.PiesPropertyIdentifier);
             const fillColor: string = dataPointFillColor || colorFromPalette;
 
@@ -224,7 +222,7 @@ export class AsterPlotConverterService {
                 this.dataPoints.push({
                     sliceHeight: values[i],
                     sliceWidth,
-                    label: this.labelFormatter.format(<any>currentValue),
+                    label: this.labelFormatter.format(currentValue),
                     fillColor,
                     strokeColor,
                     strokeWidth,
@@ -233,14 +231,14 @@ export class AsterPlotConverterService {
                     tooltipInfo,
                     labelFontSize: this.fontSizeInPx,
                     highlight: false,
-                    categoryName: formattedCategoryValue,
+                    categoryName: formattedCategoryValue.toString(),
                 });
             }
 
             // Handle legend data
             if (this.settings.legend.show.value) {
                 this.legendData.dataPoints.push({
-                    label: formattedCategoryValue,
+                    label: formattedCategoryValue.toString(),
                     color: strokeColor,
                     // icon: LegendIcon.Box,
                     selected: false,
@@ -268,7 +266,7 @@ export class AsterPlotConverterService {
                 this.highlightedDataPoints.push({
                     sliceHeight: isNotNull ? highlightValues[i] : null,
                     sliceWidth: Math.max(0, (categoricalColumns.Y.length > 1 && categoricalColumns.Y[1].highlights[i] !== null) ? <number>categoricalColumns.Y[1].highlights[i] : sliceWidth),
-                    label: this.labelFormatter.format(<any>currentValue),
+                    label: this.labelFormatter.format(currentValue),
                     fillColor,
                     strokeColor,
                     strokeWidth,
@@ -277,7 +275,7 @@ export class AsterPlotConverterService {
                     tooltipInfo,
                     labelFontSize: this.fontSizeInPx,
                     highlight: true,
-                    categoryName: formattedCategoryValue
+                    categoryName: formattedCategoryValue.toString()
                 });
             }
         }

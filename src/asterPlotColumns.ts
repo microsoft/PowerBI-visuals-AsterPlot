@@ -33,41 +33,41 @@ import DataViewValueColumns = powerbi.DataViewValueColumns;
 
 // powerbi.extensibility.utils.dataview
 import { converterHelper } from "powerbi-visuals-utils-dataviewutils";
-
-
 import { toArray, mapValues } from "lodash-es";
 
 export class AsterPlotColumns<T> {
-    // tslint:disable-next-line: function-name
-    public static getCategoricalValues(dataView: DataView) {
+    public static getCategoricalValues(dataView: DataView): { Category: powerbi.PrimitiveValue[]; Y: powerbi.PrimitiveValue[]; } {
         const categorical = dataView && dataView.categorical;
         const categories: (DataViewCategoryColumn | DataViewValueColumn)[] = categorical && categorical.categories || [];
         const values = categorical && categorical.values || <DataViewValueColumns>[];
         const series = categorical && values.source && this.getSeriesValues(dataView);
-        return categorical && mapValues(new this<any[]>(), (n, i) =>
+        return categorical && mapValues(new this<unknown[]>(), (n, i) =>
             (<(DataViewCategoryColumn | DataViewValueColumn)[]>toArray(categories)).concat(toArray(values))
                 .filter(x => x.source.roles && x.source.roles[i]).map(x => x.values)[0]
             || values.source && values.source.roles && values.source.roles[i] && series);
     }
 
-    // tslint:disable-next-line: function-name
-    public static getSeriesValues(dataView: DataView) {
+    public static getSeriesValues(dataView: DataView): powerbi.PrimitiveValue[] {
         return dataView && dataView.categorical && dataView.categorical.values
             && dataView.categorical.values.map(x => converterHelper.getSeriesName(x.source));
     }
 
-    // tslint:disable-next-line: function-name
-    public static getCategoricalColumns(dataView: DataView) {
+    public static getCategoricalColumns(dataView: DataView): { Category: powerbi.DataViewCategoryColumn; Y: powerbi.DataViewValueColumn[]; }  {
         const categorical = dataView && dataView.categorical;
         const categories = categorical && categorical.categories || [];
         const values = categorical && categorical.values || <DataViewValueColumns>[];
-        return categorical && mapValues(
-            new this<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>(),
-            (n, i) => {
-                return categories.filter(x => x.source.roles && x.source.roles[i])[0]
-                    || values.source && values.source.roles && values.source.roles[i]
-                    || values.filter(x => x.source.roles && x.source.roles[i]);
-            });
+
+        return {
+            Category: categories.filter(x => x.source.roles && x.source.roles["Category"])[0],
+            Y: values.filter(x => x.source.roles && x.source.roles["Y"]),
+        }
+
+        // return categorical && mapValues(
+        //     new this<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>(),
+        //     (n, i) => {
+        //         return categories.filter(x => x.source.roles && x.source.roles[i])[0]
+        //             || values.filter(x => x.source.roles && x.source.roles[i]);
+        //     });
     }
 
     // Data Roles
