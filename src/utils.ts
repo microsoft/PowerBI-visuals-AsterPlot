@@ -40,9 +40,9 @@ export function getFillOpacity(selected: boolean, highlight: boolean, hasSelecti
 export function getLegendFillOpacity(
     selected: boolean,
     hasSelection: boolean,
-    isHCM: boolean): number {
+    isHighContrastMode: boolean): number {
 
-    if ((hasSelection && !selected) && isHCM) {
+    if ((hasSelection && !selected) && isHighContrastMode) {
         return DimmedOpacity;
     }
 
@@ -53,9 +53,9 @@ export function getLegendFill(
     selected: boolean,
     hasSelection: boolean,
     defaultColor: string,
-    isHCM: boolean): string {
+    isHighContrastMode: boolean): string {
 
-    if ((hasSelection && !selected) && !isHCM) {
+    if ((hasSelection && !selected) && !isHighContrastMode) {
         return DimmedColor;
     }
 

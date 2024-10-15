@@ -25,7 +25,7 @@
  */
 
 import { Selection as d3Selection } from "d3-selection";
-import { PieArcDatum } from "d3-shape";
+import { PieArcDatum as d3PieArcDatum } from "d3-shape";
 import powerbi from "powerbi-visuals-api";
 import { legendInterfaces, dataLabelInterfaces } from "powerbi-visuals-utils-chartutils";
 import { ColorHelper } from "powerbi-visuals-utils-colorutils";
@@ -50,12 +50,12 @@ export interface SelectableDataPoint extends BaseDataPoint {
 }
 
 export interface BehaviorOptions {
-    selection: d3Selection<SVGPathElement, PieArcDatum<AsterDataPoint>, SVGGElement, null>;
+    selection: d3Selection<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null>;
     legendItems: d3Selection<SVGGElement, LegendDataPoint, SVGGElement, null>;
     legendIcons: d3Selection<SVGElement, LegendDataPoint, null, undefined>;
-    outerLine: d3Selection<SVGPathElement, PieArcDatum<AsterDataPoint>, SVGGElement, null>;
+    outerLine: d3Selection<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null>;
     centerLabel: d3Selection<SVGTextElement, null, HTMLElement, null>;
-    lineLabels: d3Selection<SVGLineElement, PieArcDatum<AsterDataPoint> & LabelEnabledDataPoint, SVGGElement, null>;
+    lineLabels: d3Selection<SVGLineElement, d3PieArcDatum<AsterDataPoint> & LabelEnabledDataPoint, SVGGElement, null>;
     clearCatcher: d3Selection<SVGRectElement, null, HTMLElement, null>;
     hasHighlights: boolean;
     formatMode: boolean;
@@ -110,7 +110,7 @@ export class Behavior {
     }
 
     private bindClickEvents(): void {
-        this.options.selection.on("click", (event: MouseEvent, d: PieArcDatum<AsterDataPoint>) => {
+        this.options.selection.on("click", (event: MouseEvent, d: d3PieArcDatum<AsterDataPoint>) => {
             event.stopPropagation();
             this.selectDataPoint(d.data, event.ctrlKey || event.metaKey || event.shiftKey);
             this.onSelectCallback();
@@ -129,7 +129,7 @@ export class Behavior {
     }
 
     private bindContextMenuEvents(): void {
-        this.options.selection.on("contextmenu", (event: MouseEvent, dataPoint: PieArcDatum<AsterDataPoint>) => {
+        this.options.selection.on("contextmenu", (event: MouseEvent, dataPoint: d3PieArcDatum<AsterDataPoint>) => {
             event.preventDefault();
             event.stopPropagation();
 
@@ -148,7 +148,7 @@ export class Behavior {
             });
         });
 
-        this.options.outerLine.on("contextmenu", (event: MouseEvent, dataPoint: PieArcDatum<AsterDataPoint>) => {
+        this.options.outerLine.on("contextmenu", (event: MouseEvent, dataPoint: d3PieArcDatum<AsterDataPoint>) => {
             event.preventDefault();
             event.stopPropagation();
 
@@ -181,7 +181,7 @@ export class Behavior {
     }
 
     private bindKeyboardEvents(): void {
-        this.options.selection.on("keydown", (event: KeyboardEvent, d: PieArcDatum<AsterDataPoint>) => {
+        this.options.selection.on("keydown", (event: KeyboardEvent, d: d3PieArcDatum<AsterDataPoint>) => {
             if (event.code == EnterCode || event.code == SpaceCode) {
                 event.preventDefault();
                 this.selectDataPoint(d.data, event.ctrlKey || event.metaKey || event.shiftKey);
@@ -260,7 +260,7 @@ export class Behavior {
             );
         });
 
-        this.options.selection.attr("aria-selected", (d: PieArcDatum<AsterDataPoint>) => {
+        this.options.selection.attr("aria-selected", (d: d3PieArcDatum<AsterDataPoint>) => {
             return d.data.selected;
         })
         this.changeOpacityAttribute("fill-opacity", dataPointHasSelection);
@@ -268,7 +268,7 @@ export class Behavior {
     }
     
     private changeOpacityAttribute(attributeName: string, hasSelection: boolean) {
-        this.options.selection.style(attributeName, (d: PieArcDatum<AsterDataPoint>) => {
+        this.options.selection.style(attributeName, (d: d3PieArcDatum<AsterDataPoint>) => {
             return asterPlotUtils.getFillOpacity(
                 d.data.selected,
                 d.data.highlight,
