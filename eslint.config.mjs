@@ -10,7 +10,7 @@ export default [
             "dist/**",
             ".vscode/**",
             ".tmp/**",
-            "coveragep/**",
+            "coverage/**",
             "test/**",
             "karma.conf.ts",
             "test.webpack.config.js"
