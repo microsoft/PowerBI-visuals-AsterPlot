@@ -24,7 +24,6 @@
  *  THE SOFTWARE.
  */
 
-// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 
 import IViewport = powerbi.IViewport;

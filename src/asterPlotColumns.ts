@@ -24,7 +24,6 @@
  *  THE SOFTWARE.
  */
 
-// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 import DataView = powerbi.DataView;
 import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
@@ -34,9 +33,10 @@ import DataViewValueColumns = powerbi.DataViewValueColumns;
 // powerbi.extensibility.utils.dataview
 import { converterHelper } from "powerbi-visuals-utils-dataviewutils";
 import { toArray, mapValues } from "lodash-es";
+import { CategoricalColumns, CategoricalValueColumns } from "./services/asterPlotConverterService";
 
 export class AsterPlotColumns<T> {
-    public static getCategoricalValues(dataView: DataView): { Category: powerbi.PrimitiveValue[]; Y: powerbi.PrimitiveValue[]; } {
+    public static getCategoricalValues(dataView: DataView): CategoricalValueColumns {
         const categorical = dataView && dataView.categorical;
         const categories: (DataViewCategoryColumn | DataViewValueColumn)[] = categorical && categorical.categories || [];
         const values = categorical && categorical.values || <DataViewValueColumns>[];
@@ -52,22 +52,15 @@ export class AsterPlotColumns<T> {
             && dataView.categorical.values.map(x => converterHelper.getSeriesName(x.source));
     }
 
-    public static getCategoricalColumns(dataView: DataView): { Category: powerbi.DataViewCategoryColumn; Y: powerbi.DataViewValueColumn[]; }  {
+    public static getCategoricalColumns(dataView: DataView): CategoricalColumns  {
         const categorical = dataView && dataView.categorical;
         const categories = categorical && categorical.categories || [];
         const values = categorical && categorical.values || <DataViewValueColumns>[];
 
         return {
-            Category: categories.filter(x => x.source.roles && x.source.roles["Category"])[0],
+            Category: categories.find(x => x.source.roles && x.source.roles["Category"]),
             Y: values.filter(x => x.source.roles && x.source.roles["Y"]),
         }
-
-        // return categorical && mapValues(
-        //     new this<DataViewCategoryColumn & DataViewValueColumn[] & DataViewValueColumns>(),
-        //     (n, i) => {
-        //         return categories.filter(x => x.source.roles && x.source.roles[i])[0]
-        //             || values.filter(x => x.source.roles && x.source.roles[i]);
-        //     });
     }
 
     // Data Roles

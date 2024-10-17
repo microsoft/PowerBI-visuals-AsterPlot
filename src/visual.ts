@@ -26,7 +26,6 @@
 
 
 // powerbi
-// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 
 // powerbi.extensibility.utils.svg
@@ -136,7 +135,6 @@ const TitleEdit: SubSelectableDirectEdit = {
     style: SubSelectableDirectEditStyle.HorizontalLeft,
 };
 
-// tslint:disable-next-line: export-name
 export class AsterPlot implements IVisual {
     private static AsterSlices: ClassAndSelector = createClassAndSelector("asterSlices");
     private static AsterSlice: ClassAndSelector = createClassAndSelector("asterSlice");
@@ -252,7 +250,6 @@ export class AsterPlot implements IVisual {
         this.legendItems = this.legendGroup.selectChildren<SVGGElement, null>(AsterPlot.LegendItemSelector.selectorName);
     }
 
-    // tslint:disable-next-line: function-name
     public static converter(dataView: DataView, settings: AsterPlotSettingsModel, colors: IColorPalette, colorHelper: ColorHelper, visualHost: IVisualHost, localizationManager: ILocalizationManager): AsterPlotData {
         const categorical = AsterPlotColumns.getCategoricalColumns(dataView);
 

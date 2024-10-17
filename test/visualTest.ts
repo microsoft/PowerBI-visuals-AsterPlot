@@ -27,17 +27,17 @@
 import PrimitiveValue = powerbi.PrimitiveValue;
 
 // powerbi
-// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 import DataView = powerbi.DataView;
 import IColorPalette = powerbi.extensibility.IColorPalette;
+
 // powerbi.extensibility.utils.type
 import { pixelConverter as PixelConverter } from "powerbi-visuals-utils-typeutils";
 
 // powerbi.extensibility.utils.chart
-import * as LegendUtil from "powerbi-visuals-utils-chartutils";
-import legendData = LegendUtil.legendData;
-
+import { legendData } from "powerbi-visuals-utils-chartutils";
+// import * as LegendUtil from "powerbi-visuals-utils-chartutils";
+// import legendData = LegendUtil.legendData;
 
 // powerbi.extensibility.utils.chart
 
@@ -599,7 +599,6 @@ describe("AsterPlot", () => {
 
         describe("Custom Legend", () => {
             const labelFontSizeInPoints: number = 10,
-                // tslint:disable-next-line: mocha-no-side-effect-code
                 labelFonSizeInPixels: number = Math.round(
                     PixelConverter.fromPointToPixel(labelFontSizeInPoints)),
                 customLegendTitle = "My title";

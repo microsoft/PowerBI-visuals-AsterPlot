@@ -28,7 +28,6 @@
 import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 
 // powerbi
-// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 import PrimitiveValue = powerbi.PrimitiveValue;
 import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
