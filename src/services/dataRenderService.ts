@@ -293,11 +293,12 @@ export class DataRenderService {
             .style("opacity", function(_: number, i: number, n: SVGCircleElement[] | ArrayLike<SVGCircleElement>) {
                 const nodes = circle.nodes();
                 const index = nodes.indexOf(n[i]);
-                if (index === ticksCount - 1) {
+
+                if (index === ticksCount - 1 || !settings.showGrid.value) {
                     return 0;
                 }
 
-                return settings.showGrid.value ? 0.5 : 0;
+                return 0.5;
             })
             .style("stroke", color)
             .style("fill", "none");
@@ -592,7 +593,6 @@ export class DataRenderService {
             .data(
                 filteredData,
                 (d: d3PieArcDatum<AsterDataPoint>) => {
-                    // TODO: check the types
                     return (<ISelectionId>d.data.identity).getKey();
                 });
 
@@ -640,7 +640,6 @@ export class DataRenderService {
             .data(
                 filteredData,
                 (d: d3PieArcDatum<AsterDataPoint>) => {
-                    // TODO: check types
                     return (<ISelectionId>d.data.identity).getKey();
                 });
 
@@ -669,7 +668,7 @@ export class DataRenderService {
                 chartPoint[0] *= DataRenderService.ChartLinePadding;
                 chartPoint[1] *= DataRenderService.ChartLinePadding;
 
-                const result = [].concat(chartPoint).concat(textPoint)
+                const result = [].concat(chartPoint, textPoint);
                 return result;
             })
             .style("opacity", 0.5)

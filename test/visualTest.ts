@@ -36,11 +36,6 @@ import { pixelConverter as PixelConverter } from "powerbi-visuals-utils-typeutil
 
 // powerbi.extensibility.utils.chart
 import { legendData } from "powerbi-visuals-utils-chartutils";
-// import * as LegendUtil from "powerbi-visuals-utils-chartutils";
-// import legendData = LegendUtil.legendData;
-
-// powerbi.extensibility.utils.chart
-
 
 // powerbi.extensibility.visual.test
 import { AsterPlotData } from "./asterPlotData";
@@ -174,12 +169,17 @@ describe("AsterPlot", () => {
                 expect(linesAfterResize.length).toBeLessThanOrEqual(numOfLabels);
                 expect(labelsAfterResize.length).toBeLessThanOrEqual(numOfLabels);
 
-                const firstLabelX: string = labels[0].getAttribute("x")!,
-                    firstLabelY: string = labels[0].getAttribute("y")!,
-                    lastLabelY: string = labels[labels.length - 1].getAttribute("y")!,
-                    firstResizeLabelX: string = labelsAfterResize[0].getAttribute("x")!,
-                    firstResizeLabelY: string = labelsAfterResize[0].getAttribute("y")!,
-                    lastResizeLabelY: string = labelsAfterResize[labelsAfterResize.length - 1].getAttribute("y")!;
+                const firstLabel = labels[0],
+                    lastLabel = labels[labels.length - 1],
+                    firstResizeLabel = labelsAfterResize[0],
+                    lastResizeLabel = labelsAfterResize[labelsAfterResize.length - 1];;
+
+                const firstLabelX: string = firstLabel.getAttribute("x")!,
+                    firstLabelY: string = firstLabel.getAttribute("y")!,
+                    lastLabelY: string = lastLabel.getAttribute("y")!,
+                    firstResizeLabelX: string = firstResizeLabel.getAttribute("x")!,
+                    firstResizeLabelY: string = firstResizeLabel.getAttribute("y")!,
+                    lastResizeLabelY: string = lastResizeLabel.getAttribute("y")!;
 
                 expect(firstLabelX).toBeGreaterThan(parseFloat(firstResizeLabelX));
                 expect(firstLabelY).toBeLessThan(parseFloat(firstResizeLabelY));

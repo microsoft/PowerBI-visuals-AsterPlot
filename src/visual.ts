@@ -84,7 +84,7 @@ import {
 } from "powerbi-visuals-utils-onobjectutils"
 
 // d3
-import { select, Selection as d3Selection } from "d3-selection";
+import { select as d3Select, Selection as d3Selection } from "d3-selection";
 import {PieArcDatum} from "d3-shape";
 
 import IViewport = powerbi.IViewport;
@@ -217,7 +217,7 @@ export class AsterPlot implements IVisual {
             left: 10
         });
 
-        const rootElement: d3Selection<HTMLElement, null, HTMLElement, null> = select(options.element);
+        const rootElement: d3Selection<HTMLElement, null, HTMLElement, null> = d3Select(options.element);
 
         const svg = this.svg = rootElement
             .append("svg")
@@ -242,8 +242,7 @@ export class AsterPlot implements IVisual {
             .attr("role", "listbox")
             .attr("aria-multiselectable", "true");
 
-        const isScrollable: boolean = false;
-        this.legend = createLegend(options.element, isScrollable);
+        this.legend = createLegend(options.element, true);
 
         this.legendElement = rootElement.select<SVGSVGElement>("svg.legend");
         this.legendGroup = this.legendElement.selectChild<SVGGElement>("g#legendGroup");
@@ -495,11 +494,11 @@ export class AsterPlot implements IVisual {
     }
 
     private selectionIdCallback(e: HTMLElement) {
-        const elementType: string = select(e).attr(SubSelectableObjectNameAttribute);
+        const elementType: string = d3Select(e).attr(SubSelectableObjectNameAttribute);
 
         switch (elementType) {
             case AsterPlotObjectNames.Pies.name: {
-                const datum = select<Element, PieArcDatum<AsterDataPoint>>(e).datum();
+                const datum = d3Select<Element, PieArcDatum<AsterDataPoint>>(e).datum();
                 return datum?.data.identity;
             }
             default:
