@@ -197,18 +197,16 @@ export class Behavior {
         const isSelected: boolean = this.isDataPointSelected(dataPoint, selectedIds);
 
         const selectionIdsToSelect: ISelectionId[] = [];
-        if (!isSelected) {
-            dataPoint.selected = true;
+        dataPoint.selected = !isSelected;
+        if (!isSelected || multiSelect) {
             selectionIdsToSelect.push(dataPoint.identity);
-        } else {
-            // toggle selected back to false
-            dataPoint.selected = false;
-            if (multiSelect) {
-                selectionIdsToSelect.push(dataPoint.identity);
-            }
         }
 
-        this.selectionManager.select(selectionIdsToSelect, multiSelect);
+        if (selectionIdsToSelect.length === 0) {
+            this.selectionManager.clear();
+        } else {
+            this.selectionManager.select(selectionIdsToSelect, multiSelect);
+        }
     }
 
     private onSelectCallback(selectionIds?: ISelectionId[]): void {
