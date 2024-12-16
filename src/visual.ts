@@ -221,8 +221,7 @@ export class AsterPlot implements IVisual {
 
         const svg = this.svg = rootElement
             .append("svg")
-            .classed(AsterPlotVisualClassName, true)
-            .style("position", "absolute");
+            .classed(AsterPlotVisualClassName, true);
 
         this.colorPalette = options.host.colorPalette;
         this.colorHelper = new ColorHelper(this.colorPalette);
@@ -232,15 +231,13 @@ export class AsterPlot implements IVisual {
         this.behavior = new Behavior(this.colorHelper, this.selectionManager);
         this.clearCatcher = this.mainGroupElement
             .append("rect")
-            .classed("clearCatcher", true)
-            .attr("width", "100%")
-            .attr("height", "100%");
+            .classed("clearCatcher", true);
 
-        this.slicesElement = this.mainGroupElement
-            .append("g")
-            .classed(AsterPlot.AsterSlices.className, true)
-            .attr("role", "listbox")
-            .attr("aria-multiselectable", "true");
+this.slicesElement = this.mainGroupElement
+    .append("g")
+    .classed(AsterPlot.AsterSlices.className, true)
+    .attr("role", "listbox")
+    .attr("aria-multiselectable", "true");
 
         this.legend = createLegend(options.element, true);
 

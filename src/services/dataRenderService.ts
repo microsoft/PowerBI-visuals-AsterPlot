@@ -252,12 +252,12 @@ export class DataRenderService {
             .attr("stroke", d => d.data.strokeColor)
             .attr("stroke-width", d => d.data.strokeWidth)
             .call(selection => {
-                return !this.layout.viewportChanged
-                    ? selection.attr("d", (d) => arc.call(this, d))
-                    : selection
+                return this.layout.viewportChanged
+                    ? selection
                         .transition()
                         .duration(DataRenderService.AnimationDuration)
-                        .attrTween("d", interpolateArc(this, arc));
+                        .attrTween("d", interpolateArc(this, arc))
+                    : selection.attr("d", (d) => arc.call(this, d));
             });
 
         this.applyTooltipToSelection(selection);

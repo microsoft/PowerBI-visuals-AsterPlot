@@ -58,8 +58,8 @@ export class AsterPlotColumns<T> {
         const values = categorical && categorical.values || <DataViewValueColumns>[];
 
         return {
-            Category: categories.find(x => x.source.roles && x.source.roles["Category"]),
-            Y: values.filter(x => x.source.roles && x.source.roles["Y"]),
+            Category: categories.find(x => x.source?.roles["Category"]),
+            Y: values.filter(x => x.source?.roles["Y"]),
         }
     }
 

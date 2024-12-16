@@ -37,8 +37,10 @@ import ISelectionManager = powerbi.extensibility.ISelectionManager;
 import LegendDataPoint = legendInterfaces.LegendDataPoint;
 import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
 
-const EnterCode = "Enter";
-const SpaceCode = "Space";
+const enum KeyboardEventCode {
+    ENTER = "Enter",
+    SPACE = "Space"
+}
 
 export interface BaseDataPoint {
     selected: boolean;
@@ -129,7 +131,7 @@ export class Behavior {
     }
 
     private bindContextMenuEvents(): void {
-        this.options.selection.on("contextmenu", (event: MouseEvent, dataPoint: d3PieArcDatum<AsterDataPoint>) => {
+        const handleAsterDataPointContextMenuEvent = (event: MouseEvent, dataPoint: d3PieArcDatum<AsterDataPoint>) => {
             event.preventDefault();
             event.stopPropagation();
 
@@ -137,22 +139,15 @@ export class Behavior {
                 x: event.clientX,
                 y: event.clientY
             });
-        });
+        }
+
+        this.options.selection.on("contextmenu", handleAsterDataPointContextMenuEvent);
+        this.options.outerLine.on("contextmenu", handleAsterDataPointContextMenuEvent);
 
         this.options.legendItems.on("contextmenu", (event: MouseEvent, dataPoint: LegendDataPoint) => {
             event.preventDefault();
             event.stopPropagation();
             this.selectionManager.showContextMenu(dataPoint.identity, {
-                x: event.clientX,
-                y: event.clientY
-            });
-        });
-
-        this.options.outerLine.on("contextmenu", (event: MouseEvent, dataPoint: d3PieArcDatum<AsterDataPoint>) => {
-            event.preventDefault();
-            event.stopPropagation();
-
-            this.selectionManager.showContextMenu(dataPoint.data.identity, {
                 x: event.clientX,
                 y: event.clientY
             });
@@ -182,7 +177,7 @@ export class Behavior {
 
     private bindKeyboardEvents(): void {
         this.options.selection.on("keydown", (event: KeyboardEvent, d: d3PieArcDatum<AsterDataPoint>) => {
-            if (event.code == EnterCode || event.code == SpaceCode) {
+            if (event.code == KeyboardEventCode.ENTER || event.code == KeyboardEventCode.SPACE) {
                 event.preventDefault();
                 this.selectDataPoint(d.data, event.ctrlKey || event.metaKey || event.shiftKey);
                 this.onSelectCallback();

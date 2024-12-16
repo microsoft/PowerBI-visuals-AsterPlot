@@ -91,7 +91,7 @@ export class AsterPlotConverterService {
         visualHost: IVisualHost,
         categorical?: CategoricalColumns) {
         this.dataView = dataView;
-        this.categoricalColumns = categorical ? categorical : AsterPlotColumns.getCategoricalColumns(dataView);
+        this.categoricalColumns = categorical || AsterPlotColumns.getCategoricalColumns(dataView);
         this.categoricalValueColumns = AsterPlotColumns.getCategoricalValues(dataView);
         this.settings = settings;
         this.colorHelper = new ColorHelper(colors, AsterPlotConverterService.PiesPropertyIdentifier, "");

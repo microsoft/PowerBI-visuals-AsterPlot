@@ -135,8 +135,8 @@ describe("AsterPlot", () => {
             it("Default Data Labels", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                const numOfLabels: number = dataView.categorical!.values![0].values.length,
-                    labels: NodeListOf<HTMLElement> = visualBuilder.dataLabels;
+                const numOfLabels: number = dataView.categorical!.values![0].values.length;
+                const labels: NodeListOf<HTMLElement> = visualBuilder.dataLabels;
 
                 expect(labels.length).toBe(numOfLabels);
 
@@ -152,9 +152,9 @@ describe("AsterPlot", () => {
             it("Data Labels have conflict with viewport", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
-                const numOfLabels: number = dataView.categorical!.values![0].values.length,
-                    labels: NodeListOf<HTMLElement> = visualBuilder.dataLabels,
-                    lines: NodeListOf<HTMLElement> = visualBuilder.lineLabels;
+                const numOfLabels: number = dataView.categorical!.values![0].values.length;
+                const labels: HTMLElement[] = Array.from(visualBuilder.dataLabels);
+                const lines: HTMLElement[] = Array.from(visualBuilder.lineLabels);
 
                 expect(lines.length).toBeLessThanOrEqual(numOfLabels);
                 expect(labels.length).toBe(numOfLabels);
@@ -163,23 +163,23 @@ describe("AsterPlot", () => {
                 visualBuilder.viewport = { height: 250, width: 400 };
                 visualBuilder.update(dataView);
 
-                const labelsAfterResize: NodeListOf<HTMLElement> = visualBuilder.dataLabels,
-                    linesAfterResize: NodeListOf<HTMLElement> = visualBuilder.lineLabels;
+                const labelsAfterResize: HTMLElement[] = Array.from(visualBuilder.dataLabels);
+                const linesAfterResize: HTMLElement[] = Array.from(visualBuilder.lineLabels);
 
                 expect(linesAfterResize.length).toBeLessThanOrEqual(numOfLabels);
                 expect(labelsAfterResize.length).toBeLessThanOrEqual(numOfLabels);
 
-                const firstLabel = labels[0],
-                    lastLabel = labels[labels.length - 1],
-                    firstResizeLabel = labelsAfterResize[0],
-                    lastResizeLabel = labelsAfterResize[labelsAfterResize.length - 1];;
+                const firstLabel = labels.at(0)!;
+                const lastLabel = labels.at(-1)!;
+                const firstResizeLabel = labelsAfterResize.at(0)!;
+                const lastResizeLabel = labelsAfterResize.at(-1)!;
 
-                const firstLabelX: string = firstLabel.getAttribute("x")!,
-                    firstLabelY: string = firstLabel.getAttribute("y")!,
-                    lastLabelY: string = lastLabel.getAttribute("y")!,
-                    firstResizeLabelX: string = firstResizeLabel.getAttribute("x")!,
-                    firstResizeLabelY: string = firstResizeLabel.getAttribute("y")!,
-                    lastResizeLabelY: string = lastResizeLabel.getAttribute("y")!;
+                const firstLabelX: string = firstLabel.getAttribute("x")!;
+                const firstLabelY: string = firstLabel.getAttribute("y")!;
+                const lastLabelY: string = lastLabel.getAttribute("y")!;
+                const firstResizeLabelX: string = firstResizeLabel.getAttribute("x")!;
+                const firstResizeLabelY: string = firstResizeLabel.getAttribute("y")!;
+                const lastResizeLabelY: string = lastResizeLabel.getAttribute("y")!;
 
                 expect(firstLabelX).toBeGreaterThan(parseFloat(firstResizeLabelX));
                 expect(firstLabelY).toBeLessThan(parseFloat(firstResizeLabelY));
