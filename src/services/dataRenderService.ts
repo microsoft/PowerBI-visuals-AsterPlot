@@ -267,26 +267,16 @@ export class DataRenderService {
         const color: string = settings.color.value.value;
         const ticksCount: number = this.ticksRadiusArray.length;
 
-        let circleAxes: d3Selection<SVGGElement, number, SVGGElement, null> = element
+        const circleAxes: d3Selection<SVGGElement, number, SVGGElement, null> = element
             .selectAll<SVGGElement, number>("g" + DataRenderService.CircleLine.selectorName)
-            .data(this.ticksRadiusArray);
+            .data(this.ticksRadiusArray)
+            .join("g")
+            .classed(DataRenderService.CircleLine.className, true);
 
-        circleAxes.exit().remove();
-        circleAxes = circleAxes.merge(
-            circleAxes
-            .enter()
-            .append("g")
-            .classed(DataRenderService.CircleLine.className, true)
-        );
-
-        let circle = circleAxes
+        const circle = circleAxes
             .selectAll<SVGCircleElement, number>("circle")
-            .data((t) => [t]);
-
-        circle.exit().remove();
-        circle = circle.merge(circle
-            .enter()
-            .append("circle"));
+            .data((t) => [t])
+            .join("circle");
 
         circle
             .attr("r", (d) => d)

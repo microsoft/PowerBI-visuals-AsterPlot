@@ -233,11 +233,11 @@ export class AsterPlot implements IVisual {
             .append("rect")
             .classed("clearCatcher", true);
 
-this.slicesElement = this.mainGroupElement
-    .append("g")
-    .classed(AsterPlot.AsterSlices.className, true)
-    .attr("role", "listbox")
-    .attr("aria-multiselectable", "true");
+        this.slicesElement = this.mainGroupElement
+            .append("g")
+            .classed(AsterPlot.AsterSlices.className, true)
+            .attr("role", "listbox")
+            .attr("aria-multiselectable", "true");
 
         this.legend = createLegend(options.element, true);
 

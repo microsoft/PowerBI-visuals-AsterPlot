@@ -131,27 +131,20 @@ export class Behavior {
     }
 
     private bindContextMenuEvents(): void {
-        const handleAsterDataPointContextMenuEvent = (event: MouseEvent, dataPoint: d3PieArcDatum<AsterDataPoint>) => {
+        const handleContextMenuEvent = (event: MouseEvent, identity?: ISelectionId) => {
             event.preventDefault();
             event.stopPropagation();
 
-            this.selectionManager.showContextMenu(dataPoint?.data?.identity ?? {}, {
+            this.selectionManager.showContextMenu(identity ?? {}, {
                 x: event.clientX,
                 y: event.clientY
             });
-        }
+        };
 
-        this.options.selection.on("contextmenu", handleAsterDataPointContextMenuEvent);
-        this.options.outerLine.on("contextmenu", handleAsterDataPointContextMenuEvent);
+        this.options.selection.on("contextmenu", (event: MouseEvent, dataPoint: d3PieArcDatum<AsterDataPoint>) => handleContextMenuEvent(event, dataPoint?.data?.identity));
+        this.options.outerLine.on("contextmenu", (event: MouseEvent, dataPoint: d3PieArcDatum<AsterDataPoint>) => handleContextMenuEvent(event, dataPoint?.data?.identity));
 
-        this.options.legendItems.on("contextmenu", (event: MouseEvent, dataPoint: LegendDataPoint) => {
-            event.preventDefault();
-            event.stopPropagation();
-            this.selectionManager.showContextMenu(dataPoint.identity, {
-                x: event.clientX,
-                y: event.clientY
-            });
-        });
+        this.options.legendItems.on("contextmenu", (event: MouseEvent, dataPoint: LegendDataPoint) => handleContextMenuEvent(event, dataPoint?.identity));
 
         const handleEmptyContextMenu = (event: MouseEvent) => {
             event.preventDefault();
