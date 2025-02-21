@@ -26,6 +26,8 @@
 
 export const DimmedOpacity: number = 0.4;
 export const DefaultOpacity: number = 1.0;
+export const DimmedColor: string = "#A6A6A6";
+
 
 export function getFillOpacity(selected: boolean, highlight: boolean, hasSelection: boolean, hasPartialHighlights: boolean): number {
     if ((hasPartialHighlights && !highlight) || (hasSelection && !selected)) {
@@ -33,4 +35,29 @@ export function getFillOpacity(selected: boolean, highlight: boolean, hasSelecti
     }
 
     return DefaultOpacity;
+}
+
+export function getLegendFillOpacity(
+    selected: boolean,
+    hasSelection: boolean,
+    isHighContrastMode: boolean): number {
+
+    if ((hasSelection && !selected) && isHighContrastMode) {
+        return DimmedOpacity;
+    }
+
+    return DefaultOpacity;
+}
+
+export function getLegendFill(
+    selected: boolean,
+    hasSelection: boolean,
+    defaultColor: string,
+    isHighContrastMode: boolean): string {
+
+    if ((hasSelection && !selected) && !isHighContrastMode) {
+        return DimmedColor;
+    }
+
+    return defaultColor;
 }

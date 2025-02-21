@@ -25,17 +25,11 @@
  */
 
 
-import * as d3 from "d3";
-import { Arc } from "d3-shape";
-// d3
-export type ArcDescriptor<T> = Arc<any, T>;
-
 // powerbi
-// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
+import ISelectionId = powerbi.visuals.ISelectionId;
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 
-export type Selection<T> = d3.Selection<any, T, any, any>;
 // powerbi.extensibility.utils.chart
 import * as LegendUtil from "powerbi-visuals-utils-chartutils";
 import LegendData = LegendUtil.legendInterfaces.LegendData;
@@ -44,12 +38,9 @@ import LegendData = LegendUtil.legendInterfaces.LegendData;
 import {valueFormatter} from "powerbi-visuals-utils-formattingutils";
 import IValueFormatter = valueFormatter.IValueFormatter;
 
-// powerbi.extensibility.utils.interactivity
-import { interactivitySelectionService} from "powerbi-visuals-utils-interactivityutils";
-import SelectableDataPoint = interactivitySelectionService.SelectableDataPoint;
+import { SelectableDataPoint } from "./behavior";
 
 import {AsterPlotSettingsModel} from "./asterPlotSettingsModel";
-import ISelectionId = powerbi.visuals.ISelectionId;
 
 export interface AsterPlotData {
     dataPoints: AsterDataPoint[];
@@ -59,11 +50,6 @@ export interface AsterPlotData {
     legendData: LegendData;
     labelFormatter: IValueFormatter;
     centerText: string;
-}
-
-export interface AsterArcDescriptor extends ArcDescriptor<AsterDataPoint> {
-    isLabelHasConflict?: boolean;
-    data: AsterDataPoint;
 }
 
 export interface AsterDataPoint extends SelectableDataPoint {
@@ -78,4 +64,5 @@ export interface AsterDataPoint extends SelectableDataPoint {
     labelFontSize: string;
     categoryName: string;
     identity: ISelectionId;
+    isLabelHasConflict?: boolean;
 }

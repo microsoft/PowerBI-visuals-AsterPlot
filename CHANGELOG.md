@@ -1,3 +1,16 @@
+## 1.7.2
+### Visual changes
+* Create custom styles for keyboard focus of aster slices
+* Fix context menu for center label, outer lines and legends
+* Add report page tooltip support
+
+### Code improvements
+* Update API to 5.11.0, tools to 5.5.1 and other packages
+* Split d3 into submodules
+* Remove interactivity-utils
+* Remove "coveralls" package
+* Update eslint to v9
+
 ## 1.7.1
 * Fix scaling when outerline is enabled
 * Update packages

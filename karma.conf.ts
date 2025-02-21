@@ -46,7 +46,7 @@ module.exports = (config) => {
             }
         },
         colors: true,
-        frameworks: ["jasmine"],
+        frameworks: ["jasmine", "webpack"],
         reporters: ["progress"],
         singleRun: true,
         plugins: [

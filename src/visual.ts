@@ -25,10 +25,7 @@
  */
 
 
-import * as d3 from "d3";
-import {select} from "d3";
 // powerbi
-// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 
 // powerbi.extensibility.utils.svg
@@ -40,9 +37,6 @@ import {pixelConverter as PixelConverter} from "powerbi-visuals-utils-typeutils"
 // powerbi.extensibility.utils.chart
 import * as LegendUtil from "powerbi-visuals-utils-chartutils";
 
-// powerbi.extensibility.utils.interactivity
-import {interactivityBaseService, interactivitySelectionService} from "powerbi-visuals-utils-interactivityutils";
-
 // powerbi.extensibility.utils.color
 import {ColorHelper} from "powerbi-visuals-utils-colorutils";
 
@@ -53,16 +47,20 @@ import {AsterPlotConverterService} from "./services/asterPlotConverterService";
 
 import {AsterPlotColumns} from "./asterPlotColumns";
 
-import {AsterPlotBehaviorOptions, AsterPlotWebBehavior} from "./behavior";
+import {BehaviorOptions, Behavior} from "./behavior";
 
-import {AsterArcDescriptor, AsterDataPoint, AsterPlotData} from "./dataInterfaces";
+import {AsterDataPoint, AsterPlotData} from "./dataInterfaces";
 
 import {VisualLayout} from "./visualLayout";
 
 import {DataRenderService} from "./services/dataRenderService";
 
-import {LegendPosition} from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
-import {createLegend} from "powerbi-visuals-utils-chartutils/lib/legend/legend";
+import { legend as LegendModule, legendInterfaces } from "powerbi-visuals-utils-chartutils";
+import createLegend = LegendModule.createLegend;
+import LegendPosition = legendInterfaces.LegendPosition;
+import LegendDataPoint = legendInterfaces.LegendDataPoint;
+
+
 import {isEmpty} from "lodash-es";
 import "../style/asterPlot.less";
 import {FormattingSettingsService} from "powerbi-visuals-utils-formattingmodel";
@@ -84,9 +82,11 @@ import {
     SubSelectableDisplayNameAttribute,
     SubSelectableObjectNameAttribute
 } from "powerbi-visuals-utils-onobjectutils"
+
+// d3
+import { select as d3Select, Selection as d3Selection } from "d3-selection";
 import {PieArcDatum} from "d3-shape";
 
-type Selection<T> = d3.Selection<any, T, any, any>;
 import IViewport = powerbi.IViewport;
 import DataView = powerbi.DataView;
 import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
@@ -94,6 +94,7 @@ import IVisual = powerbi.extensibility.IVisual;
 import IColorPalette = powerbi.extensibility.IColorPalette;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
+import ISelectionManager = powerbi.extensibility.ISelectionManager;
 // powerbi.extensibility.visual
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
@@ -106,10 +107,6 @@ import ILegend = LegendUtil.legendInterfaces.ILegend;
 import legendData = LegendUtil.legendData;
 import dataLabelUtils = LegendUtil.dataLabelUtils;
 import positionChartArea = LegendUtil.legend.positionChartArea;
-import appendClearCatcher = interactivityBaseService.appendClearCatcher;
-import createInteractivitySelectionService = interactivitySelectionService.createInteractivitySelectionService;
-import IInteractivityService = interactivityBaseService.IInteractivityService;
-import IInteractiveBehavior = interactivityBaseService.IInteractiveBehavior;
 
 import IVisualEventService = powerbi.extensibility.IVisualEventService;
 import FormattingModel = powerbi.visuals.FormattingModel;
@@ -138,37 +135,38 @@ const TitleEdit: SubSelectableDirectEdit = {
     style: SubSelectableDirectEditStyle.HorizontalLeft,
 };
 
-// tslint:disable-next-line: export-name
 export class AsterPlot implements IVisual {
     private static AsterSlices: ClassAndSelector = createClassAndSelector("asterSlices");
     private static AsterSlice: ClassAndSelector = createClassAndSelector("asterSlice");
     private static AsterHighlightedSlice: ClassAndSelector = createClassAndSelector("asterHighlightedSlice");
     private static OuterLine: ClassAndSelector = createClassAndSelector("outerLine");
+    private static LineLabel: ClassAndSelector = createClassAndSelector("line-label")
     private static CenterLabelClass: ClassAndSelector = createClassAndSelector("centerLabel");
     private static LegendTitleSelector: ClassAndSelector = createClassAndSelector("legendTitle");
     private static LegendItemSelector: ClassAndSelector = createClassAndSelector("legendItem");
+    private static LegendIconSelector: ClassAndSelector = createClassAndSelector("legendIcon");
 
     private events: IVisualEventService;
 
     private layout: VisualLayout;
     private rootElement: HTMLElement;
-    private svg: Selection<any>;
-    private mainGroupElement: Selection<any>;
-    private mainLabelsElement: Selection<any>;
-    private slicesElement: Selection<AsterPlotData>;
-    private clearCatcher: Selection<any>;
-    private legendElement: Selection<any>;
-    private legendGroup: Selection<any>;
-    private legendItems: Selection<any>;
+    private svg: d3Selection<SVGSVGElement, null, HTMLElement, null>;
+    private mainGroupElement: d3Selection<SVGGElement, null, HTMLElement, null>;
+    private mainLabelsElement: d3Selection<SVGGElement, null, HTMLElement, null>;
+    private slicesElement: d3Selection<SVGGElement, null, HTMLElement, null>;
+    private clearCatcher: d3Selection<SVGRectElement, null, HTMLElement, null>;
+    private legendElement: d3Selection<SVGSVGElement, null, HTMLElement, null>;
+    private legendGroup: d3Selection<SVGGElement, null, HTMLElement, null>;
+    private legendItems: d3Selection<SVGGElement, LegendDataPoint, SVGGElement, null>;
 
     private colorPalette: IColorPalette;
     private colorHelper: ColorHelper;
 
     private visualHost: IVisualHost;
     private localizationManager: ILocalizationManager;
+    private selectionManager: ISelectionManager;
     private formattingSettingsService: FormattingSettingsService;
 
-    private interactivityService: IInteractivityService<any>;
     private subSelectionHelper: HtmlSubSelectionHelper;
     private formatMode: boolean = false;
     private visualTitleEditSubSelection = JSON.stringify(TitleEdit);
@@ -177,7 +175,7 @@ export class AsterPlot implements IVisual {
 
     private legend: ILegend;
 
-    private behavior: IInteractiveBehavior;
+    private behavior: Behavior;
 
     private tooltipServiceWrapper: ITooltipServiceWrapper;
 
@@ -191,6 +189,7 @@ export class AsterPlot implements IVisual {
         this.events = options.host.eventService;
         this.visualHost = options.host;
         this.localizationManager = this.visualHost.createLocalizationManager();
+        this.selectionManager = this.visualHost.createSelectionManager();
         this.formattingSettingsService = new FormattingSettingsService(this.localizationManager);
         this.rootElement = options.element;
 
@@ -218,43 +217,37 @@ export class AsterPlot implements IVisual {
             left: 10
         });
 
-        const rootElement = select(options.element);
+        const rootElement: d3Selection<HTMLElement, null, HTMLElement, null> = d3Select(options.element);
 
-        const svg: Selection<any> = this.svg = rootElement
+        const svg = this.svg = rootElement
             .append("svg")
-            .classed(AsterPlotVisualClassName, true)
-            .style("position", "absolute");
+            .classed(AsterPlotVisualClassName, true);
 
         this.colorPalette = options.host.colorPalette;
         this.colorHelper = new ColorHelper(this.colorPalette);
-        this.mainGroupElement = svg.append("g");
-        this.mainLabelsElement = svg.append("g");
+        this.mainGroupElement = svg.append("g").attr("id", "mainGroup");
+        this.mainLabelsElement = svg.append("g").attr("id", "mainLabels");
 
-        this.behavior = new AsterPlotWebBehavior();
-        this.clearCatcher = appendClearCatcher(this.mainGroupElement);
+        this.behavior = new Behavior(this.colorHelper, this.selectionManager);
+        this.clearCatcher = this.mainGroupElement
+            .append("rect")
+            .classed("clearCatcher", true);
 
         this.slicesElement = this.mainGroupElement
             .append("g")
+            .classed(AsterPlot.AsterSlices.className, true)
             .attr("role", "listbox")
-            .attr("aria-multiselectable", "true")
-            .classed(AsterPlot.AsterSlices.className, true);
+            .attr("aria-multiselectable", "true");
 
-        this.interactivityService = createInteractivitySelectionService(options.host);
+        this.legend = createLegend(options.element, true);
 
-        this.legend = createLegend(
-            options.element,
-            options.host && false,
-            this.interactivityService,
-            true);
-
-        this.legendElement = rootElement.select("svg.legend");
-        this.legendGroup = this.legendElement.select("g#legendGroup");
-        this.legendItems = this.legendGroup.selectAll(AsterPlot.LegendItemSelector.selectorName);
+        this.legendElement = rootElement.select<SVGSVGElement>("svg.legend");
+        this.legendGroup = this.legendElement.selectChild<SVGGElement>("g#legendGroup");
+        this.legendItems = this.legendGroup.selectChildren<SVGGElement, null>(AsterPlot.LegendItemSelector.selectorName);
     }
 
-    // tslint:disable-next-line: function-name
     public static converter(dataView: DataView, settings: AsterPlotSettingsModel, colors: IColorPalette, colorHelper: ColorHelper, visualHost: IVisualHost, localizationManager: ILocalizationManager): AsterPlotData {
-        const categorical = <any>AsterPlotColumns.getCategoricalColumns(dataView);
+        const categorical = AsterPlotColumns.getCategoricalColumns(dataView);
 
         if (!AsterPlotConverterService.isDataValid(categorical)) {
             return;
@@ -283,11 +276,10 @@ export class AsterPlot implements IVisual {
     }
 
     private applySelectionStateToData(): void {
-        if (this.interactivityService) {
-            this.interactivityService.applySelectionStateToData(
-                this.data.dataPoints.concat(this.data.highlightedDataPoints),
-                this.data.hasHighlights);
-        }
+        this.behavior.setSelectedToDataPointsDefault(
+            this.data.dataPoints.concat(this.data.highlightedDataPoints),
+            this.data.hasHighlights
+        );
     }
 
     public update(options: VisualUpdateOptions): void {
@@ -359,7 +351,7 @@ export class AsterPlot implements IVisual {
                 this.renderService.cleanOuterLines(this.mainGroupElement);
             }
 
-            this.bindInteractivityBehaviour();
+            this.bindBehaviorOptions();
 
             this.subSelectionHelper.setFormatMode(options.formatMode);
             const shouldUpdateSubSelection = options.type & (powerbi.VisualUpdateType.Data
@@ -400,41 +392,41 @@ export class AsterPlot implements IVisual {
         this.clearCatcher.attr("transform", translate(-transformX, -transformY));
     }
 
-    private bindInteractivityBehaviour(): void {
-        if (this.interactivityService) {
-            const behaviorOptions: AsterPlotBehaviorOptions = {
-                selection: this.slicesElement.selectAll(AsterPlot.AsterSlice.selectorName + ", " + AsterPlot.AsterHighlightedSlice.selectorName),
-                legendItems: this.legendItems,
-                clearCatcher: this.clearCatcher,
-                interactivityService: this.interactivityService,
-                hasHighlights: this.data.hasHighlights,
-                dataPoints: this.data.dataPoints,
-                behavior: this.behavior,
-                formatMode: this.formatMode,
-            };
-
-            this.interactivityService.bind(behaviorOptions);
-        }
+    private bindBehaviorOptions(): void {
+        const behaviorOptions: BehaviorOptions = {
+            selection: this.slicesElement.selectAll(AsterPlot.AsterSlice.selectorName + ", " + AsterPlot.AsterHighlightedSlice.selectorName),
+            legendItems: this.legendItems,
+            legendIcons: <d3Selection<SVGElement, LegendDataPoint, null, undefined>>this.legendElement.selectAll(AsterPlot.LegendIconSelector.selectorName),
+            centerLabel: this.mainGroupElement.select<SVGTextElement>(AsterPlot.CenterLabelClass.selectorName),
+            lineLabels: this.mainGroupElement.selectAll(AsterPlot.LineLabel.selectorName),
+            outerLine: this.mainGroupElement.selectAll(AsterPlot.OuterLine.selectorName),
+            clearCatcher: this.clearCatcher,
+            hasHighlights: this.data.hasHighlights,
+            dataPoints: this.data.dataPoints,
+            formatMode: this.formatMode,
+        };
+        this.behavior.bindEvents(behaviorOptions);
     }
 
     private renderLegend(): void {
-        if (this.formattingSettings.legend.show.value) {
-            const legendObject: DataViewObject = {
-                labelColor: {
-                    solid: {
-                        color: this.formattingSettings.legend.labelColor.value.value
-                    }
-                },
-                titleText: this.formattingSettings.legend.titleText.value,
-                fontSize: this.formattingSettings.legend.font.fontSize.value,
-            };
+        const legendObject: DataViewObject = {
+            show: this.formattingSettings.legend.show.value,
+            showTitle: this.formattingSettings.legend.showTitle.value,
+            position: LegendPosition[this.formattingSettings.legend.position.value.value],
+            titleText: this.formattingSettings.legend.titleText.value,
+            fontSize: this.formattingSettings.legend.font.fontSize.value,
+            labelColor: {
+                solid: {
+                    color: this.formattingSettings.legend.labelColor.value.value
+                }
+            },
+        };
 
-            legendData.update(this.data.legendData, legendObject);
-            this.legend.changeOrientation(LegendPosition[this.formattingSettings.legend.position.value.value]);
-        }
-
+        legendData.update(this.data.legendData, legendObject);
+        this.legend.changeOrientation(LegendPosition[this.formattingSettings.legend.position.value.value]);
         this.legend.drawLegend(this.data.legendData, this.layout.viewportCopy);
         positionChartArea(this.svg, this.legend);
+        this.legendItems = this.legendGroup.selectAll(AsterPlot.LegendItemSelector.selectorName);
 
         this.legendGroup
             .classed(HtmlSubSelectableClass, this.formatMode && this.formattingSettings.legend.show.value)
@@ -446,7 +438,11 @@ export class AsterPlot implements IVisual {
             .classed(HtmlSubSelectableClass, this.formatMode && this.formattingSettings.legend.show.value && Boolean(this.formattingSettings.legend.titleText.value))
             .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.LegendTitle.name)
             .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.LegendTitle.displayNameKey))
-            .attr(SubSelectableDirectEditAttr, this.visualTitleEditSubSelection);
+            .attr(SubSelectableDirectEditAttr, this.visualTitleEditSubSelection)
+            .style("font-family", this.formattingSettings.legend.font.fontFamily.value || StandardFontFamily)
+            .style("font-weight", this.formattingSettings.legend.font.bold.value ? "bold" : "normal")
+            .style("font-style", this.formattingSettings.legend.font.italic.value ? "italic" : "normal")
+            .style("text-decoration", this.formattingSettings.legend.font.underline.value ? "underline" : "none");
 
         this.legendItems
             .style("font-family", this.formattingSettings.legend.font.fontFamily.value || StandardFontFamily)
@@ -495,11 +491,11 @@ export class AsterPlot implements IVisual {
     }
 
     private selectionIdCallback(e: HTMLElement) {
-        const elementType: string = select(e).attr(SubSelectableObjectNameAttribute);
+        const elementType: string = d3Select(e).attr(SubSelectableObjectNameAttribute);
 
         switch (elementType) {
             case AsterPlotObjectNames.Pies.name: {
-                const datum = select<Element, AsterArcDescriptor>(e).datum();
+                const datum = d3Select<Element, PieArcDatum<AsterDataPoint>>(e).datum();
                 return datum?.data.identity;
             }
             default:
