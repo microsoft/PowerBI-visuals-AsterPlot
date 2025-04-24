@@ -25,17 +25,19 @@
  */
 
 import powerbi from "powerbi-visuals-api";
-import {formattingSettings} from "powerbi-visuals-utils-formattingmodel"
+import ISandboxExtendedColorPalette = powerbi.extensibility.ISandboxExtendedColorPalette;
+
+import {formattingSettings, formattingSettingsInterfaces} from "powerbi-visuals-utils-formattingmodel"
 import {LegendPosition} from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
 import {AsterDataPoint} from "./dataInterfaces";
 import Card = formattingSettings.SimpleCard;
 import Model = formattingSettings.Model;
 import FormattingSettingsSlice = formattingSettings.Slice;
-import IEnumMember = powerbi.IEnumMember;
-import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
+import ILocalizedItemMember = formattingSettingsInterfaces.ILocalizedItemMember;
 import ValidatorType = powerbi.visuals.ValidatorType;
 import ISelectionId = powerbi.visuals.ISelectionId;
 import FormattingId = powerbi.visuals.FormattingId;
+import { isEmpty } from "lodash-es";
 
 const nameof = <T>(name: Extract<keyof T, string>): string => name;
 
@@ -245,15 +247,15 @@ class TextDefaultSizes {
     public static readonly MaxTextSize = 30;
 }
 
-const legendPositionOptions: IEnumMember[] = [
-    { value: LegendPosition[LegendPosition.Top], displayName: "Visual_Top" },
-    { value: LegendPosition[LegendPosition.Bottom], displayName: "Visual_Bottom" },
-    { value: LegendPosition[LegendPosition.Left], displayName: "Visual_Left" },
-    { value: LegendPosition[LegendPosition.Right], displayName: "Visual_Right" },
-    { value: LegendPosition[LegendPosition.TopCenter], displayName: "Visual_TopCenter" },
-    { value: LegendPosition[LegendPosition.BottomCenter], displayName: "Visual_BottomCenter" },
-    { value: LegendPosition[LegendPosition.LeftCenter], displayName: "Visual_LeftCenter" },
-    { value: LegendPosition[LegendPosition.RightCenter], displayName: "Visual_RightCenter" },
+const legendPositionOptions: ILocalizedItemMember[] = [
+    { value: LegendPosition[LegendPosition.Top], displayNameKey: "Visual_Top" },
+    { value: LegendPosition[LegendPosition.Bottom], displayNameKey: "Visual_Bottom" },
+    { value: LegendPosition[LegendPosition.Left], displayNameKey: "Visual_Left" },
+    { value: LegendPosition[LegendPosition.Right], displayNameKey: "Visual_Right" },
+    { value: LegendPosition[LegendPosition.TopCenter], displayNameKey: "Visual_TopCenter" },
+    { value: LegendPosition[LegendPosition.BottomCenter], displayNameKey: "Visual_BottomCenter" },
+    { value: LegendPosition[LegendPosition.LeftCenter], displayNameKey: "Visual_LeftCenter" },
+    { value: LegendPosition[LegendPosition.RightCenter], displayNameKey: "Visual_RightCenter" },
 ];
 
 
@@ -337,7 +339,11 @@ class LegendCardSettings extends BaseFontCardSettings {
     displayNameKey: string = AsterPlotObjectNames.Legend.displayNameKey;
     description: string = "Display legend options";
     descriptionKey: string = "Visual_Description_Legend";
-    slices = [this.position, this.showTitle, this.titleText, this.labelColor, this.font];
+    slices = [this.position, this.showTitle, this.titleText, this.font, this.labelColor];
+
+    onPreProcess(): void {
+        this.titleText.visible = this.showTitle.value;
+    }
 }
 
 class CenterLabelCardSettings extends BaseFontCardSettings {
@@ -360,7 +366,7 @@ class CenterLabelCardSettings extends BaseFontCardSettings {
     name: string = AsterPlotObjectNames.Label.name;
     displayName: string = AsterPlotObjectNames.Label.displayName;
     displayNameKey: string = AsterPlotObjectNames.Label.displayNameKey;
-    slices = [this.color, this.font];
+    slices = [ this.font, this.color];
 }
 
 
@@ -392,7 +398,8 @@ class LabelsCardSettings extends BaseFontCardSettings {
         name: "precision",
         displayName: "Decimal Places",
         displayNameKey: "Visual_DecimalPlaces",
-        value: null,
+        //fix to null when formattingmodel is fixed
+        value: 0,
         options: {
             minValue: { value: 0, type: ValidatorType.Min },
             maxValue: { value: 17, type: ValidatorType.Max },
@@ -402,7 +409,7 @@ class LabelsCardSettings extends BaseFontCardSettings {
     name: string = AsterPlotObjectNames.Labels.name;
     displayName: string = AsterPlotObjectNames.Labels.displayName;
     displayNameKey: string = AsterPlotObjectNames.Labels.displayNameKey;
-    slices = [this.color, this.displayUnits, this.precision, this.font];
+    slices = [this.displayUnits, this.precision, this.font, this.color];
 }
 
 class PiesCardSettings extends Card {
@@ -504,14 +511,20 @@ export class AsterPlotSettingsModel extends Model {
         this.outerLine,
     ];
 
+    public parse(colorPalette: ISandboxExtendedColorPalette, title: string){
+        if (isEmpty(this.legend.titleText.value)) {
+            this.legend.titleText.value = title;
+        }
 
-    public populatePies(pies: AsterDataPoint[], isHighContrast: boolean) {
+        this.processHighContrastMode(colorPalette);
+    }
+
+    public populatePies(pies: AsterDataPoint[]) {
         if (!pies || pies.length === 0) {
             return;
         }
 
         this.pies.slices = [];
-        this.pies.visible = !isHighContrast;
 
         for (const pie of pies) {
             const identity: ISelectionId = <ISelectionId>pie.identity;
@@ -529,13 +542,23 @@ export class AsterPlotSettingsModel extends Model {
         }
     }
 
-    public setLocalizedOptions(localizationManager: ILocalizationManager) {
-        this.setLocalizedDisplayName(legendPositionOptions, localizationManager);
-    }
+    public processHighContrastMode(colorPalette: ISandboxExtendedColorPalette): void {
+        const isHighContrast: boolean = colorPalette.isHighContrast;
 
-    private setLocalizedDisplayName(options: IEnumMember[], localizationManager: ILocalizationManager) {
-        options.forEach((option: IEnumMember) => {
-            option.displayName = localizationManager.getDisplayName(option.displayName.toString());
-        });
+        this.legend.labelColor.visible = !isHighContrast;
+        this.legend.labelColor.value.value = isHighContrast ? colorPalette.foreground.value : this.legend.labelColor.value.value;
+
+        this.label.color.visible = !isHighContrast;
+        this.label.color.value.value = isHighContrast ? colorPalette.foreground.value : this.label.color.value.value;
+
+        this.labels.color.visible = !isHighContrast;
+        this.labels.color.value.value = isHighContrast ? colorPalette.foreground.value : this.labels.color.value.value;
+
+        this.pies.visible = !isHighContrast;
+
+        this.outerLine.color.visible = !isHighContrast;
+        this.outerLine.color.value.value = isHighContrast ? colorPalette.foreground.value : this.outerLine.color.value.value;
+        this.outerLine.textColor.visible = !isHighContrast;
+        this.outerLine.textColor.value.value = isHighContrast ? colorPalette.foreground.value : this.outerLine.textColor.value.value;
     }
 }

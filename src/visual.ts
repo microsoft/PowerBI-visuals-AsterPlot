@@ -60,8 +60,6 @@ import createLegend = LegendModule.createLegend;
 import LegendPosition = legendInterfaces.LegendPosition;
 import LegendDataPoint = legendInterfaces.LegendDataPoint;
 
-
-import {isEmpty} from "lodash-es";
 import "../style/asterPlot.less";
 import {FormattingSettingsService} from "powerbi-visuals-utils-formattingmodel";
 import {
@@ -89,9 +87,8 @@ import {PieArcDatum} from "d3-shape";
 
 import IViewport = powerbi.IViewport;
 import DataView = powerbi.DataView;
-import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
 import IVisual = powerbi.extensibility.IVisual;
-import IColorPalette = powerbi.extensibility.IColorPalette;
+import ISandboxExtendedColorPalette = powerbi.extensibility.ISandboxExtendedColorPalette;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import ISelectionManager = powerbi.extensibility.ISelectionManager;
@@ -122,8 +119,6 @@ import SubSelectionRegionOutlineFragment = powerbi.visuals.SubSelectionRegionOut
 import SubSelectionOutlineType = powerbi.visuals.SubSelectionOutlineType;
 import SubSelectionStylesType = powerbi.visuals.SubSelectionStylesType;
 import VisualShortcutType = powerbi.visuals.VisualShortcutType;
-import {StandardFontFamily} from "powerbi-visuals-utils-chartutils/lib/dataLabel/dataLabelUtils";
-
 const AsterPlotVisualClassName: string = "asterPlot";
 
 
@@ -158,7 +153,7 @@ export class AsterPlot implements IVisual {
     private legendGroup: d3Selection<SVGGElement, null, HTMLElement, null>;
     private legendItems: d3Selection<SVGGElement, LegendDataPoint, SVGGElement, null>;
 
-    private colorPalette: IColorPalette;
+    private colorPalette: ISandboxExtendedColorPalette;
     private colorHelper: ColorHelper;
 
     private visualHost: IVisualHost;
@@ -242,29 +237,18 @@ export class AsterPlot implements IVisual {
         this.legendItems = this.legendGroup.selectChildren<SVGGElement, null>(AsterPlot.LegendItemSelector.selectorName);
     }
 
-    public static converter(dataView: DataView, settings: AsterPlotSettingsModel, colors: IColorPalette, colorHelper: ColorHelper, visualHost: IVisualHost, localizationManager: ILocalizationManager): AsterPlotData {
+    public static converter(dataView: DataView, settings: AsterPlotSettingsModel, colors: ISandboxExtendedColorPalette, colorHelper: ColorHelper, visualHost: IVisualHost, localizationManager: ILocalizationManager): AsterPlotData {
         const categorical = AsterPlotColumns.getCategoricalColumns(dataView);
 
         if (!AsterPlotConverterService.isDataValid(categorical)) {
             return;
         }
 
-        AsterPlot.setHighContrastColors(settings, categorical.Category.source, colorHelper);
+        settings.parse(colors, categorical.Category.source.displayName);
+
         const converterService: AsterPlotConverterService = new AsterPlotConverterService(dataView, settings, colors, visualHost, categorical);
 
         return converterService.getConvertedData(localizationManager);
-    }
-
-    private static setHighContrastColors(settings: AsterPlotSettingsModel, categorySource: DataViewMetadataColumn, colorHelper: ColorHelper): void {
-        settings.legend.labelColor.value.value = colorHelper.getHighContrastColor("foreground", settings.legend.labelColor.value.value);
-        settings.label.color.value.value = colorHelper.getHighContrastColor("foreground", settings.label.color.value.value);
-        settings.labels.color.value.value = colorHelper.getHighContrastColor("foreground", settings.labels.color.value.value);
-        settings.outerLine.color.value.value = colorHelper.getHighContrastColor("foreground", settings.outerLine.color.value.value);
-        settings.outerLine.textColor.value.value = colorHelper.getHighContrastColor("foreground", settings.outerLine.textColor.value.value);
-
-        if (isEmpty(settings.legend.titleText.value)) {
-            settings.legend.titleText.value = categorySource.displayName;
-        }
     }
 
     private areValidOptions(options: VisualUpdateOptions): boolean {
@@ -288,7 +272,6 @@ export class AsterPlot implements IVisual {
 
             this.formatMode = options.formatMode ?? false;
             this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(AsterPlotSettingsModel, options.dataViews[0]);
-            this.formattingSettings.setLocalizedOptions(this.localizationManager);
 
             const data: AsterPlotData = AsterPlot.converter(
                 options.dataViews[0],
@@ -303,7 +286,7 @@ export class AsterPlot implements IVisual {
                 return;
             }
 
-            this.formattingSettings.populatePies(data.dataPoints, this.colorHelper.isHighContrast);
+            this.formattingSettings.populatePies(data.dataPoints);
 
             this.layout.viewport = options.viewport;
             this.data = data;

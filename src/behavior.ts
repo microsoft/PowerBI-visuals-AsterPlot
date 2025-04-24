@@ -27,7 +27,7 @@
 import { Selection as d3Selection } from "d3-selection";
 import { PieArcDatum as d3PieArcDatum } from "d3-shape";
 import powerbi from "powerbi-visuals-api";
-import { legendInterfaces, dataLabelInterfaces } from "powerbi-visuals-utils-chartutils";
+import { legendInterfaces } from "powerbi-visuals-utils-chartutils";
 import { ColorHelper } from "powerbi-visuals-utils-colorutils";
 import { AsterDataPoint } from "./dataInterfaces";
 import * as asterPlotUtils from "./utils";

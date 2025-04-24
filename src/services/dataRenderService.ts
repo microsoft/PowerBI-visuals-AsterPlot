@@ -36,7 +36,6 @@ import {
 } from "powerbi-visuals-utils-chartutils";
 import ILabelLayout = dataLabelInterfaces.ILabelLayout;
 import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
-import DataPointLabels = dataLabelInterfaces.DataPointLabels;
 
 // d3
 // import "d3-transition";

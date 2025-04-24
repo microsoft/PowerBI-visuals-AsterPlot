@@ -33,7 +33,6 @@ import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 // powerbi.extensibility.utils.chart
 import * as LegendUtil from "powerbi-visuals-utils-chartutils";
 import LegendData = LegendUtil.legendInterfaces.LegendData;
-import DataPointLabels = LegendUtil.dataLabelInterfaces.DataPointLabels;
 
 // powerbi.extensibility.utils.formatting
 import {valueFormatter} from "powerbi-visuals-utils-formattingutils";

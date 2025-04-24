@@ -33,7 +33,7 @@ import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 import { pixelConverter as PixelConverter } from "powerbi-visuals-utils-typeutils";
 
 import { ColorHelper } from "powerbi-visuals-utils-colorutils";
-import { legendData, legendInterfaces } from "powerbi-visuals-utils-chartutils"
+import { legendInterfaces } from "powerbi-visuals-utils-chartutils"
 
 import { AsterPlotColumns } from "../asterPlotColumns";
 import { AsterPlotSettingsModel } from "../asterPlotSettingsModel";
@@ -194,7 +194,7 @@ export class AsterPlotConverterService {
 
             const colorFromPalette = this.colorHelper.getColorForMeasure(category.objects?.[i], (category.identity[i] as { identityIndex: number }).identityIndex)
             const dataPointFillColor: string = dataViewObjects.getFillColor(category.objects?.[i] || category.source.objects, AsterPlotConverterService.PiesPropertyIdentifier);
-            const fillColor: string = dataPointFillColor || colorFromPalette;
+            const fillColor: string = this.colorHelper.getHighContrastColor("background", dataPointFillColor || colorFromPalette);
 
             const strokeColor = this.colorHelper.getHighContrastColor("foreground", fillColor);
             const strokeWidth = this.colorHelper.isHighContrast ? maxStrokeWidth : minStrokeWidth;
