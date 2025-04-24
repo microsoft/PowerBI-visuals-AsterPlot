@@ -431,9 +431,10 @@ export class DataRenderService {
     }
 
     private applyTooltipToSelection(selection: d3Selection<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null>): void {
-        this.tooltipServiceWrapper.addTooltip(selection, (tooltipEvent: d3PieArcDatum<AsterDataPoint>) => {
-            return tooltipEvent.data?.tooltipInfo;
-        });
+        this.tooltipServiceWrapper.addTooltip(selection, 
+            (tooltipEvent: d3PieArcDatum<AsterDataPoint>) => tooltipEvent.data?.tooltipInfo,
+            (tooltipEvent: d3PieArcDatum<AsterDataPoint>) => tooltipEvent.data?.identity,
+        );
     }
 
     private createDataPoints(data: AsterPlotData, hasHighlight: boolean, totalWeight: number): d3AsterDataPoint[] {
