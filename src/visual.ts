@@ -404,13 +404,6 @@ export class AsterPlot implements IVisual {
             show: this.formattingSettings.legend.show.value,
             showTitle: this.formattingSettings.legend.showTitle.value,
             position: LegendPosition[this.formattingSettings.legend.position.value.value],
-            titleText: this.formattingSettings.legend.titleText.value,
-            fontSize: this.formattingSettings.legend.font.fontSize.value,
-            labelColor: {
-                solid: {
-                    color: this.formattingSettings.legend.labelColor.value.value
-                }
-            },
         };
 
         legendData.update(this.data.legendData, legendObject);
@@ -429,17 +422,7 @@ export class AsterPlot implements IVisual {
             .classed(HtmlSubSelectableClass, this.formatMode && this.formattingSettings.legend.show.value && Boolean(this.formattingSettings.legend.titleText.value))
             .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.LegendTitle.name)
             .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.LegendTitle.displayNameKey))
-            .attr(SubSelectableDirectEditAttr, this.visualTitleEditSubSelection)
-            .style("font-family", this.formattingSettings.legend.font.fontFamily.value || StandardFontFamily)
-            .style("font-weight", this.formattingSettings.legend.font.bold.value ? "bold" : "normal")
-            .style("font-style", this.formattingSettings.legend.font.italic.value ? "italic" : "normal")
-            .style("text-decoration", this.formattingSettings.legend.font.underline.value ? "underline" : "none");
-
-        this.legendItems
-            .style("font-family", this.formattingSettings.legend.font.fontFamily.value || StandardFontFamily)
-            .style("font-weight", this.formattingSettings.legend.font.bold.value ? "bold" : "normal")
-            .style("font-style", this.formattingSettings.legend.font.italic.value ? "italic" : "normal")
-            .style("text-decoration", this.formattingSettings.legend.font.underline.value ? "underline" : "none")
+            .attr(SubSelectableDirectEditAttr, this.visualTitleEditSubSelection);
     }
 
     private updateViewPortAccordingToLegend(): void {

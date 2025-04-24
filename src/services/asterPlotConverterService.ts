@@ -83,7 +83,7 @@ export class AsterPlotConverterService {
     private maxValue: number;
 
     private labelFormatter: IValueFormatter;
-    private fontSizeInPx: string;
+    private fontSizeInPx: number
 
     constructor(dataView: DataView,
         settings: AsterPlotSettingsModel,
@@ -99,10 +99,13 @@ export class AsterPlotConverterService {
 
         this.legendData = {
             dataPoints: [],
-            title: null,
+            title: this.settings.legend.titleText.value,
             fontSize: this.settings.legend.font.fontSize.value,
             fontFamily: this.settings.legend.font.fontFamily.value,
-            labelColor: this.colorHelper.getHighContrastColor("foreground", legendData.DefaultLegendLabelFillColor)
+            fontStyle: this.settings.legend.font.italic.value ? "italic" : "normal",
+            fontWeight: this.settings.legend.font.bold.value ? "bold" : "normal",
+            textDecoration: this.settings.legend.font.underline.value ? "underline" : "none",
+            labelColor: this.colorHelper.getHighContrastColor("foreground", this.settings.legend.labelColor.value.value)
         };
 
         this.hasHighlights = this.containsHighlights(this.categoricalColumns);
@@ -115,7 +118,7 @@ export class AsterPlotConverterService {
                 ? this.maxValue
                 : Number(settings.labels.displayUnits.value.valueOf()));
 
-        this.fontSizeInPx = PixelConverter.fromPoint(settings.labels.font.fontSize.value);
+        this.fontSizeInPx = PixelConverter.fromPointToPixel(settings.labels.font.fontSize.value);
 
         this.dataPoints = [];
         this.highlightedDataPoints = [];
@@ -247,9 +250,11 @@ export class AsterPlotConverterService {
                     tooltipInfo = this.buildOneMeasureTooltip(formattedCategoryValue, currentValue, localizationManager);
                 }
 
+                const height: number = isNotNull ? highlightValues[i] : null;
+                const width: number = Math.max(0, (categoricalColumns.Y.length > 1 && categoricalColumns.Y[1].highlights[i] !== null) ? <number>categoricalColumns.Y[1].highlights[i] : sliceWidth)
                 this.highlightedDataPoints.push({
-                    sliceHeight: isNotNull ? highlightValues[i] : null,
-                    sliceWidth: Math.max(0, (categoricalColumns.Y.length > 1 && categoricalColumns.Y[1].highlights[i] !== null) ? <number>categoricalColumns.Y[1].highlights[i] : sliceWidth),
+                    sliceHeight: height,
+                    sliceWidth: width,
                     label: this.labelFormatter.format(currentValue),
                     fillColor,
                     strokeColor,

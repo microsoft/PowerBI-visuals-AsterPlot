@@ -36,6 +36,7 @@ import {
 } from "powerbi-visuals-utils-chartutils";
 import ILabelLayout = dataLabelInterfaces.ILabelLayout;
 import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
+import DataPointLabels = dataLabelInterfaces.DataPointLabels;
 
 // d3
 // import "d3-transition";
@@ -77,7 +78,8 @@ class CircleTicksOptions {
 
 import {
     AsterDataPoint,
-    AsterPlotData
+    AsterPlotData,
+    d3AsterDataPoint
 } from "../dataInterfaces";
 
 import {
@@ -120,8 +122,8 @@ export class DataRenderService {
     private readonly viewportRadius: number;
     private readonly maxHeight: number;
     private readonly totalWeight: number;
-    private readonly dataPoints: d3PieArcDatum<AsterDataPoint>[];
-    private readonly highlightedDataPoints: d3PieArcDatum<AsterDataPoint>[];
+    private readonly dataPoints: d3AsterDataPoint[];
+    private readonly highlightedDataPoints: d3AsterDataPoint[];
     private readonly arcSvg: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>;
     private readonly ticksOptions: CircleTicksOptions;
     private readonly ticksRadiusArray: number[];
@@ -435,7 +437,7 @@ export class DataRenderService {
         });
     }
 
-    private createDataPoints(data: AsterPlotData, hasHighlight: boolean, totalWeight: number): d3PieArcDatum<AsterDataPoint>[] {
+    private createDataPoints(data: AsterPlotData, hasHighlight: boolean, totalWeight: number): d3AsterDataPoint[] {
         const pie = this.getPieLayout(totalWeight);
 
         return pie.bind(this)(hasHighlight
@@ -532,7 +534,7 @@ export class DataRenderService {
 
 
     public renderLabels(labelsElement: d3Selection<SVGGElement, null, HTMLElement, null>, isHighlight: boolean) {
-        const dataPoints: d3PieArcDatum<AsterDataPoint>[] = isHighlight ? this.highlightedDataPoints : this.dataPoints;
+        const dataPoints: d3AsterDataPoint[] = isHighlight ? this.highlightedDataPoints : this.dataPoints;
         if (!this.data.hasHighlights || (this.data.hasHighlights && isHighlight)) {
             const labelArc = d3CreateArc<DataRenderService, d3PieArcDatum<AsterDataPoint>>()
                 .innerRadius(d => this.labelRadCalc(d.data))
@@ -556,7 +558,7 @@ export class DataRenderService {
         dataLabelUtils.cleanDataLabels(labelsElement, true);
     }
 
-    private drawLabels(data: d3PieArcDatum<AsterDataPoint>[],
+    private drawLabels(data: d3AsterDataPoint[],
         context: d3Selection<SVGGElement, null, HTMLElement, null>,
         layout: ILabelLayout,
         viewport: IViewport,
