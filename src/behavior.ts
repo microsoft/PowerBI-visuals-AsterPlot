@@ -35,7 +35,6 @@ import * as asterPlotUtils from "./utils";
 import ISelectionId = powerbi.visuals.ISelectionId;
 import ISelectionManager = powerbi.extensibility.ISelectionManager;
 import LegendDataPoint = legendInterfaces.LegendDataPoint;
-import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
 
 const enum KeyboardEventCode {
     ENTER = "Enter",
@@ -53,12 +52,10 @@ export interface SelectableDataPoint extends BaseDataPoint {
 
 export interface BehaviorOptions {
     selection: d3Selection<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null>;
+    legend: d3Selection<SVGSVGElement, null, HTMLElement, null>;
     legendItems: d3Selection<SVGGElement, LegendDataPoint, SVGGElement, null>;
     legendIcons: d3Selection<SVGElement, LegendDataPoint, null, undefined>;
-    outerLine: d3Selection<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null>;
-    centerLabel: d3Selection<SVGTextElement, null, HTMLElement, null>;
-    lineLabels: d3Selection<SVGLineElement, d3PieArcDatum<AsterDataPoint> & LabelEnabledDataPoint, SVGGElement, null>;
-    clearCatcher: d3Selection<SVGRectElement, null, HTMLElement, null>;
+    clearCatcher: d3Selection<SVGSVGElement, null, HTMLElement, null>;
     hasHighlights: boolean;
     formatMode: boolean;
     dataPoints: AsterDataPoint[];
@@ -124,6 +121,11 @@ export class Behavior {
             this.onSelectCallback();
         });
 
+        this.options.legend.on("click", () => {
+            this.selectionManager.clear();
+            this.onSelectCallback();
+        });
+
         this.options.clearCatcher.on("click", () => {
             this.selectionManager.clear();
             this.onSelectCallback();
@@ -142,8 +144,8 @@ export class Behavior {
         };
 
         this.options.selection.on("contextmenu", (event: MouseEvent, dataPoint: d3PieArcDatum<AsterDataPoint>) => handleContextMenuEvent(event, dataPoint?.data?.identity));
-        this.options.outerLine.on("contextmenu", (event: MouseEvent, dataPoint: d3PieArcDatum<AsterDataPoint>) => handleContextMenuEvent(event, dataPoint?.data?.identity));
 
+        this.options.legend.on("contextmenu", (event: MouseEvent, dataPoint: LegendDataPoint) => handleContextMenuEvent(event, dataPoint?.identity));
         this.options.legendItems.on("contextmenu", (event: MouseEvent, dataPoint: LegendDataPoint) => handleContextMenuEvent(event, dataPoint?.identity));
 
         const handleEmptyContextMenu = (event: MouseEvent) => {
@@ -163,8 +165,6 @@ export class Behavior {
 
         };
 
-        this.options.centerLabel.on("contextmenu", handleEmptyContextMenu);
-        this.options.lineLabels.on("contextmenu", handleEmptyContextMenu);
         this.options.clearCatcher.on("contextmenu", handleEmptyContextMenu);
     }
 

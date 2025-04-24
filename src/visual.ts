@@ -154,7 +154,6 @@ export class AsterPlot implements IVisual {
     private mainGroupElement: d3Selection<SVGGElement, null, HTMLElement, null>;
     private mainLabelsElement: d3Selection<SVGGElement, null, HTMLElement, null>;
     private slicesElement: d3Selection<SVGGElement, null, HTMLElement, null>;
-    private clearCatcher: d3Selection<SVGRectElement, null, HTMLElement, null>;
     private legendElement: d3Selection<SVGSVGElement, null, HTMLElement, null>;
     private legendGroup: d3Selection<SVGGElement, null, HTMLElement, null>;
     private legendItems: d3Selection<SVGGElement, LegendDataPoint, SVGGElement, null>;
@@ -229,9 +228,6 @@ export class AsterPlot implements IVisual {
         this.mainLabelsElement = svg.append("g").attr("id", "mainLabels");
 
         this.behavior = new Behavior(this.colorHelper, this.selectionManager);
-        this.clearCatcher = this.mainGroupElement
-            .append("rect")
-            .classed("clearCatcher", true);
 
         this.slicesElement = this.mainGroupElement
             .append("g")
@@ -387,20 +383,15 @@ export class AsterPlot implements IVisual {
 
         this.mainLabelsElement
             .attr("transform", translate(transformX, transformY));
-
-        // Move back the clearCatcher
-        this.clearCatcher.attr("transform", translate(-transformX, -transformY));
     }
 
     private bindBehaviorOptions(): void {
         const behaviorOptions: BehaviorOptions = {
             selection: this.slicesElement.selectAll(AsterPlot.AsterSlice.selectorName + ", " + AsterPlot.AsterHighlightedSlice.selectorName),
+            legend: this.legendElement,
             legendItems: this.legendItems,
             legendIcons: <d3Selection<SVGElement, LegendDataPoint, null, undefined>>this.legendElement.selectAll(AsterPlot.LegendIconSelector.selectorName),
-            centerLabel: this.mainGroupElement.select<SVGTextElement>(AsterPlot.CenterLabelClass.selectorName),
-            lineLabels: this.mainGroupElement.selectAll(AsterPlot.LineLabel.selectorName),
-            outerLine: this.mainGroupElement.selectAll(AsterPlot.OuterLine.selectorName),
-            clearCatcher: this.clearCatcher,
+            clearCatcher: this.svg,
             hasHighlights: this.data.hasHighlights,
             dataPoints: this.data.dataPoints,
             formatMode: this.formatMode,
