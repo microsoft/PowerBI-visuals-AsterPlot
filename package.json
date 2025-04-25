@@ -13,6 +13,7 @@
     "eslint": "npx eslint .",
     "pretest": "pbiviz package --resources --no-minify --no-pbiviz",
     "test": "karma start",
+    "watch": "karma start --single-run=false --browsers=Chrome",
     "cert": "pbiviz --create-cert"
   },
   "license": "MIT",
