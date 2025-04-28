@@ -98,8 +98,9 @@ export class Behavior {
 
     private removeEventListeners(): void {
         this.options.selection.on("click contextmenu", null);
-        this.options.legendItems.on("click", null);
+        this.options.legendItems.on("click contextmenu", null);
         this.options.clearCatcher.on("click contextmenu", null);
+        this.options.legend.on("click contextmenu", null);
     }
 
     private addEventListeners(): void {
