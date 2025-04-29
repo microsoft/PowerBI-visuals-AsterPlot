@@ -205,8 +205,7 @@ class LabelsCardSettings extends BaseFontCardSettings {
         name: "precision",
         displayName: "Decimal Places",
         displayNameKey: "Visual_DecimalPlaces",
-        //fix to null when formattingmodel is fixed
-        value: 0,
+        value: null,
         options: {
             minValue: { value: 0, type: ValidatorType.Min },
             maxValue: { value: 17, type: ValidatorType.Max },
