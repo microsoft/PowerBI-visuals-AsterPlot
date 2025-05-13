@@ -1,7 +1,7 @@
 {
   "name": "powerbi-visuals-asterplot",
   "description": "An Aster plot is a twist on a standard donut chart, using a second value to drive sweep angle.",
-  "version": "1.7.2.0",
+  "version": "1.7.3.0",
   "author": {
     "name": "Microsoft",
     "email": "pbicvsupport@microsoft.com"
@@ -13,6 +13,7 @@
     "eslint": "npx eslint .",
     "pretest": "pbiviz package --resources --no-minify --no-pbiviz",
     "test": "karma start",
+    "watch": "karma start --single-run=false --browsers=Chrome",
     "cert": "pbiviz --create-cert"
   },
   "license": "MIT",
@@ -21,17 +22,17 @@
     "url": "git+https://github.com/Microsoft/PowerBI-visuals-AsterPlot.git"
   },
   "dependencies": {
-    "@types/jasmine": "5.1.4",
-    "@types/karma": "6.3.8",
+    "@types/jasmine": "5.1.7",
+    "@types/karma": "6.3.9",
     "@types/lodash-es": "^4.17.12",
-    "@typescript-eslint/eslint-plugin": "^8.9.0",
+    "@typescript-eslint/eslint-plugin": "^8.31.1",
     "css-loader": "^7.1.2",
     "d3-array": "^3.2.4",
     "d3-interpolate": "^3.0.1",
     "d3-selection": "^3.0.0",
     "d3-shape": "^3.2.0",
     "d3-transition": "^3.0.1",
-    "jasmine": "^5.4.0",
+    "jasmine": "^5.7.0",
     "karma": "6.4.4",
     "karma-chrome-launcher": "3.2.0",
     "karma-coverage": "2.2.1",
@@ -43,14 +44,14 @@
     "karma-webpack": "^5.0.1",
     "less-loader": "^12.2.0",
     "lodash-es": "^4.17.21",
-    "playwright-chromium": "^1.48.0",
+    "playwright-chromium": "^1.52.0",
     "powerbi-models": "^1.15.2",
     "powerbi-visuals-api": "5.11.0",
-    "powerbi-visuals-tools": "5.6.0",
-    "powerbi-visuals-utils-chartutils": "^7.0.0",
+    "powerbi-visuals-tools": "6.1.0",
+    "powerbi-visuals-utils-chartutils": "^8.1.0",
     "powerbi-visuals-utils-colorutils": "^6.0.5",
     "powerbi-visuals-utils-dataviewutils": "^6.1.0",
-    "powerbi-visuals-utils-formattingmodel": "^6.0.4",
+    "powerbi-visuals-utils-formattingmodel": "^6.1.1",
     "powerbi-visuals-utils-formattingutils": "^6.1.2",
     "powerbi-visuals-utils-onobjectutils": "^6.0.2",
     "powerbi-visuals-utils-svgutils": "^6.0.4",
@@ -65,10 +66,10 @@
     "@types/d3-array": "^3.2.1",
     "@types/d3-interpolate": "^3.0.4",
     "@types/d3-selection": "^3.0.11",
-    "@types/d3-shape": "^3.1.6",
+    "@types/d3-shape": "^3.1.7",
     "@types/d3-transition": "^3.0.9",
-    "eslint": "^9.12.0",
+    "eslint": "^9.25.1",
     "eslint-plugin-powerbi-visuals": "^1.0.0",
-    "typescript-eslint": "^8.9.0"
+    "typescript-eslint": "^8.31.1"
   }
 }

@@ -1,3 +1,14 @@
+## 1.7.3
+
+### Fixes
+* Update packages, fix npm vulnerabilities
+* Add context menu
+* Fix report page tooltip
+* Fix legend styles, use new chartutils
+* Fix keyboard navigation styles in High Contrast Mode
+* Fix pie colors in High Contrast Mode
+* Fix onObject outlines
+
 ## 1.7.2
 ### Visual changes
 * Create custom styles for keyboard focus of aster slices

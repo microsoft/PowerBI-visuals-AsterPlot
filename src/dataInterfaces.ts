@@ -38,6 +38,13 @@ import LegendData = LegendUtil.legendInterfaces.LegendData;
 import {valueFormatter} from "powerbi-visuals-utils-formattingutils";
 import IValueFormatter = valueFormatter.IValueFormatter;
 
+import { shapesInterfaces,  } from "powerbi-visuals-utils-svgutils";
+import ISize = shapesInterfaces.ISize;
+
+import {
+    PieArcDatum as d3PieArcDatum,
+} from "d3-shape";
+
 import { SelectableDataPoint } from "./behavior";
 
 import {AsterPlotSettingsModel} from "./asterPlotSettingsModel";
@@ -61,8 +68,12 @@ export interface AsterDataPoint extends SelectableDataPoint {
     label: string;
     highlight?: boolean;
     tooltipInfo: VisualTooltipDataItem[];
-    labelFontSize: string;
+    labelFontSize: number;
     categoryName: string;
     identity: ISelectionId;
     isLabelHasConflict?: boolean;
+}
+
+export interface d3AsterDataPoint extends d3PieArcDatum<AsterDataPoint> {
+    size: ISize;
 }

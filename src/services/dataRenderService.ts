@@ -40,7 +40,7 @@ import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
 // d3
 // import "d3-transition";
 import "d3-transition";
-import { Selection as d3Selection, select as d3Select } from 'd3-selection';
+import { Selection as d3Selection } from 'd3-selection';
 import { sum as d3Sum, max as d3Max } from "d3-array";
 import {
     Arc as d3Arc,
@@ -77,7 +77,8 @@ class CircleTicksOptions {
 
 import {
     AsterDataPoint,
-    AsterPlotData
+    AsterPlotData,
+    d3AsterDataPoint
 } from "../dataInterfaces";
 
 import {
@@ -120,8 +121,8 @@ export class DataRenderService {
     private readonly viewportRadius: number;
     private readonly maxHeight: number;
     private readonly totalWeight: number;
-    private readonly dataPoints: d3PieArcDatum<AsterDataPoint>[];
-    private readonly highlightedDataPoints: d3PieArcDatum<AsterDataPoint>[];
+    private readonly dataPoints: d3AsterDataPoint[];
+    private readonly highlightedDataPoints: d3AsterDataPoint[];
     private readonly arcSvg: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>;
     private readonly ticksOptions: CircleTicksOptions;
     private readonly ticksRadiusArray: number[];
@@ -184,10 +185,6 @@ export class DataRenderService {
         }
 
         centerText
-            .classed(HtmlSubSelectableClass, this.formatMode && this.settings.label.show.value)
-            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Label.name)
-            .attr(SubSelectableDisplayNameAttribute,  AsterPlotObjectNames.Label.displayName)
-            .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text)
             .style("line-height", 1)
             .style("font-weight", centerTextProperties.fontWeight)
             .style("font-size", this.settings.label.font.fontSize.value)
@@ -199,7 +196,18 @@ export class DataRenderService {
             .attr("dy", "0.35em")
             .attr("text-anchor", "middle")
             .text(textMeasurementService.getTailoredTextOrDefault(centerTextProperties, this.innerRadius * DataRenderService.CenterTextFontWidthCoefficient));
+
+        this.applyOnObjectStylesToCenterLabel(centerText);
     }
+
+    private applyOnObjectStylesToCenterLabel(labelsSelection: d3Selection<SVGTextElement, null, HTMLElement, null>): void{
+        labelsSelection
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Label.name)
+            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.Label.displayNameKey))
+            .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text)
+            .classed(HtmlSubSelectableClass, this.formatMode && this.settings.label.show.value);
+    }
+
 
     public cleanCenterText(mainGroupElement: d3Selection<SVGGElement, null, HTMLElement, null>): void {
         mainGroupElement.select<SVGTextElement>(DataRenderService.CenterLabelClass.selectorName).remove();
@@ -228,11 +236,9 @@ export class DataRenderService {
             .attr("tabindex", 0)
             .attr("role", "option")
             .attr("center", (d) => arc.centroid(d).toString())
-            .classed(classSelector.className, true))
-            .classed(HtmlSubSelectableClass, this.formatMode)
-            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Pies.name)
-            .attr(SubSelectableDisplayNameAttribute, (d) => d.data.categoryName)
-            .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Shape);
+            .classed(classSelector.className, true));
+
+        this.applyOnObjectStylesToPies(selection);
 
         const interpolateArc = (dataRendererService: DataRenderService, arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>) => {
             return function (data: d3PieArcDatum<AsterDataPoint>) {
@@ -261,6 +267,14 @@ export class DataRenderService {
             });
 
         this.applyTooltipToSelection(selection);
+    }
+
+    private applyOnObjectStylesToPies(selection: d3Selection<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null>): void{
+        selection
+            .classed(HtmlSubSelectableClass, this.formatMode)
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Pies.name)
+            .attr(SubSelectableDisplayNameAttribute, (d) => `"${d.data.categoryName}" ${this.localizationManager.getDisplayName("Visual_Slice")}`)
+            .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Shape);
     }
 
     private drawGrid(element: d3Selection<SVGGElement, null, HTMLElement, null>, settings: OuterLineCardSettings): void {
@@ -314,9 +328,19 @@ export class DataRenderService {
                 .classed(DataRenderService.CircleText.className, true)
                 .text((_: number, i: number) => { return this.tickValuesArray[i]; });
 
+            this.applyOnObjectStylesToCircleText(text);
+
         } else {
             element.selectAll(DataRenderService.CircleText.selectorName).remove();
         }
+    }
+
+    private applyOnObjectStylesToCircleText(text: d3Selection<SVGTextElement, number, SVGGElement, number>): void{
+        text
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Ticks.name)
+            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.Ticks.displayNameKey))
+            .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text)
+            .classed(HtmlSubSelectableClass, this.formatMode && this.settings.outerLine.showGridTicksValues.value);
     }
 
     private drawOuter(element: d3Selection<SVGGElement, null, HTMLElement, null>) {
@@ -341,11 +365,14 @@ export class DataRenderService {
             .attr("d", (d) => {
                 return outlineArc.bind(this)(d);
             })
-            .classed(DataRenderService.OuterLine.className, true)
+            .classed(DataRenderService.OuterLine.className, true);
 
-        const singleOuterLine: d3Selection<SVGPathElement, d3PieArcDatum<AsterDataPoint>, null, undefined> = d3Select(outerLine.node())
-        singleOuterLine
-            .classed(HtmlSubSelectableClass, this.formatMode)
+        this.applyOnObjectStylesToOuterLines(outerLine);
+    }
+
+    private applyOnObjectStylesToOuterLines(selection: d3Selection<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null>): void{
+        selection
+            .classed(HtmlSubSelectableClass, this.formatMode && this.settings.outerLine.show.value)
             .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.OuterLine.name)
             .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.OuterLine.displayNameKey))
             .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Shape);
@@ -430,12 +457,13 @@ export class DataRenderService {
     }
 
     private applyTooltipToSelection(selection: d3Selection<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null>): void {
-        this.tooltipServiceWrapper.addTooltip(selection, (tooltipEvent: d3PieArcDatum<AsterDataPoint>) => {
-            return tooltipEvent.data?.tooltipInfo;
-        });
+        this.tooltipServiceWrapper.addTooltip(selection, 
+            (tooltipEvent: d3PieArcDatum<AsterDataPoint>) => tooltipEvent.data?.tooltipInfo,
+            (tooltipEvent: d3PieArcDatum<AsterDataPoint>) => tooltipEvent.data?.identity,
+        );
     }
 
-    private createDataPoints(data: AsterPlotData, hasHighlight: boolean, totalWeight: number): d3PieArcDatum<AsterDataPoint>[] {
+    private createDataPoints(data: AsterPlotData, hasHighlight: boolean, totalWeight: number): d3AsterDataPoint[] {
         const pie = this.getPieLayout(totalWeight);
 
         return pie.bind(this)(hasHighlight
@@ -532,7 +560,7 @@ export class DataRenderService {
 
 
     public renderLabels(labelsElement: d3Selection<SVGGElement, null, HTMLElement, null>, isHighlight: boolean) {
-        const dataPoints: d3PieArcDatum<AsterDataPoint>[] = isHighlight ? this.highlightedDataPoints : this.dataPoints;
+        const dataPoints: d3AsterDataPoint[] = isHighlight ? this.highlightedDataPoints : this.dataPoints;
         if (!this.data.hasHighlights || (this.data.hasHighlights && isHighlight)) {
             const labelArc = d3CreateArc<DataRenderService, d3PieArcDatum<AsterDataPoint>>()
                 .innerRadius(d => this.labelRadCalc(d.data))
@@ -556,7 +584,7 @@ export class DataRenderService {
         dataLabelUtils.cleanDataLabels(labelsElement, true);
     }
 
-    private drawLabels(data: d3PieArcDatum<AsterDataPoint>[],
+    private drawLabels(data: d3AsterDataPoint[],
         context: d3Selection<SVGGElement, null, HTMLElement, null>,
         layout: ILabelLayout,
         viewport: IViewport,
@@ -617,6 +645,8 @@ export class DataRenderService {
             .style("text-decoration", this.settings.labels.font.underline.value ? "underline" : "none")
             .style("font-size", PixelConverter.fromPoint(this.settings.labels.font.fontSize.value));
 
+        this.applyOnObjectStylesToLabels(labels);
+
         // Draw lines
         if (context.select(DataRenderService.linesGraphicsContextClass.selectorName).empty())
             context.append("g").classed(DataRenderService.linesGraphicsContextClass.className, true);
@@ -645,10 +675,7 @@ export class DataRenderService {
             lines
                 .enter()
                 .append("polyline")
-                .classed(DataRenderService.LineLabel.className, true))
-                .classed(HtmlSubSelectableClass, this.formatMode && this.settings.labels.show.value)
-                .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Labels.name)
-                .attr(SubSelectableDisplayNameAttribute, AsterPlotObjectNames.Labels.name);
+                .classed(DataRenderService.LineLabel.className, true));
 
         lines
             .attr("points", (d) => {
@@ -664,8 +691,15 @@ export class DataRenderService {
             .style("opacity", 0.5)
             .style("fill-opacity", 0)
             .style("stroke", () => this.settings.labels.color.value.value);
+    }
 
-
+    private applyOnObjectStylesToLabels(labelsSelection: d3Selection<SVGTextElement, d3PieArcDatum<AsterDataPoint> & LabelEnabledDataPoint, SVGGElement, null>): void{
+        labelsSelection
+            .style("pointer-events", this.formatMode ? "auto" : "none")
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Labels.name)
+            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.Labels.displayNameKey))
+            .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text)
+            .classed(HtmlSubSelectableClass, this.formatMode && this.settings.labels.show.value);
     }
 
     private getLabelLayout(arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>, viewport: IViewport): ILabelLayout {

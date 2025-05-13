@@ -33,7 +33,7 @@ import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 import { pixelConverter as PixelConverter } from "powerbi-visuals-utils-typeutils";
 
 import { ColorHelper } from "powerbi-visuals-utils-colorutils";
-import { legendData, legendInterfaces } from "powerbi-visuals-utils-chartutils"
+import { legendInterfaces } from "powerbi-visuals-utils-chartutils"
 
 import { AsterPlotColumns } from "../asterPlotColumns";
 import { AsterPlotSettingsModel } from "../asterPlotSettingsModel";
@@ -83,7 +83,7 @@ export class AsterPlotConverterService {
     private maxValue: number;
 
     private labelFormatter: IValueFormatter;
-    private fontSizeInPx: string;
+    private fontSizeInPx: number
 
     constructor(dataView: DataView,
         settings: AsterPlotSettingsModel,
@@ -99,10 +99,13 @@ export class AsterPlotConverterService {
 
         this.legendData = {
             dataPoints: [],
-            title: null,
+            title: this.settings.legend.titleText.value,
             fontSize: this.settings.legend.font.fontSize.value,
             fontFamily: this.settings.legend.font.fontFamily.value,
-            labelColor: this.colorHelper.getHighContrastColor("foreground", legendData.DefaultLegendLabelFillColor)
+            fontStyle: this.settings.legend.font.italic.value ? "italic" : "normal",
+            fontWeight: this.settings.legend.font.bold.value ? "bold" : "normal",
+            textDecoration: this.settings.legend.font.underline.value ? "underline" : "none",
+            labelColor: this.colorHelper.getHighContrastColor("foreground", this.settings.legend.labelColor.value.value)
         };
 
         this.hasHighlights = this.containsHighlights(this.categoricalColumns);
@@ -115,7 +118,7 @@ export class AsterPlotConverterService {
                 ? this.maxValue
                 : Number(settings.labels.displayUnits.value.valueOf()));
 
-        this.fontSizeInPx = PixelConverter.fromPoint(settings.labels.font.fontSize.value);
+        this.fontSizeInPx = PixelConverter.fromPointToPixel(settings.labels.font.fontSize.value);
 
         this.dataPoints = [];
         this.highlightedDataPoints = [];
@@ -191,7 +194,7 @@ export class AsterPlotConverterService {
 
             const colorFromPalette = this.colorHelper.getColorForMeasure(category.objects?.[i], (category.identity[i] as { identityIndex: number }).identityIndex)
             const dataPointFillColor: string = dataViewObjects.getFillColor(category.objects?.[i] || category.source.objects, AsterPlotConverterService.PiesPropertyIdentifier);
-            const fillColor: string = dataPointFillColor || colorFromPalette;
+            const fillColor: string = this.colorHelper.getHighContrastColor("background", dataPointFillColor || colorFromPalette);
 
             const strokeColor = this.colorHelper.getHighContrastColor("foreground", fillColor);
             const strokeWidth = this.colorHelper.isHighContrast ? maxStrokeWidth : minStrokeWidth;
@@ -234,22 +237,25 @@ export class AsterPlotConverterService {
             if (this.hasHighlights) {
 
                 const highlightValues: number[] = <number[]>this.categoricalColumns.Y[0].highlights;
-                const isNotNull: boolean = highlightValues[i] != null;
+                const highlightValueIsNotNull: boolean = highlightValues[i] != null;
+                const secondHighlightValue: number = this.isMoreThanOneMeasure(categoricalColumns) ? <number>categoricalColumns.Y[1].highlights[i] : null;
 
-                currentValue = isNotNull
+                currentValue = highlightValueIsNotNull
                     ? <number>highlightValues[i]
                     : 0;
 
                 if (this.isMoreThanOneMeasure(categoricalColumns)) {
-                    const secondMeasureValue: number = <number>categoricalColumns.Y[1].highlights[i] !== null ? <number>categoricalColumns.Y[1].highlights[i] : 0;
+                    const secondMeasureValue: number = secondHighlightValue !== null ? secondHighlightValue : 0;
                     tooltipInfo = this.buildTwoMeasuresTooltip(formattedCategoryValue, currentValue, secondMeasureValue, localizationManager);
                 } else {
                     tooltipInfo = this.buildOneMeasureTooltip(formattedCategoryValue, currentValue, localizationManager);
                 }
 
+                const height: number = highlightValueIsNotNull ? highlightValues[i] : null;
+                const width: number = Math.max(0, (categoricalColumns.Y.length > 1 && secondHighlightValue !== null) ? secondHighlightValue : sliceWidth)
                 this.highlightedDataPoints.push({
-                    sliceHeight: isNotNull ? highlightValues[i] : null,
-                    sliceWidth: Math.max(0, (categoricalColumns.Y.length > 1 && categoricalColumns.Y[1].highlights[i] !== null) ? <number>categoricalColumns.Y[1].highlights[i] : sliceWidth),
+                    sliceHeight: height,
+                    sliceWidth: width,
                     label: this.labelFormatter.format(currentValue),
                     fillColor,
                     strokeColor,
