@@ -126,12 +126,12 @@ export class SubSelectionShortcutsService {
             {
                 type: VisualShortcutType.Toggle,
                 ...legendReferences.show,
-                disabledLabel: localizationManager.getDisplayName("Visual_OnObject_Delete")
+                disabledLabel: localizationManager.getDisplayName("Visual_Delete")
             },
             {
                 type: VisualShortcutType.Toggle,
                 ...legendReferences.showTitle,
-                enabledLabel: localizationManager.getDisplayName("Visual_OnObject_AddTitle")
+                enabledLabel: localizationManager.getDisplayName("Visual_AddTitle")
             },
             {
                 type: VisualShortcutType.Divider,
@@ -152,7 +152,7 @@ export class SubSelectionShortcutsService {
             {
                 type: VisualShortcutType.Navigate,
                 destinationInfo: { cardUid: legendReferences.cardUid, groupUid: legendReferences.groupUid },
-                label: localizationManager.getDisplayName("Visual_OnObject_FormatLegend")
+                label: localizationManager.getDisplayName("Visual_FormatLegend")
             }
         ];
     }
@@ -161,7 +161,7 @@ export class SubSelectionShortcutsService {
             {
                 type: VisualShortcutType.Toggle,
                 ...legendReferences.showTitle,
-                disabledLabel: localizationManager.getDisplayName("Visual_OnObject_Delete")
+                disabledLabel: localizationManager.getDisplayName("Visual_Delete")
             },
             {
                 type: VisualShortcutType.Divider,
@@ -176,7 +176,7 @@ export class SubSelectionShortcutsService {
             {
                 type: VisualShortcutType.Navigate,
                 destinationInfo: { cardUid: legendReferences.cardUid, groupUid: legendReferences.groupUid },
-                label: localizationManager.getDisplayName("Visual_OnObject_FormatLegend")
+                label: localizationManager.getDisplayName("Visual_FormatLegend")
             }
         ];
     }
@@ -185,7 +185,7 @@ export class SubSelectionShortcutsService {
             {
                 type: VisualShortcutType.Toggle,
                 ...centerLabelReferences.show,
-                disabledLabel: localizationManager.getDisplayName("Visual_OnObject_Delete")
+                disabledLabel: localizationManager.getDisplayName("Visual_Delete")
             },
             {
                 type: VisualShortcutType.Divider,
@@ -205,7 +205,7 @@ export class SubSelectionShortcutsService {
             {
                 type: VisualShortcutType.Navigate,
                 destinationInfo: { cardUid: centerLabelReferences.cardUid, groupUid: centerLabelReferences.groupUid },
-                label: localizationManager.getDisplayName("Visual_OnObject_FormatCenterLabel")
+                label: localizationManager.getDisplayName("Visual_FormatCenterLabel")
             }
         ];
     }
@@ -214,7 +214,7 @@ export class SubSelectionShortcutsService {
             {
                 type: VisualShortcutType.Toggle,
                 ...detailLabelsReferences.show,
-                disabledLabel: localizationManager.getDisplayName("Visual_OnObject_Delete")
+                disabledLabel: localizationManager.getDisplayName("Visual_Delete")
             },
             {
                 type: VisualShortcutType.Divider,
@@ -236,7 +236,7 @@ export class SubSelectionShortcutsService {
             {
                 type: VisualShortcutType.Navigate,
                 destinationInfo: { cardUid: detailLabelsReferences.cardUid, groupUid: detailLabelsReferences.groupUid },
-                label: localizationManager.getDisplayName("Visual_OnObject_FormatLabels")
+                label: localizationManager.getDisplayName("Visual_FormatLabels")
             }
         ];
     }
@@ -245,7 +245,7 @@ export class SubSelectionShortcutsService {
             {
                 type: VisualShortcutType.Toggle,
                 ...outerLineReferences.showTicks,
-                disabledLabel: localizationManager.getDisplayName("Visual_OnObject_Delete")
+                disabledLabel: localizationManager.getDisplayName("Visual_Delete")
             },
             {
                 type: VisualShortcutType.Divider,
@@ -265,7 +265,7 @@ export class SubSelectionShortcutsService {
             {
                 type: VisualShortcutType.Navigate,
                 destinationInfo: { cardUid: outerLineReferences.cardUid, groupUid: outerLineReferences.groupUid },
-                label: localizationManager.getDisplayName("Visual_OnObject_FormatTicks")
+                label: localizationManager.getDisplayName("Visual_FormatTicks")
             }
         ];
     }
@@ -282,7 +282,7 @@ export class SubSelectionShortcutsService {
             {
                 type: VisualShortcutType.Navigate,
                 destinationInfo: { cardUid: piesReferences.cardUid },
-                label: localizationManager.getDisplayName("Visual_OnObject_FormatPies")
+                label: localizationManager.getDisplayName("Visual_FormatPies")
             }
         ];
     }
@@ -291,7 +291,7 @@ export class SubSelectionShortcutsService {
             {
                 type: VisualShortcutType.Toggle,
                 ...outerLineReferences.show,
-                disabledLabel: localizationManager.getDisplayName("Visual_OnObject_DeleteOuterLine"),
+                disabledLabel: localizationManager.getDisplayName("Visual_DeleteOuterLine"),
             },
             {
                 type: VisualShortcutType.Toggle,
@@ -325,7 +325,7 @@ export class SubSelectionShortcutsService {
             {
                 type: VisualShortcutType.Navigate,
                 destinationInfo: { cardUid: outerLineReferences.cardUid },
-                label: localizationManager.getDisplayName("Visual_OnObject_FormatOuterLine")
+                label: localizationManager.getDisplayName("Visual_FormatOuterLine")
             }
         ];
     }
