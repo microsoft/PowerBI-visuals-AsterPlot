@@ -237,21 +237,22 @@ export class AsterPlotConverterService {
             if (this.hasHighlights) {
 
                 const highlightValues: number[] = <number[]>this.categoricalColumns.Y[0].highlights;
-                const isNotNull: boolean = highlightValues[i] != null;
+                const highlightValueIsNotNull: boolean = highlightValues[i] != null;
+                const secondHighlightValue: number = this.isMoreThanOneMeasure(categoricalColumns) ? <number>categoricalColumns.Y[1].highlights[i] : null;
 
-                currentValue = isNotNull
+                currentValue = highlightValueIsNotNull
                     ? <number>highlightValues[i]
                     : 0;
 
                 if (this.isMoreThanOneMeasure(categoricalColumns)) {
-                    const secondMeasureValue: number = <number>categoricalColumns.Y[1].highlights[i] !== null ? <number>categoricalColumns.Y[1].highlights[i] : 0;
+                    const secondMeasureValue: number = secondHighlightValue !== null ? secondHighlightValue : 0;
                     tooltipInfo = this.buildTwoMeasuresTooltip(formattedCategoryValue, currentValue, secondMeasureValue, localizationManager);
                 } else {
                     tooltipInfo = this.buildOneMeasureTooltip(formattedCategoryValue, currentValue, localizationManager);
                 }
 
-                const height: number = isNotNull ? highlightValues[i] : null;
-                const width: number = Math.max(0, (categoricalColumns.Y.length > 1 && categoricalColumns.Y[1].highlights[i] !== null) ? <number>categoricalColumns.Y[1].highlights[i] : sliceWidth)
+                const height: number = highlightValueIsNotNull ? highlightValues[i] : null;
+                const width: number = Math.max(0, (categoricalColumns.Y.length > 1 && secondHighlightValue !== null) ? secondHighlightValue : sliceWidth)
                 this.highlightedDataPoints.push({
                     sliceHeight: height,
                     sliceWidth: width,
