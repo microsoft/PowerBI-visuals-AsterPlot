@@ -6,3 +6,7 @@ typings
 .api
 *.log
 /coverage
+*.html
+
+## VSCode
+.vscode/

@@ -25,18 +25,10 @@
  */
 
 
-import * as d3 from "d3";
-import { Arc } from "d3-shape";
-// d3
-export type ArcDescriptor<T> = Arc<any, T>;
-
 // powerbi
-// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
+import ISelectionId = powerbi.visuals.ISelectionId;
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
-
-export type Selection<T> = d3.Selection<any, T, any, any>;
-export type UpdateSelection<T> = d3.Selection<any, T, any, any>;
 
 // powerbi.extensibility.utils.chart
 import * as LegendUtil from "powerbi-visuals-utils-chartutils";
@@ -46,27 +38,25 @@ import LegendData = LegendUtil.legendInterfaces.LegendData;
 import {valueFormatter} from "powerbi-visuals-utils-formattingutils";
 import IValueFormatter = valueFormatter.IValueFormatter;
 
-// powerbi.extensibility.utils.interactivity
-import { interactivitySelectionService} from "powerbi-visuals-utils-interactivityutils";
-import SelectableDataPoint = interactivitySelectionService.SelectableDataPoint;
+import { shapesInterfaces,  } from "powerbi-visuals-utils-svgutils";
+import ISize = shapesInterfaces.ISize;
 
-import { AsterPlotSettings } from "./settings";
+import {
+    PieArcDatum as d3PieArcDatum,
+} from "d3-shape";
 
-import {} from "powerbi-visuals-utils-tooltiputils";
+import { SelectableDataPoint } from "./behavior";
+
+import {AsterPlotSettingsModel} from "./asterPlotSettingsModel";
 
 export interface AsterPlotData {
     dataPoints: AsterDataPoint[];
     highlightedDataPoints?: AsterDataPoint[];
-    settings: AsterPlotSettings;
+    settings: AsterPlotSettingsModel;
     hasHighlights: boolean;
     legendData: LegendData;
     labelFormatter: IValueFormatter;
     centerText: string;
-}
-
-export interface AsterArcDescriptor extends ArcDescriptor<AsterDataPoint> {
-    isLabelHasConflict?: boolean;
-    data: AsterDataPoint;
 }
 
 export interface AsterDataPoint extends SelectableDataPoint {
@@ -78,6 +68,12 @@ export interface AsterDataPoint extends SelectableDataPoint {
     label: string;
     highlight?: boolean;
     tooltipInfo: VisualTooltipDataItem[];
-    labelFontSize: string;
+    labelFontSize: number;
     categoryName: string;
+    identity: ISelectionId;
+    isLabelHasConflict?: boolean;
+}
+
+export interface d3AsterDataPoint extends d3PieArcDatum<AsterDataPoint> {
+    size: ISize;
 }

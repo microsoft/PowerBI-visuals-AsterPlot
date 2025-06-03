@@ -1,5 +1,5 @@
 {
-    "compilerOptions": {
+  "compilerOptions": {
       "allowJs": false,
       "emitDecoratorMetadata": true,
       "experimentalDecorators": true,
@@ -11,14 +11,14 @@
       "moduleResolution": "node",
       "declaration": true,
       "lib": [
-          "es5",
+          "es2015",
           "dom"
       ]
-    },
-    "files": [
+  },
+  "files": [
       "./test/visualTest.ts"
-    ],
-    "include": [
-        "src/*.ts"
-    ]
-  }
+  ],
+  "include": [
+      "src/*.ts"
+  ]
+}

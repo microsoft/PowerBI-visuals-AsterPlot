@@ -48,14 +48,8 @@
     ],
     "objects": {
         "legend": {
-            "displayName": "Legend",
-            "displayNameKey": "Visual_Legend",
-            "description": "Display legend options",
-            "descriptionKey": "Visual_Description_Legend",
             "properties": {
                 "show": {
-                    "displayName": "Show",
-                    "displayNameKey": "Visual_Show",
                     "type": {
                         "bool": true
                     }
@@ -63,73 +57,29 @@
                 "position": {
                     "type": {
                         "enumeration": [
-                            {
-                                "value": "Top",
-                                "displayNameKey": "Visual_Top",
-                                "displayName": "Top"
-                            },
-                            {
-                                "value": "Bottom",
-                                "displayNameKey": "Visual_Bottom",
-                                "displayName": "Bottom"
-                            },
-                            {
-                                "value": "Left",
-                                "displayNameKey": "Visual_Left",
-                                "displayName": "Left"
-                            },
-                            {
-                                "value": "Right",
-                                "displayNameKey": "Visual_Right",
-                                "displayName": "Right"
-                            },
-                            {
-                                "value": "TopCenter",
-                                "displayNameKey": "Visual_TopCenter",
-                                "displayName": "Top Center"
-                            },
-                            {
-                                "value": "BottomCenter",
-                                "displayNameKey": "Visual_BottomCenter",
-                                "displayName": "Bottom Center"
-                            },
-                            {
-                                "value": "LeftCenter",
-                                "displayNameKey": "Visual_LeftCenter",
-                                "displayName": "Left Center"
-                            },
-                            {
-                                "value": "RightCenter",
-                                "displayNameKey": "Visual_RightCenter",
-                                "displayName": "Right Center"
-                            }
+                            { "value": "Top" },
+                            { "value": "Bottom" },
+                            { "value": "Left" },
+                            { "value": "Right" },
+                            { "value": "TopCenter" },
+                            { "value": "BottomCenter" },
+                            { "value": "LeftCenter" },
+                            { "value": "RightCenter" }
                         ]
-                    },
-                    "displayName": "Position",
-                    "displayNameKey": "Visual_Position"
+                    }
                 },
                 "showTitle": {
-                    "displayName": "Title",
-                    "displayNameKey": "Visual_Title",
-                    "description": "Display a title for legend symbols",
-                    "descriptionKey": "Visual_Description_Title",
                     "type": {
                         "bool": true
                     }
                 },
                 "titleText": {
-                    "displayName": "Legend Name",
-                    "displayNameKey": "Visual_LegendName",
-                    "description": "Title text",
-                    "descriptionKey": "Visual_Description_LegendName",
                     "type": {
                         "text": true
                     },
                     "suppressFormatPainterCopy": true
                 },
                 "labelColor": {
-                    "displayName": "Color",
-                    "displayNameKey": "Visual_Color",
                     "type": {
                         "fill": {
                             "solid": {
@@ -139,19 +89,37 @@
                     }
                 },
                 "fontSize": {
-                    "displayName": "Text Size",
-                    "displayNameKey": "Visual_TextSize",
                     "type": {
                         "formatting": {
                             "fontSize": true
                         }
+                    }
+                },
+                "fontFamily": {
+                    "type": {
+                        "formatting": {
+                            "fontFamily": true
+                        }
+                    }
+                },
+                "fontBold": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "fontItalic": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "fontUnderline": {
+                    "type": {
+                        "bool": true
                     }
                 }
             }
         },
         "label": {
-            "displayName": "Center Label",
-            "displayNameKey": "Visual_CenterLabel",
             "properties": {
                 "show": {
                     "type": {
@@ -159,8 +127,6 @@
                     }
                 },
                 "color": {
-                    "displayName": "Color",
-                    "displayNameKey": "Visual_Color",
                     "type": {
                         "fill": {
                             "solid": {
@@ -170,19 +136,37 @@
                     }
                 },
                 "fontSize": {
-                    "displayName": "Text Size",
-                    "displayNameKey": "Visual_TextSize",
                     "type": {
                         "formatting": {
                             "fontSize": true
                         }
                     }
+                },
+                "fontFamily": {
+                    "type": {
+                        "formatting": {
+                            "fontFamily": true
+                        }
+                    }
+                },
+                "fontBold": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "fontItalic": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "fontUnderline": {
+                    "type": {
+                        "bool": true
+                    }
                 }
             }
         },
         "labels": {
-            "displayName": "Detail Labels",
-            "displayNameKey": "Visual_DetailLabels",
             "properties": {
                 "show": {
                     "type": {
@@ -190,8 +174,6 @@
                     }
                 },
                 "color": {
-                    "displayName": "Color",
-                    "displayNameKey": "Visual_Color",
                     "type": {
                         "fill": {
                             "solid": {
@@ -201,8 +183,6 @@
                     }
                 },
                 "displayUnits": {
-                    "displayName": "Display Units",
-                    "displayNameKey": "Visual_DisplayUnits",
                     "type": {
                         "formatting": {
                             "labelDisplayUnits": true
@@ -210,31 +190,45 @@
                     }
                 },
                 "precision": {
-                    "displayName": "Decimal Places",
-                    "displayNameKey": "Visual_DecimalPlaces",
                     "placeHolderText": "Auto",
                     "type": {
                         "numeric": true
                     }
                 },
                 "fontSize": {
-                    "displayName": "Text Size",
-                    "displayNameKey": "Visual_TextSize",
                     "type": {
                         "formatting": {
                             "fontSize": true
                         }
                     }
+                },
+                "fontFamily": {
+                    "type": {
+                        "formatting": {
+                            "fontFamily": true
+                        }
+                    }
+                },
+                "fontBold": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "fontItalic": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "fontUnderline": {
+                    "type": {
+                        "bool": true
+                    }
                 }
             }
         },
         "pies": {
-            "displayName": "Pies colors",
-            "displayNameKey": "Visual_PiesColors",
             "properties": {
                 "fill": {
-                    "displayName": "Color",
-                    "displayNameKey": "Visual_Color",
                     "type": {
                         "fill": {
                             "solid": {
@@ -246,19 +240,13 @@
             }
         },
         "outerLine": {
-            "displayName": "Outer line",
-            "displayNameKey": "Visual_Outerline",
             "properties": {
                 "show": {
-                    "displayName": "Show",
-                    "displayNameKey": "Visual_Show",
                     "type": {
                         "bool": true
                     }
                 },
                 "color": {
-                    "displayName": "Color",
-                    "displayNameKey": "Visual_Color",
                     "type": {
                         "fill": {
                             "solid": {
@@ -268,36 +256,26 @@
                     }
                 },
                 "thickness": {
-                    "displayName": "Thickness",
-                    "displayNameKey": "Visual_Thickness",
                     "type": {
                         "numeric": true
                     }
                 },
                 "showGrid": {
-                    "displayName": "Show Grid",
-                    "displayNameKey": "Visual_ShowGrid",
                     "type": {
                         "bool": true
                     }
                 },
                 "showGridTicksValues": {
-                    "displayName": "Show Grid Ticks Values",
-                    "displayNameKey": "Visual_ShowGridTicksValues",
                     "type": {
                         "bool": true
                     }
                 },
                 "showStraightLines": {
-                    "displayName": "Show Straight Lines",
-                    "displayNameKey": "Visual_ShowStraightLines",
                     "type": {
                         "bool": true
                     }
                 },
                 "textColor": {
-                    "displayName": "Text Color",
-                    "displayNameKey": "Visual_TextColor",
                     "type": {
                         "fill": {
                             "solid": {
@@ -307,12 +285,32 @@
                     }
                 },
                 "fontSize": {
-                    "displayName": "Text Size",
-                    "displayNameKey": "Visual_TextSize",
                     "type": {
                         "formatting": {
                             "fontSize": true
                         }
+                    }
+                },
+                "fontFamily": {
+                    "type": {
+                        "formatting": {
+                            "fontFamily": true
+                        }
+                    }
+                },
+                "fontBold": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "fontItalic": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "fontUnderline": {
+                    "type": {
+                        "bool": true
                     }
                 }
             }
@@ -321,6 +319,16 @@
     "sorting": {
         "default": {}
     },
+    "tooltips": {
+        "supportedTypes": {
+            "default": true,
+            "canvas": true
+        },
+        "roles": ["tooltips"]
+    },
     "supportsHighlight": true,
-    "supportsKeyboardFocus": true
+    "supportsKeyboardFocus": true,
+    "supportsOnObjectFormatting": true,
+    "enablePointerEventsFormatMode": true,
+    "privileges": []
 }

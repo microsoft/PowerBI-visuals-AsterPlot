@@ -26,7 +26,6 @@
 
 // lodash
 import * as _ from "lodash-es";
-// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 
 // powerbi
@@ -105,7 +104,7 @@ export class VisualLayout {
 
     private setUpdateObject<T>(object: T, setObjectFn: (T) => void, beforeUpdateFn?: (T) => void): void {
         object = _.clone(object);
-        setObjectFn(VisualLayout.createNotifyChangedObject(object, o => {
+        setObjectFn(VisualLayout.createNotifyChangedObject(object, () => {
             if (beforeUpdateFn) beforeUpdateFn(object);
             this.update();
         }));
@@ -115,7 +114,7 @@ export class VisualLayout {
     }
 
     private static createNotifyChangedObject<T>(object: T, objectChanged: (o?: T, key?: string) => void): T {
-        let result: T = <any>{};
+        const result: T = <T>{};
         _.keys(object).forEach(key => Object.defineProperty(result, key, {
             get: () => object[key],
             set: (value) => { object[key] = value; objectChanged(object, key); },

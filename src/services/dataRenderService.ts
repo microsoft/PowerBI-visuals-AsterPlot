@@ -24,41 +24,44 @@
  *  THE SOFTWARE.
  */
 
-// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
 
 import IViewport = powerbi.IViewport;
 
 // powerbi.extensibility.utils.chart
 import {
-    dataLabelManager,
+    DataLabelManager,
     dataLabelUtils,
     dataLabelInterfaces,
 } from "powerbi-visuals-utils-chartutils";
-import DataLabelManager = dataLabelManager.DataLabelManager;
 import ILabelLayout = dataLabelInterfaces.ILabelLayout;
 import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
 
 // d3
-import * as d3 from "d3";
-import { Arc as SvgArc, arc, line } from "d3-shape";
-
-import { AsterArcDescriptor, ArcDescriptor, Selection } from "./../dataInterfaces";
+// import "d3-transition";
+import "d3-transition";
+import { Selection as d3Selection } from 'd3-selection';
+import { sum as d3Sum, max as d3Max } from "d3-array";
+import {
+    Arc as d3Arc,
+    arc as d3CreateArc,
+    PieArcDatum as d3PieArcDatum,
+    pie as d3Pie
+} from "d3-shape";
+import { interpolate as d3Interpolate } from "d3-interpolate";
 
 // powerbi.extensibility.utils.svg
 import { CssConstants } from "powerbi-visuals-utils-svgutils";
 import ClassAndSelector = CssConstants.ClassAndSelector;
 import createClassAndSelector = CssConstants.createClassAndSelector;
 
-import { TooltipEventArgs, ITooltipServiceWrapper } from "powerbi-visuals-utils-tooltiputils";
-
-import { Helpers } from "./../helpers";
+import { ITooltipServiceWrapper } from "powerbi-visuals-utils-tooltiputils";
 
 // powerbi.extensibility.utils.type
 import { pixelConverter as PixelConverter } from "powerbi-visuals-utils-typeutils";
 
 // powerbi.extensibility.utils.formatting
-import { valueFormatter, textMeasurementService, interfaces } from "powerbi-visuals-utils-formattingutils";
+import { textMeasurementService, interfaces } from "powerbi-visuals-utils-formattingutils";
 import TextProperties = interfaces.TextProperties;
 
 
@@ -74,25 +77,19 @@ class CircleTicksOptions {
 
 import {
     AsterDataPoint,
-    AsterPlotData
-} from "./../dataInterfaces";
+    AsterPlotData,
+    d3AsterDataPoint
+} from "../dataInterfaces";
 
 import {
     VisualLayout
-} from "./../visualLayout";
+} from "../visualLayout";
 
-import {
-    AsterPlotSettings,
-    CentralLabelsSettings,
-    LabelsSettings,
-    LegendSettings,
-    OuterLineSettings
-} from "./../settings";
-import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
-import { createLegend } from "powerbi-visuals-utils-chartutils/lib/legend/legend";
-// import _ = require("lodash");
 import { max, filter, isEmpty } from "lodash-es";
-
+import { AsterPlotObjectNames, AsterPlotSettingsModel, OuterLineCardSettings } from '../asterPlotSettingsModel';
+import {HtmlSubSelectableClass, SubSelectableObjectNameAttribute, SubSelectableDisplayNameAttribute, SubSelectableTypeAttribute} from "powerbi-visuals-utils-onobjectutils";
+import SubSelectionStylesType = powerbi.visuals.SubSelectionStylesType;
+import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 
 export class DataRenderService {
     private static AsterRadiusRatio: number = 0.9;
@@ -109,55 +106,61 @@ export class DataRenderService {
     private static CenterLabelClass: ClassAndSelector = createClassAndSelector("centerLabel");
     private static labelGraphicsContextClass: ClassAndSelector = createClassAndSelector("labels");
     private static linesGraphicsContextClass: ClassAndSelector = createClassAndSelector("lines");
+    private static DataLabels: ClassAndSelector = createClassAndSelector("data-labels")
+    private static LineLabel: ClassAndSelector = createClassAndSelector("line-label")
     private static OuterLine: ClassAndSelector = createClassAndSelector("outerLine");
     private static CircleLine: ClassAndSelector = createClassAndSelector("circleLine");
     private static CircleText: ClassAndSelector = createClassAndSelector("circleText");
 
     private data: AsterPlotData;
-    private settings: AsterPlotSettings;
+    private formatMode: boolean;
     private layout: VisualLayout;
-    private hasHighlights: boolean;
-    private viewportRadius: number;
-    private innerRadius: number;
-    private outerRadius: number;
-    private maxHeight: number;
-    private totalWeight: number;
     private tooltipServiceWrapper: ITooltipServiceWrapper;
-    private dataPoints: AsterArcDescriptor[];
-    private highlightedDataPoints: AsterArcDescriptor[];
-    private arcSvg: AsterArcDescriptor;
-    private ticksOptions: CircleTicksOptions;
-    private ticksRadiusArray: number[];
-    private tickValuesArray: number[];
+    private localizationManager: ILocalizationManager;
+    private readonly settings: AsterPlotSettingsModel;
+    private readonly viewportRadius: number;
+    private readonly maxHeight: number;
+    private readonly totalWeight: number;
+    private readonly dataPoints: d3AsterDataPoint[];
+    private readonly highlightedDataPoints: d3AsterDataPoint[];
+    private readonly arcSvg: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>;
+    private readonly ticksOptions: CircleTicksOptions;
+    private readonly ticksRadiusArray: number[];
+    private readonly tickValuesArray: number[];
+    public innerRadius: number;
+    public outerRadius: number;
 
     constructor(data: AsterPlotData,
-        settings: AsterPlotSettings,
+        settings: AsterPlotSettingsModel,
         layout: VisualLayout,
-        tooltipServiceWrapper: ITooltipServiceWrapper) {
+        tooltipServiceWrapper: ITooltipServiceWrapper,
+        localizationManager: ILocalizationManager,
+        formatMode: boolean = false) {
 
         this.data = data;
         this.settings = settings;
         this.layout = layout;
+        this.localizationManager = localizationManager;
+        this.formatMode = formatMode;
 
-        this.hasHighlights = data.hasHighlights;
-        this.totalWeight = d3.sum(this.data.dataPoints, d => d.sliceWidth);
+        this.totalWeight = d3Sum(this.data.dataPoints, d => d.sliceWidth);
         this.dataPoints = this.createDataPoints(data, false, this.totalWeight);
         this.highlightedDataPoints = this.createDataPoints(data, true, this.totalWeight);
-        this.maxHeight = d3.max(this.data.dataPoints, d => d.sliceHeight);
+        this.maxHeight = d3Max(this.data.dataPoints, d => d.sliceHeight);
         this.viewportRadius = Math.min(this.layout.viewportIn.width, this.layout.viewportIn.height) / 2;
         this.tooltipServiceWrapper = tooltipServiceWrapper;
 
-        this.innerRadius = 0.3 * (this.settings.labels.show
+        this.innerRadius = 0.3 * (this.settings.labels.show.value
             ? this.viewportRadius * DataRenderService.AsterRadiusRatio
             : this.viewportRadius);
-        let showOuterLine: boolean = settings.outerLine.show;
+        const showOuterLine: boolean = settings.outerLine.show.value;
         if (showOuterLine) {
             this.ticksOptions = this.calcTickOptions(this.maxHeight);
             this.innerRadius /= this.ticksOptions.diffPercent;
         }
 
         this.arcSvg = this.getArcSvg(this.innerRadius, this.viewportRadius, this.maxHeight);
-        this.outerRadius = max(this.dataPoints.map(d => this.arcSvg.outerRadius()(<any>d, undefined)));
+        this.outerRadius = max(this.dataPoints.map(d => this.arcSvg.outerRadius().bind(this)(d)));
 
         if (showOuterLine) {
             this.outerRadius *= this.ticksOptions.diffPercent;
@@ -166,14 +169,16 @@ export class DataRenderService {
         }
     }
 
-    public drawCenterText(mainGroupElement: Selection<any>): void {
-        let centerTextProperties: TextProperties = {
-            fontFamily: dataLabelUtils.StandardFontFamily,
-            fontSize: PixelConverter.toString(this.settings.label.fontSize),
-            text: this.data.centerText
+    public drawCenterText(mainGroupElement: d3Selection<SVGGElement, null, HTMLElement, null>): void {
+        const centerTextProperties: TextProperties = {
+            text: this.data.centerText,
+            fontFamily: this.settings.label.font.fontFamily.value,
+            fontSize: PixelConverter.toString(this.settings.label.font.fontSize.value),
+            fontWeight: this.settings.label.font.bold.value ? "bold" : "normal",
+            fontStyle: this.settings.label.font.italic.value ? "italic" : "normal",
         };
 
-        let centerText: Selection<any> = mainGroupElement.select(DataRenderService.CenterLabelClass.selectorName);
+        let centerText: d3Selection<SVGTextElement, null, HTMLElement, null> = mainGroupElement.select<SVGTextElement>(DataRenderService.CenterLabelClass.selectorName);
 
         if (centerText.empty()) {
             centerText = mainGroupElement.append("text").classed(DataRenderService.CenterLabelClass.className, true);
@@ -182,27 +187,42 @@ export class DataRenderService {
         centerText
             .style("line-height", 1)
             .style("font-weight", centerTextProperties.fontWeight)
-            .style("font-size", this.settings.label.fontSize)
-            .style("fill", this.settings.label.color)
+            .style("font-size", this.settings.label.font.fontSize.value)
+            .style("font-family", this.settings.label.font.fontFamily.value || dataLabelUtils.StandardFontFamily)
+            .style("font-weight", this.settings.label.font.bold.value ? "bold" : "normal")
+            .style("font-style", this.settings.label.font.italic.value ? "italic" : "normal")
+            .style("text-decoration", this.settings.label.font.underline.value ? "underline" : "none")
+            .style("fill", this.settings.label.color.value.value)
             .attr("dy", "0.35em")
             .attr("text-anchor", "middle")
             .text(textMeasurementService.getTailoredTextOrDefault(centerTextProperties, this.innerRadius * DataRenderService.CenterTextFontWidthCoefficient));
+
+        this.applyOnObjectStylesToCenterLabel(centerText);
     }
 
-    public cleanCenterText(mainGroupElement: Selection<any>): void {
-        mainGroupElement.select(DataRenderService.CenterLabelClass.selectorName).remove();
+    private applyOnObjectStylesToCenterLabel(labelsSelection: d3Selection<SVGTextElement, null, HTMLElement, null>): void{
+        labelsSelection
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Label.name)
+            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.Label.displayNameKey))
+            .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text)
+            .classed(HtmlSubSelectableClass, this.formatMode && this.settings.label.show.value);
     }
 
-    public renderArcs(slicesElement: Selection<any>, isHighlighted: boolean) {
-        let arc: AsterArcDescriptor = this.arcSvg,
-            classSelector: ClassAndSelector = this.getClassAndSelector(isHighlighted);
+
+    public cleanCenterText(mainGroupElement: d3Selection<SVGGElement, null, HTMLElement, null>): void {
+        mainGroupElement.select<SVGTextElement>(DataRenderService.CenterLabelClass.selectorName).remove();
+    }
+
+    public renderArcs(slicesElement: d3Selection<SVGGElement, null, HTMLElement, null>, isHighlighted: boolean) {
+        const arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>> = this.arcSvg;
+        const classSelector: ClassAndSelector = this.getClassAndSelector(isHighlighted);
 
         let selection = slicesElement
-            .selectAll(classSelector.selectorName)
-            .data(isHighlighted ? this.highlightedDataPoints : this.dataPoints, (d: AsterArcDescriptor, i: number) => {
+            .selectAll<SVGPathElement, null>(classSelector.selectorName)
+            .data(isHighlighted ? this.highlightedDataPoints : this.dataPoints, (d: d3PieArcDatum<AsterDataPoint>, i: number) => {
                 return d.data
                     ? (<powerbi.visuals.ISelectionId>d.data.identity).getKey()
-                    : <any>i;
+                    : i;
             });
 
         selection
@@ -212,91 +232,129 @@ export class DataRenderService {
         selection = selection.merge(selection
             .enter()
             .append("path")
+            .attr("aria-selected", false)
+            .attr("tabindex", 0)
+            .attr("role", "option")
+            .attr("center", (d) => arc.centroid(d).toString())
             .classed(classSelector.className, true));
+
+        this.applyOnObjectStylesToPies(selection);
+
+        const interpolateArc = (dataRendererService: DataRenderService, arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>) => {
+            return function (data: d3PieArcDatum<AsterDataPoint>) {
+                if (!this.oldData) {
+                    this.oldData = data;
+                    return () => arc.call(dataRendererService, data);
+                }
+
+                const interpolation = d3Interpolate(this.oldData, data);
+                this.oldData = interpolation(0);
+                return (x: number) => arc.call(dataRendererService, interpolation(x));
+            }
+        }
 
         selection
             .attr("fill", d => d.data.fillColor)
             .attr("stroke", d => d.data.strokeColor)
             .attr("stroke-width", d => d.data.strokeWidth)
             .call(selection => {
-                return Helpers.needToSetTransition(this.layout.viewportChanged)
-                    ? Helpers.setAttr(selection, "d", arc)
-                    : Helpers.setTransition(selection, DataRenderService.AnimationDuration, "d", arc);
+                return this.layout.viewportChanged
+                    ? selection
+                        .transition()
+                        .duration(DataRenderService.AnimationDuration)
+                        .attrTween("d", interpolateArc(this, arc))
+                    : selection.attr("d", (d) => arc.call(this, d));
             });
 
         this.applyTooltipToSelection(selection);
     }
 
-    private drawGrid(element: Selection<any>, settings: OuterLineSettings): void {
-        let outerThickness: string = PixelConverter.toString(settings.thickness),
-            color: string = settings.color,
-            ticksCount: number = this.ticksRadiusArray.length;
+    private applyOnObjectStylesToPies(selection: d3Selection<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null>): void{
+        selection
+            .classed(HtmlSubSelectableClass, this.formatMode)
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Pies.name)
+            .attr(SubSelectableDisplayNameAttribute, (d) => `"${d.data.categoryName}" ${this.localizationManager.getDisplayName("Visual_Slice")}`)
+            .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Shape);
+    }
 
-        let circleAxes: Selection<any> = element
-            .selectAll("g" + DataRenderService.CircleLine.selectorName)
-            .data(this.ticksRadiusArray);
+    private drawGrid(element: d3Selection<SVGGElement, null, HTMLElement, null>, settings: OuterLineCardSettings): void {
+        const color: string = settings.color.value.value;
+        const ticksCount: number = this.ticksRadiusArray.length;
 
-        circleAxes.exit().remove();
+        const circleAxes: d3Selection<SVGGElement, number, SVGGElement, null> = element
+            .selectAll<SVGGElement, number>("g" + DataRenderService.CircleLine.selectorName)
+            .data(this.ticksRadiusArray)
+            .join("g")
+            .classed(DataRenderService.CircleLine.className, true);
 
-        circleAxes = circleAxes.merge(
-            circleAxes.enter().append("g").classed(DataRenderService.CircleLine.className, true));
-
-        let circle: any = circleAxes
-            .selectAll("circle")
-            .data((t) => { return [t]; });
-
-        circle
-            .exit()
-            .remove();
-
-        circle = circle.merge(circle
-            .enter()
-            .append("circle"));
+        const circle = circleAxes
+            .selectAll<SVGCircleElement, number>("circle")
+            .data((t) => [t])
+            .join("circle");
 
         circle
             .attr("r", (d) => d)
-            .style("opacity", (d: number, i: number, o: number) => {
-                if (o === ticksCount - 1) {
+            .style("opacity", function(_: number, i: number, n: SVGCircleElement[] | ArrayLike<SVGCircleElement>) {
+                const nodes = circle.nodes();
+                const index = nodes.indexOf(n[i]);
+
+                if (index === ticksCount - 1 || !settings.showGrid.value) {
                     return 0;
-                } else {
-                    return settings.showGrid ? 0.5 : 0;
                 }
+
+                return 0.5;
             })
             .style("stroke", color)
             .style("fill", "none");
 
-        if (settings.showGridTicksValues) {
-            let text: any = circleAxes.selectAll("text").data(this.tickValuesArray);
-            let textProperties: TextProperties = {
+        if (settings.showGridTicksValues.value) {
+            let text = circleAxes.selectAll<SVGTextElement, number>("text").data(this.tickValuesArray);
+            const textProperties: TextProperties = {
                 fontFamily: dataLabelUtils.StandardFontFamily,
-                fontSize: PixelConverter.toString(this.settings.outerLine.fontSize)
+                fontSize: PixelConverter.toString(this.settings.outerLine.font.fontSize.value)
             };
             text.exit().remove();
             text = text.merge(text.enter().append("text"));
-            text.attrs({
-                "dy": (d: number, i: number) => { return -this.ticksRadiusArray[i] + DataRenderService.PixelsBelowAxis + (parseInt(this.settings.outerLine.fontSize.toString())); },
-                "dx": (d: number, i: number) => { return - textMeasurementService.measureSvgTextWidth(textProperties, this.tickValuesArray[i].toString()) / DataRenderService.AxisTextWidthCoefficient; },
-                "text-anchor": "middle"
-            })
-                .style("font-size", this.settings.outerLine.fontSize)
-                .style("fill", this.settings.outerLine.textColor)
+            text
+                .attr("dy", (d: number, i: number) => { return -this.ticksRadiusArray[i] + DataRenderService.PixelsBelowAxis + (parseInt(this.settings.outerLine.font.fontSize.value.toString())); })
+                .attr("dx", (d: number, i: number) => { return - textMeasurementService.measureSvgTextWidth(textProperties, this.tickValuesArray[i].toString()) / DataRenderService.AxisTextWidthCoefficient; })
+                .attr("text-anchor", "middle")
+                .style("font-size", this.settings.outerLine.font.fontSize.value)
+                .style("fill", this.settings.outerLine.textColor.value.value)
+                .style("font-family", this.settings.outerLine.font.fontFamily.value || dataLabelUtils.StandardFontFamily)
+                .style("font-weight", this.settings.outerLine.font.bold.value ? "bold" : "normal")
+                .style("font-style", this.settings.outerLine.font.italic.value ? "italic" : "normal")
+                .style("text-decoration", this.settings.outerLine.font.underline.value ? "underline" : "none")
                 .classed(DataRenderService.CircleText.className, true)
-                .text((d: number, i: number) => { return this.tickValuesArray[i]; });
+                .text((_: number, i: number) => { return this.tickValuesArray[i]; });
+
+            this.applyOnObjectStylesToCircleText(text);
 
         } else {
             element.selectAll(DataRenderService.CircleText.selectorName).remove();
         }
     }
 
-    private drawOuter(element: Selection<any>) {
-        let outlineArc: any = arc()
-            .innerRadius(this.settings.outerLine.showStraightLines ? this.innerRadius : this.outerRadius)
+    private applyOnObjectStylesToCircleText(text: d3Selection<SVGTextElement, number, SVGGElement, number>): void{
+        text
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Ticks.name)
+            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.Ticks.displayNameKey))
+            .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text)
+            .classed(HtmlSubSelectableClass, this.formatMode && this.settings.outerLine.showGridTicksValues.value);
+    }
+
+    private drawOuter(element: d3Selection<SVGGElement, null, HTMLElement, null>) {
+        const outlineArc = d3CreateArc<DataRenderService, d3PieArcDatum<AsterDataPoint>>()
+            .innerRadius(this.settings.outerLine.showStraightLines.value ? this.innerRadius : this.outerRadius)
             .outerRadius(this.outerRadius);
 
-        let outerThickness: string = this.settings.outerLine.thickness + "px",
-            color: string = this.settings.outerLine.color;
+        const outerThickness: string = this.settings.outerLine.thickness.value + "px";
+        const color: string = this.settings.outerLine.color.value.value;
 
-        let outerLine = element.selectAll(DataRenderService.OuterLine.selectorName).data(this.dataPoints);
+        let outerLine: d3Selection<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null> = element
+            .selectAll<SVGPathElement, d3PieArcDatum<AsterDataPoint>>(DataRenderService.OuterLine.selectorName)
+            .data(this.dataPoints);
+
         outerLine.exit().remove();
         outerLine = outerLine.merge(outerLine.enter().append("path"));
         outerLine
@@ -304,30 +362,41 @@ export class DataRenderService {
             .attr("opacity", 0.5)
             .attr("stroke", color)
             .attr("stroke-width", outerThickness)
-            .attr("d", <ArcDescriptor<any>>outlineArc)
+            .attr("d", (d) => {
+                return outlineArc.bind(this)(d);
+            })
             .classed(DataRenderService.OuterLine.className, true);
 
+        this.applyOnObjectStylesToOuterLines(outerLine);
     }
 
-    public drawOuterLines(element: Selection<any>): void {
-        let settings: AsterPlotSettings = this.settings;
+    private applyOnObjectStylesToOuterLines(selection: d3Selection<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null>): void{
+        selection
+            .classed(HtmlSubSelectableClass, this.formatMode && this.settings.outerLine.show.value)
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.OuterLine.name)
+            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.OuterLine.displayNameKey))
+            .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Shape);
+    }
+
+    public drawOuterLines(element: d3Selection<SVGGElement, null, HTMLElement, null>): void {
+        const settings: AsterPlotSettingsModel = this.settings;
 
         this.drawOuter(element);
 
-        if (settings.outerLine.showGrid || settings.outerLine.showGridTicksValues) {
+        if (settings.outerLine.showGrid.value || settings.outerLine.showGridTicksValues.value) {
             this.drawGrid(element, settings.outerLine);
         } else {
             this.cleanGrid(element);
         }
     }
 
-    private cleanGrid(element: Selection<any>): void {
+    private cleanGrid(element: d3Selection<SVGGElement, null, HTMLElement, null>): void {
         element.selectAll(DataRenderService.CircleLine.selectorName).remove();
         element.selectAll(DataRenderService.CircleText.selectorName).remove();
         element.selectAll("circle").remove();
     }
 
-    public cleanOuterLines(element: Selection<any>): void {
+    public cleanOuterLines(element: d3Selection<SVGGElement, null, HTMLElement, null>): void {
         element.selectAll(DataRenderService.OuterLine.selectorName).remove();
         this.cleanGrid(element);
     }
@@ -348,13 +417,13 @@ export class DataRenderService {
             }
         }
 
-        let step = Math.pow(10, val.toString().length - 1);
+        const step = Math.pow(10, val.toString().length - 1);
 
-        let allTicksCount: number = Math.ceil((val) / step);
-        let endPoint: number = allTicksCount * step / modifier;
-        let diffPercent: number = endPoint / value;
-        let threeTicks: number = 3;
-        let twoTicks: number = 2;
+        const allTicksCount: number = Math.ceil((val) / step);
+        const endPoint: number = allTicksCount * step / modifier;
+        const diffPercent: number = endPoint / value;
+        const threeTicks: number = 3;
+        const twoTicks: number = 2;
 
         return {
             diffPercent,
@@ -364,7 +433,7 @@ export class DataRenderService {
     }
 
     private calcTicksRadius(ticksCount: number, radius: number): number[] {
-        let array = [];
+        let array: number[];
 
         if (ticksCount % 3 === 0) {
             array = [(radius - this.innerRadius) / 3 + this.innerRadius / this.ticksOptions.diffPercent, (radius - this.innerRadius) / 3 * 2 + this.innerRadius / this.ticksOptions.diffPercent, radius];
@@ -376,7 +445,7 @@ export class DataRenderService {
     }
 
     private calcTicksValues(ticksCount: number, outerValue: number): number[] {
-        let array = [];
+        let array: number[];
 
         if (ticksCount % 3 === 0) {
             array = [outerValue / 3, outerValue / 3 * 2, outerValue];
@@ -387,21 +456,22 @@ export class DataRenderService {
         return array;
     }
 
-    private applyTooltipToSelection(selection: any): void {
-        this.tooltipServiceWrapper.addTooltip(selection, (tooltipEvent: any) => {
-            return tooltipEvent.data.data.tooltipInfo;
-        });
+    private applyTooltipToSelection(selection: d3Selection<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null>): void {
+        this.tooltipServiceWrapper.addTooltip(selection, 
+            (tooltipEvent: d3PieArcDatum<AsterDataPoint>) => tooltipEvent.data?.tooltipInfo,
+            (tooltipEvent: d3PieArcDatum<AsterDataPoint>) => tooltipEvent.data?.identity,
+        );
     }
 
-    private createDataPoints(data: AsterPlotData, hasHighlight: boolean, totalWeight: number): AsterArcDescriptor[] {
-        let pie: any = this.getPieLayout(totalWeight);
+    private createDataPoints(data: AsterPlotData, hasHighlight: boolean, totalWeight: number): d3AsterDataPoint[] {
+        const pie = this.getPieLayout(totalWeight);
 
-        return pie(hasHighlight
+        return pie.bind(this)(hasHighlight
             ? data.highlightedDataPoints
             : data.dataPoints);
     }
 
-    private getDataPoints(isHighlight: boolean) {
+    public getDataPoints(isHighlight: boolean): d3PieArcDatum<AsterDataPoint>[] {
         return isHighlight ? this.highlightedDataPoints : this.dataPoints;
     }
 
@@ -411,8 +481,8 @@ export class DataRenderService {
             : DataRenderService.AsterSlice);
     }
 
-    private getPieLayout(totalWeight: number): any {
-        return d3.pie<AsterDataPoint>()
+    private getPieLayout(totalWeight: number) {
+        return d3Pie<DataRenderService, AsterDataPoint>()
             .sort(null)
             .value((dataPoint: AsterDataPoint) => {
                 if (!this.totalWeight || !dataPoint || isNaN(dataPoint.sliceWidth)) {
@@ -423,27 +493,50 @@ export class DataRenderService {
             });
     }
 
-    private getArcSvg(innerRadius: number, viewportRadius: number, maxHeight: number): any {
-        return arc<AsterArcDescriptor>()
+    public computeOuterRadius(arcDescriptor: d3PieArcDatum<AsterDataPoint>): number {
+        let height: number = 0;
+
+        if (this.maxHeight) {
+            const radius: number = this.viewportRadius - this.innerRadius;
+            const sliceHeight = arcDescriptor
+            && arcDescriptor.data
+            && !isNaN(arcDescriptor.data.sliceHeight)
+                ? arcDescriptor.data.sliceHeight
+                : 1;
+
+            height = radius * sliceHeight / this.maxHeight;
+        }
+
+        // The chart should shrink if data labels are on
+        let heightIsLabelsOn = this.innerRadius + (this.settings.labels.show.value ? height * DataRenderService.AsterRadiusRatio : height);
+        // let heightIsLabelsOn = this.innerRadius + height;
+        if (this.ticksOptions) {
+            heightIsLabelsOn /= this.ticksOptions.diffPercent;
+        }
+
+        // Prevent from data to be inside the inner radius
+        return Math.max(heightIsLabelsOn, this.innerRadius);
+    }
+
+    private getArcSvg(innerRadius: number = this.innerRadius, viewportRadius: number = this.viewportRadius, maxHeight: number = this.maxHeight): d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>> {
+        return d3CreateArc<DataRenderService, d3PieArcDatum<AsterDataPoint>>()
             .innerRadius(innerRadius)
-            .outerRadius((arcDescriptor: AsterArcDescriptor, i: number) => {
+            .outerRadius((arcDescriptor: d3PieArcDatum<AsterDataPoint>) => {
                 let height: number = 0;
 
                 if (this.maxHeight) {
-                    let radius: number = viewportRadius - innerRadius,
-                        sliceHeight: number = 1;
-
-                    sliceHeight = arcDescriptor
+                    const radius: number = viewportRadius - innerRadius;
+                    const sliceHeight = arcDescriptor
                         && arcDescriptor.data
                         && !isNaN(arcDescriptor.data.sliceHeight)
                         ? arcDescriptor.data.sliceHeight
-                        : sliceHeight;
+                        : 1;
 
                     height = radius * sliceHeight / maxHeight;
                 }
 
                 // The chart should shrink if data labels are on
-                let heightIsLabelsOn = innerRadius + (this.settings.labels.show ? height * DataRenderService.AsterRadiusRatio : height);
+                let heightIsLabelsOn = innerRadius + (this.settings.labels.show.value ? height * DataRenderService.AsterRadiusRatio : height);
                 // let heightIsLabelsOn = innerRadius + height;
                 if (this.ticksOptions) {
                     heightIsLabelsOn /= this.ticksOptions.diffPercent;
@@ -454,51 +547,53 @@ export class DataRenderService {
             });
     }
 
-    public renderLabels(labelsElement: Selection<any>, isHighlight: boolean) {
-        let dataPoints: AsterArcDescriptor[] = isHighlight ? this.highlightedDataPoints : this.dataPoints;
+    private lineRadCalc(d: AsterDataPoint) {
+        let height: number = (this.viewportRadius - this.innerRadius) * (d && !isNaN(d.sliceHeight) ? d.sliceHeight : 1) / this.maxHeight;
+        height = this.innerRadius + height * DataRenderService.AsterRadiusRatio;
+        return Math.max(height, this.innerRadius);
+    }
+
+    private labelRadCalc(d: AsterDataPoint) {
+        const height: number = this.viewportRadius * (d && !isNaN(d.sliceHeight) ? d.sliceHeight : 1) / this.maxHeight + this.innerRadius;
+        return Math.max(height, this.innerRadius);
+    }
+
+
+    public renderLabels(labelsElement: d3Selection<SVGGElement, null, HTMLElement, null>, isHighlight: boolean) {
+        const dataPoints: d3AsterDataPoint[] = isHighlight ? this.highlightedDataPoints : this.dataPoints;
         if (!this.data.hasHighlights || (this.data.hasHighlights && isHighlight)) {
-            let labelRadCalc = (d: AsterDataPoint) => {
-                let height: number = this.viewportRadius * (d && !isNaN(d.sliceHeight) ? d.sliceHeight : 1) / this.maxHeight + this.innerRadius;
-                return Math.max(height, this.innerRadius);
-            };
+            const labelArc = d3CreateArc<DataRenderService, d3PieArcDatum<AsterDataPoint>>()
+                .innerRadius(d => this.labelRadCalc(d.data))
+                .outerRadius(d => this.labelRadCalc(d.data));
 
-            let labelArc = arc<AsterArcDescriptor>()
-                .innerRadius(d => labelRadCalc(d.data))
-                .outerRadius(d => labelRadCalc(d.data));
+            const outlineArc = d3CreateArc<DataRenderService, d3PieArcDatum<AsterDataPoint>>()
+                .innerRadius(d => this.lineRadCalc(d.data))
+                .outerRadius(d => this.lineRadCalc(d.data));
 
-            let lineRadCalc = (d: AsterDataPoint) => {
-                let height: number = (this.viewportRadius - this.innerRadius) * (d && !isNaN(d.sliceHeight) ? d.sliceHeight : 1) / this.maxHeight;
-                height = this.innerRadius + height * DataRenderService.AsterRadiusRatio;
-                return Math.max(height, this.innerRadius);
-            };
-            let outlineArc = arc<AsterArcDescriptor>()
-                .innerRadius(d => lineRadCalc(d.data))
-                .outerRadius(d => lineRadCalc(d.data));
-
-            let labelLayout: ILabelLayout = this.getLabelLayout(labelArc, this.layout.viewport);
+            const labelLayout: ILabelLayout = this.getLabelLayout(labelArc, this.layout.viewport);
             this.drawLabels(
                 dataPoints.filter(x => !isHighlight || x.data.sliceHeight !== null),
                 labelsElement,
                 labelLayout,
                 this.layout.viewport,
-                outlineArc,
-                labelArc);
+                outlineArc);
         }
     }
 
-    public cleanLabels(labelsElement: Selection<any>): void {
+    public cleanLabels(labelsElement: d3Selection<SVGGElement, null, HTMLElement, null>): void {
         dataLabelUtils.cleanDataLabels(labelsElement, true);
     }
 
-    private drawLabels(data: ArcDescriptor<AsterDataPoint>[],
-        context: Selection<AsterArcDescriptor>,
+    private drawLabels(data: d3AsterDataPoint[],
+        context: d3Selection<SVGGElement, null, HTMLElement, null>,
         layout: ILabelLayout,
         viewport: IViewport,
-        outlineArc: any,
-        labelArc: any): void {
+        outlineArc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>
+    ): void {
         // Hide and reposition labels that overlap
-        let dataLabelManager: DataLabelManager = new DataLabelManager();
-        let filteredData: any = dataLabelManager.hideCollidedLabels(viewport, data, layout, true /* addTransform */);
+        const dataLabelManager: DataLabelManager = new DataLabelManager();
+        type LabelMergedDataPoint = d3PieArcDatum<AsterDataPoint> & LabelEnabledDataPoint;
+        let filteredData: LabelMergedDataPoint[] = <LabelMergedDataPoint[]>dataLabelManager.hideCollidedLabels(viewport, data, layout, true /* addTransform */);
 
         if (filteredData.length === 0) {
             dataLabelUtils.cleanDataLabels(context, true);
@@ -510,12 +605,14 @@ export class DataRenderService {
             context.append("g").classed(DataRenderService.labelGraphicsContextClass.className, true);
         }
 
-        let labels: Selection<any> = context
-            .select(DataRenderService.labelGraphicsContextClass.selectorName)
-            .selectAll(".data-labels")
-            .data<LabelEnabledDataPoint>(
+        let labels = context
+            .select<SVGGElement>(DataRenderService.labelGraphicsContextClass.selectorName)
+            .selectAll<SVGTextElement, d3PieArcDatum<AsterDataPoint>>(DataRenderService.DataLabels.selectorName)
+            .data(
                 filteredData,
-                (d: AsterArcDescriptor) => (<ISelectionId>d.data.identity).getKey());
+                (d: d3PieArcDatum<AsterDataPoint>) => {
+                    return (<ISelectionId>d.data.identity).getKey();
+                });
 
         labels
             .exit()
@@ -525,102 +622,131 @@ export class DataRenderService {
             labels
                 .enter()
                 .append("text")
-                .classed("data-labels", true));
+                .classed(DataRenderService.DataLabels.className, true))
+                .classed(HtmlSubSelectableClass, this.formatMode && this.settings.labels.show.value)
+                .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Labels.name)
+                .attr(SubSelectableDisplayNameAttribute, AsterPlotObjectNames.Labels.name)
+                .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text);
 
         if (!labels) {
             return;
         }
 
         labels
-            .attrs({ x: (d: LabelEnabledDataPoint) => d.labelX, y: (d: LabelEnabledDataPoint) => d.labelY, dy: ".35em" })
+            .attr("x", (d: LabelEnabledDataPoint) => d.labelX)
+            .attr("y", (d: LabelEnabledDataPoint) => d.labelY)
+            .attr("dy", ".35em")
             .text((d: LabelEnabledDataPoint) => d.labeltext)
-            .styles(layout.style);
+            .style("text-anchor", layout.style["text-anchor"])
+            .style("fill", this.settings.labels.color.value.value)
+            .style("font-family", this.settings.labels.font.fontFamily.value || dataLabelUtils.StandardFontFamily)
+            .style("font-weight", this.settings.labels.font.bold.value ? "bold" : "normal")
+            .style("font-style", this.settings.labels.font.italic.value ? "italic" : "normal")
+            .style("text-decoration", this.settings.labels.font.underline.value ? "underline" : "none")
+            .style("font-size", PixelConverter.fromPoint(this.settings.labels.font.fontSize.value));
+
+        this.applyOnObjectStylesToLabels(labels);
 
         // Draw lines
         if (context.select(DataRenderService.linesGraphicsContextClass.selectorName).empty())
             context.append("g").classed(DataRenderService.linesGraphicsContextClass.className, true);
 
         // Remove lines for null and zero values
-        filteredData = filter(filteredData, (d: AsterArcDescriptor) => d.data.sliceHeight !== null && d.data.sliceHeight !== 0);
+        filteredData = filter(filteredData, (d: d3PieArcDatum<AsterDataPoint>) => d.data.sliceHeight !== null && d.data.sliceHeight !== 0);
 
         let lines = context
             .select(DataRenderService.linesGraphicsContextClass.selectorName)
-            .selectAll("polyline")
-            .data<LabelEnabledDataPoint>(
+            .selectAll<SVGPolylineElement, d3PieArcDatum<AsterDataPoint>>("polyline")
+            .data(
                 filteredData,
-                (d: AsterArcDescriptor) => (<ISelectionId>d.data.identity).getKey());
+                (d: d3PieArcDatum<AsterDataPoint>) => {
+                    return (<ISelectionId>d.data.identity).getKey();
+                });
 
-        let midAngle = (d: any) => { return d.startAngle + (d.endAngle - d.startAngle) / 2; };
+        const midAngle = (d: LabelMergedDataPoint) => {
+            return d.startAngle + (d.endAngle - d.startAngle) / 2;
+        };
 
         lines
             .exit()
             .remove();
 
         lines = lines.merge(
-            lines.enter()
+            lines
+                .enter()
                 .append("polyline")
-                .classed("line-label", true));
+                .classed(DataRenderService.LineLabel.className, true));
 
         lines
             .attr("points", (d) => {
-                let textPoint = [d.labelX, d.labelY];
-                textPoint[0] = textPoint[0] + ((midAngle(<any>d) < Math.PI ? -1 : 1) * DataRenderService.LabelLinePadding);
-                let chartPoint = outlineArc.centroid(<any>d);
+                const textPoint = [d.labelX, d.labelY];
+                textPoint[0] = textPoint[0] + ((midAngle(d) < Math.PI ? -1 : 1) * DataRenderService.LabelLinePadding);
+                const chartPoint = outlineArc.centroid(d);
                 chartPoint[0] *= DataRenderService.ChartLinePadding;
                 chartPoint[1] *= DataRenderService.ChartLinePadding;
 
-                return <any>[chartPoint, textPoint];
+                const result = [].concat(chartPoint, textPoint);
+                return result;
             })
             .style("opacity", 0.5)
             .style("fill-opacity", 0)
-            .style("stroke", () => this.settings.labels.color);
-
-
+            .style("stroke", () => this.settings.labels.color.value.value);
     }
 
-    private getLabelLayout(arc: any, viewport: IViewport): ILabelLayout {
-        let midAngle = (d: any) => { return d.startAngle + (d.endAngle - d.startAngle) / 2; };
-        let textProperties: TextProperties = {
-            fontFamily: dataLabelUtils.StandardFontFamily,
-            fontSize: PixelConverter.fromPoint(this.settings.labels.fontSize),
+    private applyOnObjectStylesToLabels(labelsSelection: d3Selection<SVGTextElement, d3PieArcDatum<AsterDataPoint> & LabelEnabledDataPoint, SVGGElement, null>): void{
+        labelsSelection
+            .style("pointer-events", this.formatMode ? "auto" : "none")
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Labels.name)
+            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.Labels.displayNameKey))
+            .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text)
+            .classed(HtmlSubSelectableClass, this.formatMode && this.settings.labels.show.value);
+    }
+
+    private getLabelLayout(arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>, viewport: IViewport): ILabelLayout {
+        const midAngle = (d: d3PieArcDatum<AsterDataPoint>) => {
+            return d.startAngle + (d.endAngle - d.startAngle) / 2;
+        };
+        const textProperties: TextProperties = {
             text: "",
+            fontFamily: this.settings.labels.font.fontFamily.value || dataLabelUtils.StandardFontFamily,
+            fontSize: PixelConverter.fromPoint(this.settings.labels.font.fontSize.value),
+            fontWeight: this.settings.labels.font.bold ? "bold" : "normal",
+            fontStyle: this.settings.labels.font.italic ? "italic" : "normal",
         };
 
-        let isLabelsHasConflict = (d: AsterArcDescriptor) => {
-            let pos = arc.centroid(d);
+        const isLabelsHasConflict = (d: d3PieArcDatum<AsterDataPoint>) => {
+            const pos = arc.centroid(d);
             textProperties.text = d.data.label;
-            let textWidth = textMeasurementService.measureSvgTextWidth(textProperties);
-            let horizontalSpaceAvaliableForLabels = viewport.width / 2 - Math.abs(pos[0]);
-            let textHeight = textMeasurementService.estimateSvgTextHeight(textProperties);
-            let verticalSpaceAvaliableForLabels = viewport.height / 2 - Math.abs(pos[1]);
-            d.isLabelHasConflict = textWidth > horizontalSpaceAvaliableForLabels || textHeight > verticalSpaceAvaliableForLabels;
-            return d.isLabelHasConflict;
+            const textWidth = textMeasurementService.measureSvgTextWidth(textProperties);
+            const horizontalSpaceAvailableForLabels = viewport.width / 2 - Math.abs(pos[0]);
+            const textHeight = textMeasurementService.estimateSvgTextHeight(textProperties);
+            const verticalSpaceAvailableForLabels = viewport.height / 2 - Math.abs(pos[1]);
+            d.data.isLabelHasConflict = textWidth > horizontalSpaceAvailableForLabels || textHeight > verticalSpaceAvailableForLabels;
+            return d.data.isLabelHasConflict;
         };
 
         return {
-            labelText: (d: AsterArcDescriptor) => {
+            labelText: (d: d3PieArcDatum<AsterDataPoint>) => {
                 textProperties.text = d.data.label;
-                let pos = arc.centroid(d);
-                let xPos = isLabelsHasConflict(d) ? pos[0] * DataRenderService.AsterConflictRatio : pos[0];
-                let spaceAvaliableForLabels = viewport.width / 2 - Math.abs(xPos);
-                return textMeasurementService.getTailoredTextOrDefault(textProperties, spaceAvaliableForLabels);
+                const pos = arc.centroid(d);
+                const xPos = isLabelsHasConflict(d) ? pos[0] * DataRenderService.AsterConflictRatio : pos[0];
+                const spaceAvailableForLabels = viewport.width / 2 - Math.abs(xPos);
+                return textMeasurementService.getTailoredTextOrDefault(textProperties, spaceAvailableForLabels);
             },
             labelLayout: {
-                x: (d: AsterArcDescriptor) => {
-                    let pos = arc.centroid(d);
+                x: (d: d3PieArcDatum<AsterDataPoint>) => {
+                    const pos = arc.centroid(d);
                     textProperties.text = d.data.label;
-                    return d.isLabelHasConflict ? pos[0] * DataRenderService.AsterConflictRatio : pos[0];
+                    return d.data.isLabelHasConflict ? pos[0] * DataRenderService.AsterConflictRatio : pos[0];
                 },
-                y: (d: AsterArcDescriptor) => {
-                    let pos: [number, number] = arc.centroid(d);
-                    return d.isLabelHasConflict ? pos[1] * DataRenderService.AsterConflictRatio : pos[1];
+                y: (d: d3PieArcDatum<AsterDataPoint>) => {
+                    const pos: [number, number] = arc.centroid(d);
+                    return d.data.isLabelHasConflict ? pos[1] * DataRenderService.AsterConflictRatio : pos[1];
                 },
             },
-            filter: (d: AsterArcDescriptor) => (d != null && !isEmpty(d.data.label + "")),
+            filter: (d: d3PieArcDatum<AsterDataPoint>) => (d != null && !isEmpty(d.data.label + "")),
             style: {
-                "fill": this.settings.labels.color,
-                "font-size": textProperties.fontSize,
-                "text-anchor": (d: AsterArcDescriptor) => midAngle(d) < Math.PI ? "start" : "end",
+                "text-anchor": (d: d3PieArcDatum<AsterDataPoint>) => midAngle(d) < Math.PI ? "start" : "end",
             }
         };
     }

@@ -25,163 +25,143 @@
  */
 
 
-import * as d3 from "d3";
-import "d3-selection-multi";
-
-type Selection<T> = d3.Selection<any, T, any, any>;
-type UpdateSelection<T> = d3.Selection<any, T, any, any>;
-
 // powerbi
-// tslint:disable-next-line
 import powerbi from "powerbi-visuals-api";
-import IViewport = powerbi.IViewport;
-import DataView = powerbi.DataView;
-import DataViewObjectPropertyIdentifier = powerbi.DataViewObjectPropertyIdentifier;
-import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
-import VisualObjectInstance = powerbi.VisualObjectInstance;
-import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
-import IVisual = powerbi.extensibility.IVisual;
-import IColorPalette = powerbi.extensibility.IColorPalette;
-import VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnumerationObject;
-import IVisualHost = powerbi.extensibility.visual.IVisualHost;
-import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
-import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
-
-// powerbi.extensibility.visual
-import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
-import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
-
-// powerbi.visuals
-import ISelectionId = powerbi.visuals.ISelectionId;
 
 // powerbi.extensibility.utils.svg
 import * as SVGUtil from "powerbi-visuals-utils-svgutils";
-import IMargin = SVGUtil.IMargin;
-import translate = SVGUtil.manipulation.translate;
-import ClassAndSelector = SVGUtil.CssConstants.ClassAndSelector;
-import createClassAndSelector = SVGUtil.CssConstants.createClassAndSelector;
 
 // powerbi.extensibility.utils.type
 import { pixelConverter as PixelConverter } from "powerbi-visuals-utils-typeutils";
 
 // powerbi.extensibility.utils.chart
 import * as LegendUtil from "powerbi-visuals-utils-chartutils";
+
+// powerbi.extensibility.utils.color
+import { ColorHelper } from "powerbi-visuals-utils-colorutils";
+
+// powerbi.extensibility.utils.tooltip
+import { createTooltipServiceWrapper, ITooltipServiceWrapper } from "powerbi-visuals-utils-tooltiputils";
+
+import { AsterPlotConverterService } from "./services/asterPlotConverterService";
+
+import { AsterPlotColumns } from "./asterPlotColumns";
+
+import { BehaviorOptions, Behavior } from "./behavior";
+
+import { AsterDataPoint, AsterPlotData } from "./dataInterfaces";
+
+import { VisualLayout } from "./visualLayout";
+
+import { DataRenderService } from "./services/dataRenderService";
+
+import { legend as LegendModule, legendInterfaces } from "powerbi-visuals-utils-chartutils";
+import createLegend = LegendModule.createLegend;
+import LegendPosition = legendInterfaces.LegendPosition;
+import LegendDataPoint = legendInterfaces.LegendDataPoint;
+
+import "../style/asterPlot.less";
+import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
+import {
+    AsterPlotObjectNames,
+    AsterPlotSettingsModel,
+} from "./asterPlotSettingsModel";
+
+// OnObject
+import {
+    HtmlSubSelectableClass,
+    HtmlSubSelectionHelper,
+    SubSelectableDirectEdit as SubSelectableDirectEditAttr,
+    SubSelectableDisplayNameAttribute,
+    SubSelectableObjectNameAttribute
+} from "powerbi-visuals-utils-onobjectutils"
+import { visualTitleEditSubSelection } from "./onObject/references";
+import { AsterPlotOnObjectService } from "./onObject/asterPlotOnObjectService";
+
+// d3
+import { select as d3Select, Selection as d3Selection } from "d3-selection";
+import { PieArcDatum } from "d3-shape";
+
+import IViewport = powerbi.IViewport;
+import DataView = powerbi.DataView;
+import IVisual = powerbi.extensibility.IVisual;
+import ISandboxExtendedColorPalette = powerbi.extensibility.ISandboxExtendedColorPalette;
+import IVisualHost = powerbi.extensibility.visual.IVisualHost;
+import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
+import ISelectionManager = powerbi.extensibility.ISelectionManager;
+import IPoint = powerbi.extensibility.IPoint;
+// powerbi.extensibility.visual
+import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
+import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
+// powerbi.visuals
+import translate = SVGUtil.manipulation.translate;
+import ClassAndSelector = SVGUtil.CssConstants.ClassAndSelector;
+import createClassAndSelector = SVGUtil.CssConstants.createClassAndSelector;
 import ILegend = LegendUtil.legendInterfaces.ILegend;
 import legendData = LegendUtil.legendData;
 import dataLabelUtils = LegendUtil.dataLabelUtils;
 import positionChartArea = LegendUtil.legend.positionChartArea;
 
-// powerbi.extensibility.utils.interactivity
-import { interactivityBaseService, interactivitySelectionService } from "powerbi-visuals-utils-interactivityutils";
-import appendClearCatcher = interactivityBaseService.appendClearCatcher;
-import createInteractivitySelectionService = interactivitySelectionService.createInteractivitySelectionService;
-import IInteractivityService = interactivityBaseService.IInteractivityService;
-import IInteractiveBehavior = interactivityBaseService.IInteractiveBehavior;
-
-// powerbi.extensibility.utils.color
-import { ColorHelper } from "powerbi-visuals-utils-colorutils";
-
 import IVisualEventService = powerbi.extensibility.IVisualEventService;
+import FormattingModel = powerbi.visuals.FormattingModel;
+import DataViewObject = powerbi.DataViewObject;
+import SubSelectionOutlineType = powerbi.visuals.SubSelectionOutlineType;
+const AsterPlotVisualClassName: string = "asterPlot";
 
-// powerbi.extensibility.utils.tooltip
-import {
-    createTooltipServiceWrapper,
-    ITooltipServiceWrapper
-} from "powerbi-visuals-utils-tooltiputils";
-
-import {
-    AsterPlotConverterService
-} from "./services/asterPlotConverterService";
-
-import {
-    AsterPlotColumns
-} from "./asterPlotColumns";
-
-import {
-    AsterPlotWebBehavior,
-    AsterPlotBehaviorOptions
-} from "./behavior";
-
-import {
-    AsterDataPoint,
-    AsterPlotData
-} from "./dataInterfaces";
-
-import {
-    VisualLayout
-} from "./visualLayout";
-
-import {
-    DataRenderService
-} from "./services/dataRenderService";
-
-import {
-    AsterPlotSettings,
-    CentralLabelsSettings,
-    LabelsSettings,
-    LegendSettings,
-    OuterLineSettings
-} from "./settings";
-import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
-import { createLegend } from "powerbi-visuals-utils-chartutils/lib/legend/legend";
-// import _ = require("lodash");
-import { isEmpty, clone } from "lodash-es";
-
-let AsterPlotVisualClassName: string = "asterPlot";
-
-
-import "../style/asterPlot.less";
-
-// tslint:disable-next-line: export-name
 export class AsterPlot implements IVisual {
     private static AsterSlices: ClassAndSelector = createClassAndSelector("asterSlices");
     private static AsterSlice: ClassAndSelector = createClassAndSelector("asterSlice");
     private static AsterHighlightedSlice: ClassAndSelector = createClassAndSelector("asterHighlightedSlice");
-    private static OuterLine: ClassAndSelector = createClassAndSelector("outerLine");
     private static CenterLabelClass: ClassAndSelector = createClassAndSelector("centerLabel");
+    private static LegendTitleSelector: ClassAndSelector = createClassAndSelector("legendTitle");
+    private static LegendItemSelector: ClassAndSelector = createClassAndSelector("legendItem");
+    private static LegendIconSelector: ClassAndSelector = createClassAndSelector("legendIcon");
 
     private events: IVisualEventService;
 
     private layout: VisualLayout;
+    private rootElement: HTMLElement;
+    private svg: d3Selection<SVGSVGElement, null, HTMLElement, null>;
+    private mainGroupElement: d3Selection<SVGGElement, null, HTMLElement, null>;
+    private mainLabelsElement: d3Selection<SVGGElement, null, HTMLElement, null>;
+    private slicesElement: d3Selection<SVGGElement, null, HTMLElement, null>;
+    private legendElement: d3Selection<SVGSVGElement, null, HTMLElement, null>;
+    private legendGroup: d3Selection<SVGGElement, null, HTMLElement, null>;
+    private legendItems: d3Selection<SVGGElement, LegendDataPoint, SVGGElement, null>;
 
-    private static PiesPropertyIdentifier: DataViewObjectPropertyIdentifier = {
-        objectName: "pies",
-        propertyName: "fill"
-    };
-
-    private svg: Selection<any>;
-    private mainGroupElement: Selection<any>;
-    private mainLabelsElement: Selection<any>;
-    private slicesElement: Selection<AsterPlotData>;
-    private clearCatcher: Selection<any>;
-
-    private colorPalette: IColorPalette;
+    private colorPalette: ISandboxExtendedColorPalette;
     private colorHelper: ColorHelper;
 
     private visualHost: IVisualHost;
     private localizationManager: ILocalizationManager;
-    private interactivityService: IInteractivityService<any>;
+    private selectionManager: ISelectionManager;
+    private formattingSettingsService: FormattingSettingsService;
+
+    private subSelectionHelper: HtmlSubSelectionHelper;
 
     private renderService: DataRenderService;
 
     private legend: ILegend;
-    private data: AsterPlotData;
 
-    private get settings(): AsterPlotSettings {
-        return this.data && this.data.settings;
-    }
-
-    private behavior: IInteractiveBehavior;
+    private behavior: Behavior;
 
     private tooltipServiceWrapper: ITooltipServiceWrapper;
 
+    public visualOnObjectFormatting: AsterPlotOnObjectService;
+
+    // public for tests
+    public data: AsterPlotData;
+    public formattingSettings: AsterPlotSettingsModel;
+
     constructor(options: VisualConstructorOptions) {
-        if (window.location !== window.parent.location) {
-            require("core-js/stable");
-        }
         this.events = options.host.eventService;
         this.visualHost = options.host;
         this.localizationManager = this.visualHost.createLocalizationManager();
+        this.selectionManager = this.visualHost.createSelectionManager();
+        this.formattingSettingsService = new FormattingSettingsService(this.localizationManager);
+        this.rootElement = options.element;
+
+        this.visualOnObjectFormatting = new AsterPlotOnObjectService(options.element, options.host, this.localizationManager, this.customOutlineCallback.bind(this));
 
         this.tooltipServiceWrapper = createTooltipServiceWrapper(
             this.visualHost.tooltipService,
@@ -194,64 +174,44 @@ export class AsterPlot implements IVisual {
             left: 10
         });
 
-        let svg: Selection<any> = this.svg = d3.select(options.element)
+        const rootElement: d3Selection<HTMLElement, null, HTMLElement, null> = d3Select(options.element);
+
+        const svg = this.svg = rootElement
             .append("svg")
-            .classed(AsterPlotVisualClassName, true)
-            .style("position", "absolute");
+            .classed(AsterPlotVisualClassName, true);
 
         this.colorPalette = options.host.colorPalette;
         this.colorHelper = new ColorHelper(this.colorPalette);
-        this.mainGroupElement = svg.append("g");
-        this.mainLabelsElement = svg.append("g");
+        this.mainGroupElement = svg.append("g").attr("id", "mainGroup");
+        this.mainLabelsElement = svg.append("g").attr("id", "mainLabels");
 
-        this.behavior = new AsterPlotWebBehavior();
-        this.clearCatcher = appendClearCatcher(this.mainGroupElement);
+        this.behavior = new Behavior(this.colorHelper, this.selectionManager);
 
         this.slicesElement = this.mainGroupElement
             .append("g")
-            .classed(AsterPlot.AsterSlices.className, true);
+            .classed(AsterPlot.AsterSlices.className, true)
+            .attr("role", "listbox")
+            .attr("aria-multiselectable", "true");
 
-        this.interactivityService = createInteractivitySelectionService(options.host);
+        this.legend = createLegend(options.element, true);
 
-        this.legend = createLegend(
-            options.element,
-            options.host && false,
-            this.interactivityService,
-            true);
+        this.legendElement = rootElement.select<SVGSVGElement>("svg.legend");
+        this.legendGroup = this.legendElement.selectChild<SVGGElement>("g#legendGroup");
+        this.legendItems = this.legendGroup.selectChildren<SVGGElement, null>(AsterPlot.LegendItemSelector.selectorName);
     }
 
-    // tslint:disable-next-line: function-name
-    public static converter(dataView: DataView, colors: IColorPalette, colorHelper: ColorHelper, visualHost: IVisualHost, localizationManager: ILocalizationManager): AsterPlotData {
-        let categorical = <any>AsterPlotColumns.getCategoricalColumns(dataView);
+    public static converter(dataView: DataView, settings: AsterPlotSettingsModel, colors: ISandboxExtendedColorPalette, colorHelper: ColorHelper, visualHost: IVisualHost, localizationManager: ILocalizationManager): AsterPlotData {
+        const categorical = AsterPlotColumns.getCategoricalColumns(dataView);
 
         if (!AsterPlotConverterService.isDataValid(categorical)) {
             return;
         }
 
-        let settings: AsterPlotSettings = AsterPlot.parseSettings(dataView, categorical.Category.source, colorHelper);
-        let converterService: AsterPlotConverterService = new AsterPlotConverterService(dataView, settings, colors, visualHost, categorical);
+        settings.parse(colors, categorical.Category.source.displayName);
+
+        const converterService: AsterPlotConverterService = new AsterPlotConverterService(dataView, settings, colors, visualHost, categorical);
 
         return converterService.getConvertedData(localizationManager);
-    }
-
-    private static parseSettings(dataView: DataView, categorySource: DataViewMetadataColumn, colorHelper: ColorHelper): AsterPlotSettings {
-        let settings: AsterPlotSettings = AsterPlotSettings.parse<AsterPlotSettings>(dataView);
-
-        // parse colors for high contrast mode
-        settings.label.color = colorHelper.getHighContrastColor("foreground", settings.label.color);
-        settings.labels.color = colorHelper.getHighContrastColor("foreground", settings.labels.color);
-        settings.legend.labelColor = colorHelper.getHighContrastColor("foreground", settings.legend.labelColor);
-        settings.outerLine.color = colorHelper.getHighContrastColor("foreground", settings.outerLine.color);
-        settings.outerLine.textColor = colorHelper.getHighContrastColor("foreground", settings.outerLine.textColor);
-
-        settings.labels.precision = Math.min(17, Math.max(0, settings.labels.precision));
-        settings.outerLine.thickness = Math.min(25, Math.max(0.1, settings.outerLine.thickness));
-
-        if (isEmpty(settings.legend.titleText)) {
-            settings.legend.titleText = categorySource.displayName;
-        }
-
-        return settings;
     }
 
     private areValidOptions(options: VisualUpdateOptions): boolean {
@@ -259,39 +219,54 @@ export class AsterPlot implements IVisual {
     }
 
     private applySelectionStateToData(): void {
-        if (this.interactivityService) {
-            this.interactivityService.applySelectionStateToData(
-                this.data.dataPoints.concat(this.data.highlightedDataPoints),
-                this.data.hasHighlights);
-        }
+        this.behavior.setSelectedToDataPointsDefault(
+            this.data.dataPoints.concat(this.data.highlightedDataPoints),
+            this.data.hasHighlights
+        );
     }
 
     public update(options: VisualUpdateOptions): void {
+        this.events.renderingFinished(options);
         this.visualHost.eventService.renderingStarted(options);
         try {
             if (!this.areValidOptions(options)) {
                 return;
             }
-            let data: AsterPlotData = AsterPlot.converter(options.dataViews[0], this.colorPalette, this.colorHelper, this.visualHost, this.localizationManager);
+
+            const formatMode = options.formatMode ?? false;
+            this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(AsterPlotSettingsModel, options.dataViews[0]);
+
+            const data: AsterPlotData = AsterPlot.converter(
+                options.dataViews[0],
+                this.formattingSettings,
+                this.colorPalette,
+                this.colorHelper,
+                this.visualHost,
+                this.localizationManager,
+            );
             if (!data) {
                 this.clear();
                 return;
             }
 
+            this.formattingSettings.populatePies(data.dataPoints);
+
             this.layout.viewport = options.viewport;
             this.data = data;
 
             this.applySelectionStateToData();
-            this.renderLegend();
+            this.renderLegend(formatMode);
             this.updateViewPortAccordingToLegend();
             this.transformAndResizeMainSvgElements();
 
             dataLabelUtils.cleanDataLabels(this.mainLabelsElement, true);
 
             this.renderService = new DataRenderService(data,
-                this.settings,
+                this.formattingSettings,
                 this.layout,
-                this.tooltipServiceWrapper);
+                this.tooltipServiceWrapper,
+                this.localizationManager,
+                formatMode);
 
             this.renderService.renderArcs(this.slicesElement, false);
 
@@ -301,28 +276,31 @@ export class AsterPlot implements IVisual {
                 this.renderService.renderArcs(this.slicesElement, true);
             }
 
-            if (this.settings.labels.show) {
+            if (this.formattingSettings.labels.show.value) {
                 this.renderService.renderLabels(this.mainLabelsElement, this.data.hasHighlights);
             } else {
                 this.renderService.cleanLabels(this.mainLabelsElement);
             }
 
-            if (this.settings.label.show) {
+            if (this.formattingSettings.label.show.value) {
                 this.renderService.drawCenterText(this.mainGroupElement);
             } else {
                 this.renderService.cleanCenterText(this.mainGroupElement);
             }
-            if (this.settings.outerLine.show) {
+            if (this.formattingSettings.outerLine.show.value) {
                 this.renderService.drawOuterLines(this.mainGroupElement);
             } else {
                 this.renderService.cleanOuterLines(this.mainGroupElement);
             }
 
-            this.bindInteractivityBehaviour();
-            this.visualHost.eventService.renderingFinished(options);
+            this.bindBehaviorOptions(formatMode);
+
+            this.applyOnObjectFormatting(options);
+
+            this.events.renderingFinished(options);
         }
         catch (e) {
-            this.visualHost.eventService.renderingFailed(options, e);
+            this.events.renderingFailed(options, e);
             console.log(e);
         }
     }
@@ -332,56 +310,74 @@ export class AsterPlot implements IVisual {
     }
 
     private transformAndResizeMainSvgElements() {
-        this.svg.attrs({
-            width: PixelConverter.toString(this.layout.viewport.width),
-            height: PixelConverter.toString(this.layout.viewport.height)
-        });
+        this.svg
+            .attr("width", PixelConverter.toString(this.layout.viewport.width))
+            .attr("height", PixelConverter.toString(this.layout.viewport.height));
 
-        let transformX: number = (this.layout.viewportIn.width + this.layout.margin.right) / 2;
-        let transformY: number = (this.layout.viewportIn.height + this.layout.margin.bottom) / 2;
+        const transformX: number = (this.layout.viewportIn.width + this.layout.margin.right) / 2;
+        const transformY: number = (this.layout.viewportIn.height + this.layout.margin.bottom) / 2;
 
-        this.mainGroupElement.attr("transform", translate(transformX, transformY));
-        this.mainLabelsElement.attr("transform", translate(transformX, transformY));
+        this.mainGroupElement
+            .attr("transform", translate(transformX, transformY))
 
-        // Move back the clearCatcher
-        this.clearCatcher.attr("transform", translate(-transformX, -transformY));
+        this.mainLabelsElement
+            .attr("transform", translate(transformX, transformY));
     }
 
-    private bindInteractivityBehaviour(): void {
-        if (this.interactivityService) {
-            let behaviorOptions: AsterPlotBehaviorOptions = {
-                selection: this.slicesElement.selectAll(AsterPlot.AsterSlice.selectorName + ", " + AsterPlot.AsterHighlightedSlice.selectorName),
-                clearCatcher: this.clearCatcher,
-                interactivityService: this.interactivityService,
-                hasHighlights: this.data.hasHighlights,
-                dataPoints: this.data.dataPoints,
-                behavior: this.behavior
-            };
-
-            this.interactivityService.bind(behaviorOptions);
-        }
+    private bindBehaviorOptions(isFormatMode: boolean): void {
+        const behaviorOptions: BehaviorOptions = {
+            selection: this.slicesElement.selectAll(AsterPlot.AsterSlice.selectorName + ", " + AsterPlot.AsterHighlightedSlice.selectorName),
+            legend: this.legendElement,
+            legendItems: this.legendItems,
+            legendIcons: <d3Selection<SVGElement, LegendDataPoint, null, undefined>>this.legendElement.selectAll(AsterPlot.LegendIconSelector.selectorName),
+            clearCatcher: this.svg,
+            hasHighlights: this.data.hasHighlights,
+            dataPoints: this.data.dataPoints,
+            formatMode: isFormatMode,
+        };
+        this.behavior.bindEvents(behaviorOptions);
     }
 
-    private renderLegend(): void {
-        if (this.settings.legend.show) {
-            // Force update for title text
-            let legendObject = clone(this.settings.legend);
-            legendObject.labelColor = <any>{ solid: { color: legendObject.labelColor } };
-            legendData.update(this.data.legendData, <any>legendObject);
-            this.legend.changeOrientation(LegendPosition[this.settings.legend.position]);
-        }
+    private renderLegend(isFormatMode: boolean): void {
+        const legendObject: DataViewObject = {
+            show: this.formattingSettings.legend.show.value,
+            showTitle: this.formattingSettings.legend.showTitle.value,
+            position: LegendPosition[this.formattingSettings.legend.position.value.value],
+        };
 
+        legendData.update(this.data.legendData, legendObject);
+        this.legend.changeOrientation(LegendPosition[this.formattingSettings.legend.position.value.value]);
         this.legend.drawLegend(this.data.legendData, this.layout.viewportCopy);
         positionChartArea(this.svg, this.legend);
+
+        this.legendItems = this.legendGroup.selectAll(AsterPlot.LegendItemSelector.selectorName);
+
+        this.applyOnObjectStylesToLegend(isFormatMode);
+    }
+
+    private applyOnObjectStylesToLegend(isFormatMode: boolean): void {
+        const legendSettings = this.formattingSettings.legend;
+
+        this.legendGroup
+            .classed(HtmlSubSelectableClass, isFormatMode && legendSettings.show.value)
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Legend.name)
+            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.Legend.displayNameKey));
+
+        this.legendGroup
+            .select(AsterPlot.LegendTitleSelector.selectorName)
+            .classed(HtmlSubSelectableClass, isFormatMode && legendSettings.show.value && legendSettings.showTitle.value)
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.LegendTitle.name)
+            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.LegendTitle.displayNameKey))
+            .attr(SubSelectableDirectEditAttr, visualTitleEditSubSelection);
     }
 
     private updateViewPortAccordingToLegend(): void {
-        if (!this.settings.legend.show) {
+        if (!this.formattingSettings.legend.show.value) {
             return;
         }
 
-        let legendMargins: IViewport = this.legend.getMargins();
-        let legendPosition: LegendPosition = LegendPosition[this.settings.legend.position];
+        const legendMargins: IViewport = this.legend.getMargins();
+        const legendPosition: LegendPosition = LegendPosition[this.formattingSettings.legend.position.value.value];
 
         switch (legendPosition) {
             case LegendPosition.Top:
@@ -410,57 +406,111 @@ export class AsterPlot implements IVisual {
         this.legend.drawLegend({ dataPoints: [] }, this.layout.viewportCopy);
     }
 
-    /* This function returns the values to be displayed in the property pane for each object.
-     * Usually it is a bind pass of what the property pane gave you, but sometimes you may want to do
-     * validation and return other values/defaults
-     */
-    public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstanceEnumeration {
-        const instanceEnumeration: VisualObjectInstanceEnumeration =
-            AsterPlotSettings.enumerateObjectInstances(
-                this.settings || AsterPlotSettings.getDefault(),
-                options);
+    private applyOnObjectFormatting(options: VisualUpdateOptions): void {
+        const { formatMode, type, subSelections } = options;
+        this.visualOnObjectFormatting.setFormatMode(formatMode);
 
-        if (options.objectName === AsterPlot.PiesPropertyIdentifier.objectName) {
-            this.enumeratePies(instanceEnumeration);
+        const shouldUpdateSubSelection = type & (powerbi.VisualUpdateType.Data
+            | powerbi.VisualUpdateType.Resize
+            | powerbi.VisualUpdateType.FormattingSubSelectionChange);
+
+        if (formatMode && shouldUpdateSubSelection) {
+            this.visualOnObjectFormatting.updateOutlinesFromSubSelections(subSelections, true);
         }
-
-        return instanceEnumeration || [];
     }
 
-    public enumeratePies(instanceEnumeration: VisualObjectInstanceEnumeration): void {
-        const pies: AsterDataPoint[] = this.data.dataPoints;
+    public getFormattingModel(): FormattingModel {
+        return this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
+    }
 
-        if (!pies || !(pies.length > 0)) {
-            return;
-        }
-
-        pies.forEach((pie: AsterDataPoint) => {
-            const identity: ISelectionId = <ISelectionId>pie.identity,
-                displayName: string = `${pie.categoryName}`;
-
-            this.addAnInstanceToEnumeration(instanceEnumeration, {
-                displayName,
-                objectName: AsterPlot.PiesPropertyIdentifier.objectName,
-                selector: ColorHelper.normalizeSelector(identity.getSelector(), false),
-                properties: {
-                    fill: { solid: { color: pie.fillColor } }
+    private customOutlineCallback(elementType: string, selectionId: powerbi.visuals.ISelectionId): powerbi.visuals.SubSelectionRegionOutlineFragment[] | undefined {
+        switch (elementType) {
+            case AsterPlotObjectNames.Pies.name: {
+                if (!selectionId) {
+                    return undefined;
                 }
-            });
-        });
+
+                const dataPoint = this.renderService
+                    .getDataPoints(this.data.hasHighlights)
+                    .find((d) => d.data.identity.equals(selectionId));
+
+                if (!dataPoint) {
+                    return undefined;
+                }
+
+                const actualDataPoint = dataPoint as unknown as PieArcDatum<AsterDataPoint>;
+
+                const legendPosition: LegendPosition = this.legend.getOrientation();
+                const basePadding: number = 5;
+                const centerPoint: IPoint = {
+                    x: this.layout.viewport.width / 2 + this.getXShift(legendPosition) - basePadding,
+                    y: this.layout.viewport.height / 2 + this.getYShift(legendPosition) - basePadding
+                };
+
+                const result: powerbi.visuals.SubSelectionRegionOutlineFragment[] = [{
+                    id: selectionId.getKey(),
+                    outline: {
+                        type: SubSelectionOutlineType.Arc,
+                        startAngle: actualDataPoint.startAngle,
+                        endAngle: actualDataPoint.endAngle,
+                        center: centerPoint,
+                        innerRadius: this.renderService.innerRadius,
+                        outerRadius: this.renderService.computeOuterRadius(dataPoint),
+                    }
+                }];
+                return result;
+            }
+            case AsterPlotObjectNames.OuterLine.name: {
+                const firstDataPoint = this.renderService.getDataPoints(this.data.hasHighlights)[0];
+
+                if (!firstDataPoint) {
+                    return undefined;
+                }
+
+                const legendPosition: LegendPosition = this.legend.getOrientation();
+                const basePadding: number = 5;
+                const centerPoint: IPoint = {
+                    x: this.layout.viewport.width / 2 + this.getXShift(legendPosition) - basePadding,
+                    y: this.layout.viewport.height / 2 + this.getYShift(legendPosition) - basePadding
+                };
+
+                const outlines: powerbi.visuals.SubSelectionRegionOutlineFragment[] = [{
+                    id: AsterPlotObjectNames.OuterLine.name,
+                    outline: {
+                        type: SubSelectionOutlineType.Arc,
+                        center: centerPoint,
+                        startAngle: 0,
+                        endAngle: 360,
+                        innerRadius: this.renderService.outerRadius,
+                        outerRadius: this.renderService.outerRadius,
+                    }
+                }];
+
+                return outlines;
+            }
+            default: {
+                return undefined;
+            }
+        }
     }
 
-    private addAnInstanceToEnumeration(
-        instanceEnumeration: VisualObjectInstanceEnumeration,
-        instance: VisualObjectInstance): void {
+    private getXShift(legendPosition: LegendPosition): number {
+        switch (legendPosition) {
+            case LegendPosition.Left:
+            case LegendPosition.LeftCenter:
+                return this.legend.getMargins().width;
+            default:
+                return 0;
+        }
+    }
 
-        let objectInstanceEnumeration: VisualObjectInstanceEnumerationObject = <VisualObjectInstanceEnumerationObject>instanceEnumeration;
-
-        if (objectInstanceEnumeration.instances) {
-            objectInstanceEnumeration
-                .instances
-                .push(instance);
-        } else {
-            (<VisualObjectInstance[]>instanceEnumeration).push(instance);
+    private getYShift(legendPosition: LegendPosition): number {
+        switch (legendPosition) {
+            case LegendPosition.Top:
+            case LegendPosition.TopCenter:
+                return this.legend.getMargins().height;
+            default:
+                return 0;
         }
     }
 }
