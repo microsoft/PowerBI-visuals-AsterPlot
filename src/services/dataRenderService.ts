@@ -562,21 +562,33 @@ export class DataRenderService {
     public renderLabels(labelsElement: d3Selection<SVGGElement, null, HTMLElement, null>, isHighlight: boolean) {
         const dataPoints: d3AsterDataPoint[] = isHighlight ? this.highlightedDataPoints : this.dataPoints;
         if (!this.data.hasHighlights || (this.data.hasHighlights && isHighlight)) {
+           
+            const isInside: boolean = this.settings.labels.labelPosition.value.value === "inside";
+
+            const labelArcRadius = (d: d3PieArcDatum<AsterDataPoint>): number => {
+                if (isInside) {
+                    const outerRadius = this.arcSvg.outerRadius().bind(this)(d);
+                    return this.innerRadius + (outerRadius - this.innerRadius) / 2;
+                }
+                return this.labelRadCalc(d.data);
+            };
+
             const labelArc = d3CreateArc<DataRenderService, d3PieArcDatum<AsterDataPoint>>()
-                .innerRadius(d => this.labelRadCalc(d.data))
-                .outerRadius(d => this.labelRadCalc(d.data));
+                .innerRadius(d => labelArcRadius(d))
+                .outerRadius(d => labelArcRadius(d));
 
             const outlineArc = d3CreateArc<DataRenderService, d3PieArcDatum<AsterDataPoint>>()
                 .innerRadius(d => this.lineRadCalc(d.data))
                 .outerRadius(d => this.lineRadCalc(d.data));
 
-            const labelLayout: ILabelLayout = this.getLabelLayout(labelArc, this.layout.viewport);
+            const labelLayout: ILabelLayout = this.getLabelLayout(labelArc, this.layout.viewport, isInside);
             this.drawLabels(
                 dataPoints.filter(x => !isHighlight || x.data.sliceHeight !== null),
                 labelsElement,
                 labelLayout,
                 this.layout.viewport,
-                outlineArc);
+                outlineArc,
+                isInside);
         }
     }
 
@@ -588,8 +600,11 @@ export class DataRenderService {
         context: d3Selection<SVGGElement, null, HTMLElement, null>,
         layout: ILabelLayout,
         viewport: IViewport,
-        outlineArc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>
+        outlineArc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>,
+        isInside: boolean
     ): void {
+        console.log("drawLabels", this.settings.labels.labelsOptionsGroup.position.value.value
+);
         // Hide and reposition labels that overlap
         const dataLabelManager: DataLabelManager = new DataLabelManager();
         type LabelMergedDataPoint = d3PieArcDatum<AsterDataPoint> & LabelEnabledDataPoint;
@@ -647,6 +662,11 @@ export class DataRenderService {
 
         this.applyOnObjectStylesToLabels(labels);
 
+        if (isInside) {
+            context.select(DataRenderService.linesGraphicsContextClass.selectorName).remove();
+            return;
+        }
+
         // Draw lines
         if (context.select(DataRenderService.linesGraphicsContextClass.selectorName).empty())
             context.append("g").classed(DataRenderService.linesGraphicsContextClass.className, true);
@@ -702,7 +722,7 @@ export class DataRenderService {
             .classed(HtmlSubSelectableClass, this.formatMode && this.settings.labels.show.value);
     }
 
-    private getLabelLayout(arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>, viewport: IViewport): ILabelLayout {
+    private getLabelLayout(arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>, viewport: IViewport, isInside: boolean): ILabelLayout {
         const midAngle = (d: d3PieArcDatum<AsterDataPoint>) => {
             return d.startAngle + (d.endAngle - d.startAngle) / 2;
         };
@@ -713,6 +733,20 @@ export class DataRenderService {
             fontWeight: this.settings.labels.font.bold ? "bold" : "normal",
             fontStyle: this.settings.labels.font.italic ? "italic" : "normal",
         };
+
+        if (isInside) {
+            return {
+                labelText: (d: d3PieArcDatum<AsterDataPoint>) => d.data.label,
+                labelLayout: {
+                    x: (d: d3PieArcDatum<AsterDataPoint>) => arc.centroid(d)[0],
+                    y: (d: d3PieArcDatum<AsterDataPoint>) => arc.centroid(d)[1],
+                },
+                filter: (d: d3PieArcDatum<AsterDataPoint>) => (d != null && !isEmpty(d.data.label + "")),
+                style: {
+                    "text-anchor": "middle",
+                }
+            };
+        }
 
         const isLabelsHasConflict = (d: d3PieArcDatum<AsterDataPoint>) => {
             const pos = arc.centroid(d);

@@ -24,6 +24,8 @@
 	"Visual_Font": "Font",
 	"Visual_CenterLabel": "Center Label",
 	"Visual_DetailLabels": "Detail Labels",
+	"Visual_Options": "Options",
+	"Visual_Values": "Values",
 	"Visual_DisplayUnits": "Display Units",
 	"Visual_DecimalPlaces": "Decimal Places",
 	"Visual_Outerline": "Outer line",

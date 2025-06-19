@@ -176,17 +176,24 @@ class CenterLabelCardSettings extends BaseFontCardSettings {
     slices = [ this.font, this.color];
 }
 
-
-class LabelsCardSettings extends BaseFontCardSettings {
-    show = new formattingSettings.ToggleSwitch({
-        name: "show",
-        displayName: "Show",
-        displayNameKey: "Visual_Show",
-        value: false,
+class LabelsOptionsSettingsGroup extends BaseFontCardSettings {
+     position = new formattingSettings.ItemDropdown({
+        name: "position",
+        displayName: "Position",
+        value: { value: "outside", displayName: "Outside" },
+        items: [
+            { value: "outside", displayName: "Outside" },
+            { value: "inside", displayName: "Inside" }
+        ],
     });
 
-    topLevelSlice = this.show;
+    name: string = "options";
+    displayName: string = "Options";
+    displayNameKey: string = "Visual_Options";
+    slices: formattingSettings.Slice[] = [this.position];
+}
 
+class LablesValuesSettingsGroup extends BaseFontCardSettings {
     color = new formattingSettings.ColorPicker({
         name: "color",
         displayName: "Color",
@@ -211,11 +218,49 @@ class LabelsCardSettings extends BaseFontCardSettings {
             maxValue: { value: 17, type: ValidatorType.Max },
         }
     });
+     name: string = "values";
+    displayName: string = "Values";
+    displayNameKey: string = "Visual_Values";
+    slices = [this.displayUnits, this.precision, this.font, this.color];
+}
+
+class LabelsCardSetting extends formattingSettings.CompositeCard {
+    show = new formattingSettings.ToggleSwitch({
+        name: "show",
+        displayName: "Show",
+        displayNameKey: "Visual_Show",
+        value: false,
+    });
+
+    topLevelSlice = this.show;
+
+    public labelsOptionsGroup: LabelsOptionsSettingsGroup = new LabelsOptionsSettingsGroup();
+    public labelsValuesGroup: LablesValuesSettingsGroup = new LablesValuesSettingsGroup();
 
     name: string = AsterPlotObjectNames.Labels.name;
     displayName: string = AsterPlotObjectNames.Labels.displayName;
     displayNameKey: string = AsterPlotObjectNames.Labels.displayNameKey;
-    slices = [this.displayUnits, this.precision, this.font, this.color];
+    groups: formattingSettings.Group[] = [this.labelsOptionsGroup, this.labelsValuesGroup];
+
+    get color() {
+        return this.labelsValuesGroup.color;
+    }
+
+    get font() {
+        return this.labelsValuesGroup.font;
+    }
+
+    get displayUnits() {
+        return this.labelsValuesGroup.displayUnits;
+    }
+
+    get precision() {
+        return this.labelsValuesGroup.precision;
+    }
+
+    get labelPosition() {
+        return this.labelsOptionsGroup.position;
+    }
 }
 
 class PiesCardSettings extends Card {
@@ -309,7 +354,7 @@ export class OuterLineCardSettings extends BaseFontCardSettings {
 export class AsterPlotSettingsModel extends Model {
     legend = new LegendCardSettings();
     label = new CenterLabelCardSettings();
-    labels = new LabelsCardSettings();
+    labels = new LabelsCardSetting();
     pies = new PiesCardSettings();
     outerLine = new OuterLineCardSettings();
 

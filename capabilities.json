@@ -173,6 +173,7 @@
                         "bool": true
                     }
                 },
+                
                 "color": {
                     "type": {
                         "fill": {
@@ -193,6 +194,14 @@
                     "placeHolderText": "Auto",
                     "type": {
                         "numeric": true
+                    }
+                },
+                "position": {
+                    "type": {
+                        "enumeration": [
+                            { "value": "Inside" },
+                            { "value": "Outside" }
+                        ]
                     }
                 },
                 "fontSize": {
