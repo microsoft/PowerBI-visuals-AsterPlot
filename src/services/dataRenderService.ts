@@ -38,7 +38,6 @@ import ILabelLayout = dataLabelInterfaces.ILabelLayout;
 import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
 
 // d3
-// import "d3-transition";
 import "d3-transition";
 import { Selection as d3Selection } from 'd3-selection';
 import { sum as d3Sum, max as d3Max } from "d3-array";
@@ -99,7 +98,8 @@ export class DataRenderService {
     private static AxisTextWidthCoefficient = 1.75;
     private static PixelsBelowAxis = 5;
     private static LabelLinePadding = 4;
-    private static ChartLinePadding = 1.02;
+    private static LableLineHeight = 25;
+    private static LableLineLegHeight = 10;
 
     private static AsterSlice: ClassAndSelector = createClassAndSelector("asterSlice");
     private static AsterHighlightedSlice: ClassAndSelector = createClassAndSelector("asterHighlightedSlice");
@@ -577,18 +577,12 @@ export class DataRenderService {
                 .innerRadius(d => labelArcRadius(d))
                 .outerRadius(d => labelArcRadius(d));
 
-            const outlineArc = d3CreateArc<DataRenderService, d3PieArcDatum<AsterDataPoint>>()
-                .innerRadius(d => this.lineRadCalc(d.data))
-                .outerRadius(d => this.lineRadCalc(d.data));
-
-            const labelLayout: ILabelLayout = this.getLabelLayout(labelArc, this.layout.viewport, isInside);
+            const labelLayout: ILabelLayout = this.getLabelLayout(labelArc, this.layout.viewport,isInside);
             this.drawLabels(
                 dataPoints.filter(x => !isHighlight || x.data.sliceHeight !== null),
                 labelsElement,
                 labelLayout,
-                this.layout.viewport,
-                outlineArc,
-                isInside);
+                this.layout.viewport,isInside);
         }
     }
 
@@ -596,15 +590,45 @@ export class DataRenderService {
         dataLabelUtils.cleanDataLabels(labelsElement, true);
     }
 
+    private calculateMiddAngleforLabels(d: d3PieArcDatum<AsterDataPoint> & LabelEnabledDataPoint) : number {
+        return d.startAngle + (d.endAngle - d.startAngle) / 2;
+    };
+
+    private computeLabelLinePoints(d: d3PieArcDatum<AsterDataPoint> & LabelEnabledDataPoint): {
+        lineStartPoint: [number, number],
+        lineBreakPoint: [number, number],
+        lineEndPoint: [number, number],
+        direction: number
+    } {
+        const angle = this.calculateMiddAngleforLabels(d) - Math.PI / 2;
+        const radius = this.arcSvg.outerRadius().call(this, d);
+        const direction = this.calculateMiddAngleforLabels(d) < Math.PI ? 1 : -1;
+
+        const lineStartPoint: [number, number] = [
+            Math.cos(angle) * radius,
+            Math.sin(angle) * radius
+        ];
+
+        const lineBreakPoint: [number, number] = [
+            lineStartPoint[0] + Math.cos(angle) * DataRenderService.LableLineHeight,
+            lineStartPoint[1] + Math.sin(angle) * DataRenderService.LableLineHeight
+        ];
+
+        const lineEndPoint: [number, number] = [
+            lineBreakPoint[0] + direction * DataRenderService.LableLineLegHeight,
+            lineBreakPoint[1]
+        ];
+
+        return { lineStartPoint, lineBreakPoint, lineEndPoint, direction };
+    }
+
+
     private drawLabels(data: d3AsterDataPoint[],
         context: d3Selection<SVGGElement, null, HTMLElement, null>,
         layout: ILabelLayout,
         viewport: IViewport,
-        outlineArc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>,
         isInside: boolean
     ): void {
-        console.log("drawLabels", this.settings.labels.labelsOptionsGroup.position.value.value
-);
         // Hide and reposition labels that overlap
         const dataLabelManager: DataLabelManager = new DataLabelManager();
         type LabelMergedDataPoint = d3PieArcDatum<AsterDataPoint> & LabelEnabledDataPoint;
@@ -647,10 +671,31 @@ export class DataRenderService {
             return;
         }
 
+        const labelLinePointsCache = new Map();
+
         labels
-            .attr("x", (d: LabelEnabledDataPoint) => d.labelX)
-            .attr("y", (d: LabelEnabledDataPoint) => d.labelY)
+           .attr("x", (d) => {
+                if (!labelLinePointsCache.has(d)) {
+                    labelLinePointsCache.set(d, this.computeLabelLinePoints(d));
+                }
+                const { lineEndPoint } = labelLinePointsCache.get(d);
+                return  isInside ? this.arcSvg.centroid(d)[0]: lineEndPoint[0];
+            })
+            .attr("y", (d) => {
+                if (!labelLinePointsCache.has(d)) {
+                labelLinePointsCache.set(d, this.computeLabelLinePoints(d));
+                }
+                const { lineEndPoint } = labelLinePointsCache.get(d);
+                return isInside ? this.arcSvg.centroid(d)[1] : lineEndPoint[1];
+            })
             .attr("dy", ".35em")
+            .attr("dx", (d: LabelMergedDataPoint) => { 
+                if (!labelLinePointsCache.has(d)) {
+                    labelLinePointsCache.set(d, this.computeLabelLinePoints(d));
+                }
+                const { direction } = labelLinePointsCache.get(d);
+                return direction * DataRenderService.LabelLinePadding;
+            })
             .text((d: LabelEnabledDataPoint) => d.labeltext)
             .style("text-anchor", layout.style["text-anchor"])
             .style("fill", this.settings.labels.color.value.value)
@@ -683,10 +728,6 @@ export class DataRenderService {
                     return (<ISelectionId>d.data.identity).getKey();
                 });
 
-        const midAngle = (d: LabelMergedDataPoint) => {
-            return d.startAngle + (d.endAngle - d.startAngle) / 2;
-        };
-
         lines
             .exit()
             .remove();
@@ -699,14 +740,12 @@ export class DataRenderService {
 
         lines
             .attr("points", (d) => {
-                const textPoint = [d.labelX, d.labelY];
-                textPoint[0] = textPoint[0] + ((midAngle(d) < Math.PI ? -1 : 1) * DataRenderService.LabelLinePadding);
-                const chartPoint = outlineArc.centroid(d);
-                chartPoint[0] *= DataRenderService.ChartLinePadding;
-                chartPoint[1] *= DataRenderService.ChartLinePadding;
+                if (!labelLinePointsCache.has(d)) {
+                    labelLinePointsCache.set(d, this.computeLabelLinePoints(d));
+                }   
 
-                const result = [].concat(chartPoint, textPoint);
-                return result;
+                const { lineStartPoint, lineBreakPoint, lineEndPoint } = labelLinePointsCache.get(d);
+                return [].concat(lineStartPoint, lineBreakPoint, lineEndPoint);
             })
             .style("opacity", 0.5)
             .style("fill-opacity", 0)
@@ -722,10 +761,8 @@ export class DataRenderService {
             .classed(HtmlSubSelectableClass, this.formatMode && this.settings.labels.show.value);
     }
 
-    private getLabelLayout(arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>, viewport: IViewport, isInside: boolean): ILabelLayout {
-        const midAngle = (d: d3PieArcDatum<AsterDataPoint>) => {
-            return d.startAngle + (d.endAngle - d.startAngle) / 2;
-        };
+    private getLabelLayout(arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>, viewport: IViewport,isInside: boolean): ILabelLayout {
+    
         const textProperties: TextProperties = {
             text: "",
             fontFamily: this.settings.labels.font.fontFamily.value || dataLabelUtils.StandardFontFamily,
@@ -780,7 +817,7 @@ export class DataRenderService {
             },
             filter: (d: d3PieArcDatum<AsterDataPoint>) => (d != null && !isEmpty(d.data.label + "")),
             style: {
-                "text-anchor": (d: d3PieArcDatum<AsterDataPoint>) => midAngle(d) < Math.PI ? "start" : "end",
+                "text-anchor": (d: d3PieArcDatum<AsterDataPoint>) => this.calculateMiddAngleforLabels(d) < Math.PI ? "start" : "end",
             }
         };
     }
