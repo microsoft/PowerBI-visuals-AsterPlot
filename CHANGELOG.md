@@ -1,5 +1,14 @@
-## 1.7.3
+## 1.8.0
+### New features
+* Split Detail Labels into collapsible Options and Values sections
+* Add Position setting for detail labels (Inside / Outside)
+* Add Label Contents setting to customize label display
 
+### Fixes
+* Fix label lines to start from corresponding elements
+* Fix gridlines to avoid crossing inner and outer arcs
+
+## 1.7.3
 ### Fixes
 * Update packages, fix npm vulnerabilities
 * Add context menu
