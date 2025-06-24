@@ -93,13 +93,14 @@ import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 export class DataRenderService {
     private static AsterRadiusRatio: number = 0.9;
     private static AsterConflictRatio: number = 0.9;
+    private static InsideLableSizeRatio: number = 2.8;
     private static AnimationDuration: number = 0;
-    private static CenterTextFontWidthCoefficient = 1.9;
-    private static AxisTextWidthCoefficient = 1.75;
-    private static PixelsBelowAxis = 5;
-    private static LabelLinePadding = 4;
-    private static LableLineHeight = 25;
-    private static LableLineLegHeight = 10;
+    private static CenterTextFontWidthCoefficient : number = 1.9;
+    private static AxisTextWidthCoefficient: number = 1.75;
+    private static PixelsBelowAxis: number = 5;
+    private static LabelLinePadding: number = 4;
+    private static LableLineHeight: number = 25;
+    private static LableLineLegHeight:number = 10;
 
     private static AsterSlice: ClassAndSelector = createClassAndSelector("asterSlice");
     private static AsterHighlightedSlice: ClassAndSelector = createClassAndSelector("asterHighlightedSlice");
@@ -563,10 +564,10 @@ export class DataRenderService {
         const dataPoints: d3AsterDataPoint[] = isHighlight ? this.highlightedDataPoints : this.dataPoints;
         if (!this.data.hasHighlights || (this.data.hasHighlights && isHighlight)) {
            
-            const isInside: boolean = this.settings.labels.labelPosition.value.value === "inside";
+            const isLableInside: boolean = this.settings.labels.labelPosition.value.value === "inside";
 
             const labelArcRadius = (d: d3PieArcDatum<AsterDataPoint>): number => {
-                if (isInside) {
+                if (isLableInside) {
                     const outerRadius = this.arcSvg.outerRadius().bind(this)(d);
                     return this.innerRadius + (outerRadius - this.innerRadius) / 2;
                 }
@@ -577,12 +578,14 @@ export class DataRenderService {
                 .innerRadius(d => labelArcRadius(d))
                 .outerRadius(d => labelArcRadius(d));
 
-            const labelLayout: ILabelLayout = this.getLabelLayout(labelArc, this.layout.viewport,isInside);
+            const labelLayout: ILabelLayout = this.getLabelLayout(labelArc, this.layout.viewport,isLableInside);
             this.drawLabels(
                 dataPoints.filter(x => !isHighlight || x.data.sliceHeight !== null),
                 labelsElement,
                 labelLayout,
-                this.layout.viewport,isInside);
+                this.layout.viewport,
+                isLableInside
+            );
         }
     }
 
@@ -627,7 +630,7 @@ export class DataRenderService {
         context: d3Selection<SVGGElement, null, HTMLElement, null>,
         layout: ILabelLayout,
         viewport: IViewport,
-        isInside: boolean
+        isLableInside: boolean
     ): void {
         // Hide and reposition labels that overlap
         const dataLabelManager: DataLabelManager = new DataLabelManager();
@@ -679,14 +682,14 @@ export class DataRenderService {
                     labelLinePointsCache.set(d, this.computeLabelLinePoints(d));
                 }
                 const { lineEndPoint } = labelLinePointsCache.get(d);
-                return  isInside ? this.arcSvg.centroid(d)[0]: lineEndPoint[0];
+                return  isLableInside ? this.arcSvg.centroid(d)[0]: lineEndPoint[0];
             })
             .attr("y", (d) => {
                 if (!labelLinePointsCache.has(d)) {
                 labelLinePointsCache.set(d, this.computeLabelLinePoints(d));
                 }
                 const { lineEndPoint } = labelLinePointsCache.get(d);
-                return isInside ? this.arcSvg.centroid(d)[1] : lineEndPoint[1];
+                return isLableInside ? this.arcSvg.centroid(d)[1] : lineEndPoint[1];
             })
             .attr("dy", ".35em")
             .attr("dx", (d: LabelMergedDataPoint) => { 
@@ -707,7 +710,7 @@ export class DataRenderService {
 
         this.applyOnObjectStylesToLabels(labels);
 
-        if (isInside) {
+        if (isLableInside) {
             context.select(DataRenderService.linesGraphicsContextClass.selectorName).remove();
             return;
         }
@@ -761,7 +764,7 @@ export class DataRenderService {
             .classed(HtmlSubSelectableClass, this.formatMode && this.settings.labels.show.value);
     }
 
-    private getLabelLayout(arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>, viewport: IViewport,isInside: boolean): ILabelLayout {
+    private getLabelLayout(arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>, viewport: IViewport,isLableInside: boolean): ILabelLayout {
     
         const textProperties: TextProperties = {
             text: "",
@@ -770,10 +773,30 @@ export class DataRenderService {
             fontWeight: this.settings.labels.font.bold ? "bold" : "normal",
             fontStyle: this.settings.labels.font.italic ? "italic" : "normal",
         };
-
-        if (isInside) {
+        // Function to set text and measure its width and height
+        const setTextAndMeasure = (d: d3PieArcDatum<AsterDataPoint>) => {
+            textProperties.text = d.data.label;
             return {
-                labelText: (d: d3PieArcDatum<AsterDataPoint>) => d.data.label,
+                labelWidth: textMeasurementService.measureSvgTextWidth(textProperties),
+                labelHeight: textMeasurementService.estimateSvgTextHeight(textProperties)
+            };
+        };
+
+
+        if (isLableInside) {
+            return {
+                labelText: (d: d3PieArcDatum<AsterDataPoint>) => {
+                   const { labelWidth, labelHeight } = setTextAndMeasure(d);
+                    const radius = arc.outerRadius().call(this, d);
+                    const maxLabelRadius = (radius - this.innerRadius) * DataRenderService.InsideLableSizeRatio;
+                    
+                    if (labelWidth > maxLabelRadius || labelHeight > maxLabelRadius) {
+                        const tailoredText = textMeasurementService.getTailoredTextOrDefault(textProperties, maxLabelRadius);                        
+                        if (!tailoredText || tailoredText.length <= 1 || tailoredText === '...') return "";
+                        return tailoredText;
+                    }
+                    return d.data.label;
+                },
                 labelLayout: {
                     x: (d: d3PieArcDatum<AsterDataPoint>) => arc.centroid(d)[0],
                     y: (d: d3PieArcDatum<AsterDataPoint>) => arc.centroid(d)[1],
@@ -787,12 +810,10 @@ export class DataRenderService {
 
         const isLabelsHasConflict = (d: d3PieArcDatum<AsterDataPoint>) => {
             const pos = arc.centroid(d);
-            textProperties.text = d.data.label;
-            const textWidth = textMeasurementService.measureSvgTextWidth(textProperties);
+            const { labelWidth, labelHeight } = setTextAndMeasure(d);
             const horizontalSpaceAvailableForLabels = viewport.width / 2 - Math.abs(pos[0]);
-            const textHeight = textMeasurementService.estimateSvgTextHeight(textProperties);
             const verticalSpaceAvailableForLabels = viewport.height / 2 - Math.abs(pos[1]);
-            d.data.isLabelHasConflict = textWidth > horizontalSpaceAvailableForLabels || textHeight > verticalSpaceAvailableForLabels;
+            d.data.isLabelHasConflict = labelWidth > horizontalSpaceAvailableForLabels || labelHeight > verticalSpaceAvailableForLabels;
             return d.data.isLabelHasConflict;
         };
 

@@ -204,6 +204,17 @@
                         ]
                     }
                 },
+                "labelContents": {
+                    "type": {
+                        "enumeration": [
+                            {"value": "Category" },
+                            {"value": "Datavalue" },
+                            {"value": "PercentofTotal" },
+                            {"value": "CategoryAndDataValue" },
+                            {"value": "CategoryAndPercentOfTotal" }
+                        ]
+                   }
+                },
                 "fontSize": {
                     "type": {
                         "formatting": {

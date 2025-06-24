@@ -187,10 +187,22 @@ class LabelsOptionsSettingsGroup extends BaseFontCardSettings {
         ],
     });
 
+    labelContents = new formattingSettings.ItemDropdown({
+        name: "labelContents",
+        displayName: "Label Contents",
+        value: { value: "dataValue", displayName: "Data value" },
+        items: [
+            { "value": "category", "displayName": "Category" },
+            { "value": "dataValue", "displayName": "Data value" },
+            { "value": "percent", "displayName": "Percent of total" },
+            { "value": "categoryAndDataValue", "displayName": "Category, data value" },
+            { "value": "categoryAndPercent", "displayName": "Category, percent of total" }        ]
+    });
+
     name: string = "options";
     displayName: string = "Options";
     displayNameKey: string = "Visual_Options";
-    slices: formattingSettings.Slice[] = [this.position];
+    slices: formattingSettings.Slice[] = [this.position, this.labelContents];
 }
 
 class LablesValuesSettingsGroup extends BaseFontCardSettings {
@@ -260,6 +272,10 @@ class LabelsCardSetting extends formattingSettings.CompositeCard {
 
     get labelPosition() {
         return this.labelsOptionsGroup.position;
+    }
+
+    get labelContents() {
+        return this.labelsOptionsGroup.labelContents;
     }
 }
 

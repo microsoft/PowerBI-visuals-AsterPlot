@@ -81,6 +81,7 @@ export class AsterPlotConverterService {
     private hasHighlights: boolean;
 
     private maxValue: number;
+    private totalValues: number;
 
     private labelFormatter: IValueFormatter;
     private fontSizeInPx: number
@@ -110,6 +111,9 @@ export class AsterPlotConverterService {
 
         this.hasHighlights = this.containsHighlights(this.categoricalColumns);
         this.maxValue = this.getMaxValue(this.categoricalColumns);
+        if (this.categoricalColumns && this.categoricalColumns.Y && this.categoricalColumns.Y[0] && this.categoricalColumns.Y[0].values) {
+            this.totalValues = (<number[]>this.categoricalColumns.Y[0].values).reduce((a, b) => a + (b || 0), 0);
+        }
 
         this.labelFormatter = this.createFormatter(
             this.categoricalColumns.Y[0].source,
@@ -138,6 +142,30 @@ export class AsterPlotConverterService {
 
     private getMaxValue(categorical: CategoricalColumns): number {
         return Math.max.apply(null, <number[]>categorical.Y[0].values);
+    }
+
+    private getLabelText(categoryValue: PrimitiveValue, currentValue: number): string {
+        const labelContent = this.settings.labels.labelContents.value.value;
+
+        switch (labelContent) {
+            case "category":
+                return categoryValue.toString();
+            case "dataValue":
+                return this.labelFormatter.format(currentValue);
+            case "percent": {
+                const percentage = this.totalValues > 0 ? currentValue / this.totalValues : 0;
+                return valueFormatter.create({ format: "0.0%" }).format(percentage);
+            }
+            case "categoryAndDataValue":
+                return `${categoryValue} ${this.labelFormatter.format(currentValue)}`;
+            case "categoryAndPercent": {
+                const percentage = this.totalValues > 0 ? currentValue / this.totalValues : 0;
+                const formattedPercentage = valueFormatter.create({ format: "0.0%" }).format(percentage);
+                return `${categoryValue} ${formattedPercentage}`;
+            }
+            default:
+                return this.labelFormatter.format(currentValue);
+        }
     }
 
     private createFormatter(column: DataViewMetadataColumn, precision?: number, value?: number): IValueFormatter {
@@ -205,11 +233,13 @@ export class AsterPlotConverterService {
                 .withMeasure(category.source.queryName)
                 .createSelectionId();
 
+            const labelText = this.getLabelText(formattedCategoryValue, currentValue);
+
             if (sliceWidth > 0) {
                 this.dataPoints.push({
                     sliceHeight: values[i],
                     sliceWidth,
-                    label: this.labelFormatter.format(currentValue),
+                    label: labelText,
                     fillColor,
                     strokeColor,
                     strokeWidth,
@@ -253,10 +283,11 @@ export class AsterPlotConverterService {
 
                 const height: number = highlightValueIsNotNull ? highlightValues[i] : null;
                 const width: number = Math.max(0, (categoricalColumns.Y.length > 1 && secondHighlightValue !== null) ? secondHighlightValue : sliceWidth)
+                const highlightLabelText = this.getLabelText(formattedCategoryValue, currentValue);
                 this.highlightedDataPoints.push({
                     sliceHeight: height,
                     sliceWidth: width,
-                    label: this.labelFormatter.format(currentValue),
+                    label: highlightLabelText,
                     fillColor,
                     strokeColor,
                     strokeWidth,
