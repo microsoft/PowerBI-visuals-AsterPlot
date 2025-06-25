@@ -100,7 +100,7 @@ export class DataRenderService {
     private static PixelsBelowAxis: number = 5;
     private static LabelLinePadding: number = 4;
     private static LableLineHeight: number = 25;
-    private static LableLineLegHeight:number = 10;
+    private static LableLineLegHeight: number = 10;
 
     private static AsterSlice: ClassAndSelector = createClassAndSelector("asterSlice");
     private static AsterHighlightedSlice: ClassAndSelector = createClassAndSelector("asterHighlightedSlice");
