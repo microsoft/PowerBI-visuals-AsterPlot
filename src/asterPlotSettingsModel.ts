@@ -186,23 +186,28 @@ class LabelsOptionsSettingsGroup extends BaseFontCardSettings {
             { value: "inside", displayName: "Inside" }
         ],
     });
+    showCategory = new formattingSettings.ToggleSwitch({
+        name: "showCategory",
+        displayName: "Display Category",
+        value: false,
+    });
 
-    labelContents = new formattingSettings.ItemDropdown({
-        name: "labelContents",
-        displayName: "Label Contents",
-        value: { value: "dataValue", displayName: "Data value" },
-        items: [
-            { "value": "category", "displayName": "Category" },
-            { "value": "dataValue", "displayName": "Data value" },
-            { "value": "percent", "displayName": "Percent of total" },
-            { "value": "categoryAndDataValue", "displayName": "Category, data value" },
-            { "value": "categoryAndPercent", "displayName": "Category, percent of total" }        ]
+    showDataValue = new formattingSettings.ToggleSwitch({
+        name: "showDataValue",
+        displayName: "Display value",
+        value: true,
+    });
+
+    showPercentOfTotal = new formattingSettings.ToggleSwitch({
+        name: "showPercentOfTotal",
+        displayName: "Display Percent",
+        value: false,
     });
 
     name: string = "options";
     displayName: string = "Options";
     displayNameKey: string = "Visual_Options";
-    slices: formattingSettings.Slice[] = [this.position, this.labelContents];
+    slices: formattingSettings.Slice[] = [this.position, this.showCategory, this.showDataValue, this.showPercentOfTotal];
 }
 
 class LablesValuesSettingsGroup extends BaseFontCardSettings {
@@ -274,8 +279,16 @@ class LabelsCardSetting extends formattingSettings.CompositeCard {
         return this.labelsOptionsGroup.position;
     }
 
-    get labelContents() {
-        return this.labelsOptionsGroup.labelContents;
+    get showCategory() {
+        return this.labelsOptionsGroup.showCategory;
+    }
+
+    get showDataValue() {
+        return this.labelsOptionsGroup.showDataValue;
+    }
+
+    get showPercentOfTotal() {
+        return this.labelsOptionsGroup.showPercentOfTotal;
     }
 }
 

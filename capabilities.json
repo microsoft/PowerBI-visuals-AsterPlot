@@ -204,16 +204,20 @@
                         ]
                     }
                 },
-                "labelContents": {
+                "showCategory": {
                     "type": {
-                        "enumeration": [
-                            {"value": "Category" },
-                            {"value": "Datavalue" },
-                            {"value": "PercentofTotal" },
-                            {"value": "CategoryAndDataValue" },
-                            {"value": "CategoryAndPercentOfTotal" }
-                        ]
-                   }
+                        "bool": true
+                    }
+                },
+                "showDataValue": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "showPercentOfTotal": {
+                    "type": {
+                        "bool": true
+                    }
                 },
                 "fontSize": {
                     "type": {

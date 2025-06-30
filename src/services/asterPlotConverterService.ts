@@ -145,27 +145,31 @@ export class AsterPlotConverterService {
     }
 
     private getLabelText(categoryValue: PrimitiveValue, currentValue: number): string {
-        const labelContent = this.settings.labels.labelContents.value.value;
+        const showCategory = this.settings.labels.showCategory.value;
+        const showDataValue = this.settings.labels.showDataValue.value;
+        const showPercentOfTotal = this.settings.labels.showPercentOfTotal.value;
 
-        switch (labelContent) {
-            case "category":
-                return categoryValue.toString();
-            case "dataValue":
-                return this.labelFormatter.format(currentValue);
-            case "percent": {
-                const percentage = this.totalValues > 0 ? currentValue / this.totalValues : 0;
-                return valueFormatter.create({ format: "0.0%" }).format(percentage);
-            }
-            case "categoryAndDataValue":
-                return `${categoryValue} ${this.labelFormatter.format(currentValue)}`;
-            case "categoryAndPercent": {
-                const percentage = this.totalValues > 0 ? currentValue / this.totalValues : 0;
-                const formattedPercentage = valueFormatter.create({ format: "0.0%" }).format(percentage);
-                return `${categoryValue} ${formattedPercentage}`;
-            }
-            default:
-                return this.labelFormatter.format(currentValue);
+        const labelContents: string[] = [];
+
+        if (showCategory) {
+            labelContents.push(categoryValue.toString());
         }
+
+        if (showDataValue) {
+            labelContents.push(this.labelFormatter.format(currentValue));
+        }
+
+        if (showPercentOfTotal) {
+            const percentage = this.totalValues > 0 ? currentValue / this.totalValues : 0;
+            const formattedPercentage = valueFormatter.create({ format: "0.0%" }).format(percentage);
+            labelContents.push(formattedPercentage);
+        }
+        
+        if (labelContents.length === 0) {
+            return '';
+        }
+
+        return labelContents.join(" ");
     }
 
     private createFormatter(column: DataViewMetadataColumn, precision?: number, value?: number): IValueFormatter {
