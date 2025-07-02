@@ -180,27 +180,31 @@ class LabelsOptionsSettingsGroup extends BaseFontCardSettings {
      position = new formattingSettings.ItemDropdown({
         name: "position",
         displayName: "Position",
-        value: { value: "outside", displayName: "Outside" },
+        displayNameKey: "Visual_Position",
+        value: { value: "outside", displayNameKey: "Visual_Outside" },
         items: [
-            { value: "outside", displayName: "Outside" },
-            { value: "inside", displayName: "Inside" }
+            { value: "outside", displayNameKey: "Visual_Outside" },
+            { value: "inside", displayNameKey: "Visual_Inside" }
         ],
     });
     showCategory = new formattingSettings.ToggleSwitch({
         name: "showCategory",
         displayName: "Display Category",
+        displayNameKey: "Visual_DisplayCategory",
         value: false,
     });
 
     showDataValue = new formattingSettings.ToggleSwitch({
         name: "showDataValue",
         displayName: "Display value",
+        displayNameKey: "Visual_DisplayValue",
         value: true,
     });
 
     showPercentOfTotal = new formattingSettings.ToggleSwitch({
         name: "showPercentOfTotal",
         displayName: "Display Percent",
+        displayNameKey: "Visual_DisplayPercent",
         value: false,
     });
 
@@ -235,13 +239,14 @@ class LablesValuesSettingsGroup extends BaseFontCardSettings {
             maxValue: { value: 17, type: ValidatorType.Max },
         }
     });
-     name: string = "values";
+    
+    name: string = "values";
     displayName: string = "Values";
     displayNameKey: string = "Visual_Values";
     slices = [this.displayUnits, this.precision, this.font, this.color];
 }
 
-class LabelsCardSetting extends formattingSettings.CompositeCard {
+class LabelsCardSettings extends formattingSettings.CompositeCard {
     show = new formattingSettings.ToggleSwitch({
         name: "show",
         displayName: "Show",
@@ -258,38 +263,6 @@ class LabelsCardSetting extends formattingSettings.CompositeCard {
     displayName: string = AsterPlotObjectNames.Labels.displayName;
     displayNameKey: string = AsterPlotObjectNames.Labels.displayNameKey;
     groups: formattingSettings.Group[] = [this.labelsOptionsGroup, this.labelsValuesGroup];
-
-    get color() {
-        return this.labelsValuesGroup.color;
-    }
-
-    get font() {
-        return this.labelsValuesGroup.font;
-    }
-
-    get displayUnits() {
-        return this.labelsValuesGroup.displayUnits;
-    }
-
-    get precision() {
-        return this.labelsValuesGroup.precision;
-    }
-
-    get labelPosition() {
-        return this.labelsOptionsGroup.position;
-    }
-
-    get showCategory() {
-        return this.labelsOptionsGroup.showCategory;
-    }
-
-    get showDataValue() {
-        return this.labelsOptionsGroup.showDataValue;
-    }
-
-    get showPercentOfTotal() {
-        return this.labelsOptionsGroup.showPercentOfTotal;
-    }
 }
 
 class PiesCardSettings extends Card {
@@ -383,7 +356,8 @@ export class OuterLineCardSettings extends BaseFontCardSettings {
 export class AsterPlotSettingsModel extends Model {
     legend = new LegendCardSettings();
     label = new CenterLabelCardSettings();
-    labels = new LabelsCardSetting();
+    labels = new LabelsCardSettings();
+    labelsValues = new LablesValuesSettingsGroup();
     pies = new PiesCardSettings();
     outerLine = new OuterLineCardSettings();
 
@@ -436,8 +410,8 @@ export class AsterPlotSettingsModel extends Model {
         this.label.color.visible = !isHighContrast;
         this.label.color.value.value = isHighContrast ? colorPalette.foreground.value : this.label.color.value.value;
 
-        this.labels.color.visible = !isHighContrast;
-        this.labels.color.value.value = isHighContrast ? colorPalette.foreground.value : this.labels.color.value.value;
+        this.labels.labelsValuesGroup.color.visible = !isHighContrast;
+        this.labels.labelsValuesGroup.color.value.value = isHighContrast ? colorPalette.foreground.value : this.labels.labelsValuesGroup.color.value.value;
 
         this.pies.visible = !isHighContrast;
 

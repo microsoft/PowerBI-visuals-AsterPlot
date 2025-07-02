@@ -95,7 +95,7 @@ export class DataRenderService {
     private static AsterConflictRatio: number = 0.9;
     private static InsideLableSizeRatio: number = 2.8;
     private static AnimationDuration: number = 0;
-    private static CenterTextFontWidthCoefficient : number = 1.9;
+    private static CenterTextFontWidthCoefficient: number = 1.9;
     private static AxisTextWidthCoefficient: number = 1.75;
     private static PixelsBelowAxis: number = 5;
     private static LabelLinePadding: number = 4;
@@ -564,10 +564,10 @@ export class DataRenderService {
         const dataPoints: d3AsterDataPoint[] = isHighlight ? this.highlightedDataPoints : this.dataPoints;
         if (!this.data.hasHighlights || (this.data.hasHighlights && isHighlight)) {
            
-            const isLableInside: boolean = this.settings.labels.labelPosition.value.value === "inside";
+            const isLabelInside: boolean = this.settings.labels.labelsOptionsGroup.position.value.value === "inside";
 
             const labelArcRadius = (d: d3PieArcDatum<AsterDataPoint>): number => {
-                if (isLableInside) {
+                if (isLabelInside) {
                     const outerRadius = this.arcSvg.outerRadius().bind(this)(d);
                     return this.innerRadius + (outerRadius - this.innerRadius) / 2;
                 }
@@ -578,13 +578,13 @@ export class DataRenderService {
                 .innerRadius(d => labelArcRadius(d))
                 .outerRadius(d => labelArcRadius(d));
 
-            const labelLayout: ILabelLayout = this.getLabelLayout(labelArc, this.layout.viewport,isLableInside);
+            const labelLayout: ILabelLayout = this.getLabelLayout(labelArc, this.layout.viewport,isLabelInside);
             this.drawLabels(
                 dataPoints.filter(x => !isHighlight || x.data.sliceHeight !== null),
                 labelsElement,
                 labelLayout,
                 this.layout.viewport,
-                isLableInside
+                isLabelInside
             );
         }
     }
@@ -630,7 +630,7 @@ export class DataRenderService {
         context: d3Selection<SVGGElement, null, HTMLElement, null>,
         layout: ILabelLayout,
         viewport: IViewport,
-        isLableInside: boolean
+        isLabelInside: boolean
     ): void {
         // Hide and reposition labels that overlap
         const dataLabelManager: DataLabelManager = new DataLabelManager();
@@ -682,14 +682,14 @@ export class DataRenderService {
                     labelLinePointsCache.set(d, this.computeLabelLinePoints(d));
                 }
                 const { lineEndPoint } = labelLinePointsCache.get(d);
-                return  isLableInside ? this.arcSvg.centroid(d)[0]: lineEndPoint[0];
+                return  isLabelInside ? this.arcSvg.centroid(d)[0]: lineEndPoint[0];
             })
             .attr("y", (d) => {
                 if (!labelLinePointsCache.has(d)) {
                 labelLinePointsCache.set(d, this.computeLabelLinePoints(d));
                 }
                 const { lineEndPoint } = labelLinePointsCache.get(d);
-                return isLableInside ? this.arcSvg.centroid(d)[1] : lineEndPoint[1];
+                return isLabelInside ? this.arcSvg.centroid(d)[1] : lineEndPoint[1];
             })
             .attr("dy", ".35em")
             .attr("dx", (d: LabelMergedDataPoint) => { 
@@ -701,16 +701,16 @@ export class DataRenderService {
             })
             .text((d: LabelEnabledDataPoint) => d.labeltext)
             .style("text-anchor", layout.style["text-anchor"])
-            .style("fill", this.settings.labels.color.value.value)
-            .style("font-family", this.settings.labels.font.fontFamily.value || dataLabelUtils.StandardFontFamily)
-            .style("font-weight", this.settings.labels.font.bold.value ? "bold" : "normal")
-            .style("font-style", this.settings.labels.font.italic.value ? "italic" : "normal")
-            .style("text-decoration", this.settings.labels.font.underline.value ? "underline" : "none")
-            .style("font-size", PixelConverter.fromPoint(this.settings.labels.font.fontSize.value));
+            .style("fill", this.settings.labels.labelsValuesGroup.color.value.value)
+            .style("font-family", this.settings.labels.labelsValuesGroup.font.fontFamily.value || dataLabelUtils.StandardFontFamily)
+            .style("font-weight", this.settings.labels.labelsValuesGroup.font.bold.value ? "bold" : "normal")
+            .style("font-style", this.settings.labels.labelsValuesGroup.font.italic.value ? "italic" : "normal")
+            .style("text-decoration", this.settings.labels.labelsValuesGroup.font.underline.value ? "underline" : "none")
+            .style("font-size", PixelConverter.fromPoint(this.settings.labels.labelsValuesGroup.font.fontSize.value));
 
         this.applyOnObjectStylesToLabels(labels);
 
-        if (isLableInside) {
+        if (isLabelInside) {
             context.select(DataRenderService.linesGraphicsContextClass.selectorName).remove();
             return;
         }
@@ -752,7 +752,7 @@ export class DataRenderService {
             })
             .style("opacity", 0.5)
             .style("fill-opacity", 0)
-            .style("stroke", () => this.settings.labels.color.value.value);
+            .style("stroke", () => this.settings.labels.labelsValuesGroup.color.value.value);
     }
 
     private applyOnObjectStylesToLabels(labelsSelection: d3Selection<SVGTextElement, d3PieArcDatum<AsterDataPoint> & LabelEnabledDataPoint, SVGGElement, null>): void{
@@ -764,17 +764,17 @@ export class DataRenderService {
             .classed(HtmlSubSelectableClass, this.formatMode && this.settings.labels.show.value);
     }
 
-    private getLabelLayout(arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>, viewport: IViewport,isLableInside: boolean): ILabelLayout {
+    private getLabelLayout(arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>, viewport: IViewport,isLabelInside: boolean): ILabelLayout {
     
         const textProperties: TextProperties = {
             text: "",
-            fontFamily: this.settings.labels.font.fontFamily.value || dataLabelUtils.StandardFontFamily,
-            fontSize: PixelConverter.fromPoint(this.settings.labels.font.fontSize.value),
-            fontWeight: this.settings.labels.font.bold ? "bold" : "normal",
-            fontStyle: this.settings.labels.font.italic ? "italic" : "normal",
+            fontFamily: this.settings.labels.labelsValuesGroup.font.fontFamily.value || dataLabelUtils.StandardFontFamily,
+            fontSize: PixelConverter.fromPoint(this.settings.labels.labelsValuesGroup.font.fontSize.value),
+            fontWeight: this.settings.labels.labelsValuesGroup.font.bold ? "bold" : "normal",
+            fontStyle: this.settings.labels.labelsValuesGroup.font.italic ? "italic" : "normal",
         };
-        // Function to set text and measure its width and height
-        const setTextAndMeasure = (d: d3PieArcDatum<AsterDataPoint>) => {
+
+        const getLabelDimensions = (d: d3PieArcDatum<AsterDataPoint>) => {
             textProperties.text = d.data.label;
             return {
                 labelWidth: textMeasurementService.measureSvgTextWidth(textProperties),
@@ -783,10 +783,10 @@ export class DataRenderService {
         };
 
 
-        if (isLableInside) {
+        if (isLabelInside) {
             return {
                 labelText: (d: d3PieArcDatum<AsterDataPoint>) => {
-                   const { labelWidth, labelHeight } = setTextAndMeasure(d);
+                   const { labelWidth, labelHeight } = getLabelDimensions(d);
                     const radius = arc.outerRadius().call(this, d);
                     const maxLabelRadius = (radius - this.innerRadius) * DataRenderService.InsideLableSizeRatio;
                     
@@ -810,7 +810,7 @@ export class DataRenderService {
 
         const isLabelsHasConflict = (d: d3PieArcDatum<AsterDataPoint>) => {
             const pos = arc.centroid(d);
-            const { labelWidth, labelHeight } = setTextAndMeasure(d);
+            const { labelWidth, labelHeight } = getLabelDimensions(d);
             const horizontalSpaceAvailableForLabels = viewport.width / 2 - Math.abs(pos[0]);
             const verticalSpaceAvailableForLabels = viewport.height / 2 - Math.abs(pos[1]);
             d.data.isLabelHasConflict = labelWidth > horizontalSpaceAvailableForLabels || labelHeight > verticalSpaceAvailableForLabels;
