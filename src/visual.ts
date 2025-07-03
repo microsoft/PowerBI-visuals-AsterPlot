@@ -235,6 +235,7 @@ export class AsterPlot implements IVisual {
 
             const formatMode = options.formatMode ?? false;
             this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(AsterPlotSettingsModel, options.dataViews[0]);
+            this.formattingSettings.setLocalizedOptions(this.localizationManager);
 
             const data: AsterPlotData = AsterPlot.converter(
                 options.dataViews[0],

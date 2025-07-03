@@ -33,10 +33,16 @@ import {AsterDataPoint} from "./dataInterfaces";
 import Card = formattingSettings.SimpleCard;
 import Model = formattingSettings.Model;
 import FormattingSettingsSlice = formattingSettings.Slice;
+import IEnumMember = powerbi.IEnumMember;
 import ILocalizedItemMember = formattingSettingsInterfaces.ILocalizedItemMember;
+import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import ValidatorType = powerbi.visuals.ValidatorType;
 import ISelectionId = powerbi.visuals.ISelectionId;
 import { isEmpty } from "lodash-es";
+
+interface IEnumMemberWithDisplayNameKey extends IEnumMember{
+    key: string;
+}
 
 export const AsterPlotObjectNames = {
     Legend: { name: "legend", displayName: "Legend", displayNameKey: "Visual_Legend" },
@@ -65,6 +71,10 @@ const legendPositionOptions: ILocalizedItemMember[] = [
     { value: LegendPosition[LegendPosition.RightCenter], displayNameKey: "Visual_RightCenter" },
 ];
 
+const labelPositionOptions: IEnumMemberWithDisplayNameKey[] = [
+    { value: "outside", displayName: "Outside", key: "Visual_Outside" },
+    { value: "inside", displayName: "Inside", key: "Visual_Inside" }    
+];
 
 class BaseFontCardSettings extends Card {
     font = new formattingSettings.FontControl({
@@ -181,11 +191,8 @@ class LabelsOptionsSettingsGroup extends BaseFontCardSettings {
         name: "position",
         displayName: "Position",
         displayNameKey: "Visual_Position",
-        value: { value: "outside", displayNameKey: "Visual_Outside" },
-        items: [
-            { value: "outside", displayNameKey: "Visual_Outside" },
-            { value: "inside", displayNameKey: "Visual_Inside" }
-        ],
+        value: labelPositionOptions[0],
+        items: labelPositionOptions
     });
     showCategory = new formattingSettings.ToggleSwitch({
         name: "showCategory",
@@ -368,6 +375,16 @@ export class AsterPlotSettingsModel extends Model {
         this.pies,
         this.outerLine,
     ];
+
+    setLocalizedOptions(localizationManager: ILocalizationManager): void {
+        this.setLocalizedDisplayName(labelPositionOptions, localizationManager);
+    }   
+
+    public setLocalizedDisplayName(options: IEnumMemberWithDisplayNameKey[], localizationManager: ILocalizationManager): void {
+        options.forEach(option => {
+            option.displayName = localizationManager.getDisplayName(option.key)
+        });
+    }
 
     public parse(colorPalette: ISandboxExtendedColorPalette, title: string){
         if (isEmpty(this.legend.titleText.value)) {
