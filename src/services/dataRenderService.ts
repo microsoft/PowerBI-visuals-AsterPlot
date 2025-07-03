@@ -93,14 +93,14 @@ import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 export class DataRenderService {
     private static AsterRadiusRatio: number = 0.9;
     private static AsterConflictRatio: number = 0.9;
-    private static InsideLableSizeRatio: number = 2.8;
+    private static InsideLabelSizeRatio: number = 2.8;
     private static AnimationDuration: number = 0;
     private static CenterTextFontWidthCoefficient: number = 1.9;
     private static AxisTextWidthCoefficient: number = 1.75;
     private static PixelsBelowAxis: number = 5;
     private static LabelLinePadding: number = 4;
-    private static LableLineHeight: number = 25;
-    private static LableLineLegHeight: number = 10;
+    private static LabelLineHeight: number = 25;
+    private static LabelLineLegHeight: number = 10;
 
     private static AsterSlice: ClassAndSelector = createClassAndSelector("asterSlice");
     private static AsterHighlightedSlice: ClassAndSelector = createClassAndSelector("asterHighlightedSlice");
@@ -151,7 +151,7 @@ export class DataRenderService {
         this.viewportRadius = Math.min(this.layout.viewportIn.width, this.layout.viewportIn.height) / 2;
         this.tooltipServiceWrapper = tooltipServiceWrapper;
 
-        this.innerRadius = 0.3 * (this.settings.labels.show.value
+        this.innerRadius = 0.3 * (this.settings.detailLabels.show.value
             ? this.viewportRadius * DataRenderService.AsterRadiusRatio
             : this.viewportRadius);
         const showOuterLine: boolean = settings.outerLine.show.value;
@@ -173,10 +173,10 @@ export class DataRenderService {
     public drawCenterText(mainGroupElement: d3Selection<SVGGElement, null, HTMLElement, null>): void {
         const centerTextProperties: TextProperties = {
             text: this.data.centerText,
-            fontFamily: this.settings.label.font.fontFamily.value,
-            fontSize: PixelConverter.toString(this.settings.label.font.fontSize.value),
-            fontWeight: this.settings.label.font.bold.value ? "bold" : "normal",
-            fontStyle: this.settings.label.font.italic.value ? "italic" : "normal",
+            fontFamily: this.settings.centerLabel.font.fontFamily.value,
+            fontSize: PixelConverter.toString(this.settings.centerLabel.font.fontSize.value),
+            fontWeight: this.settings.centerLabel.font.bold.value ? "bold" : "normal",
+            fontStyle: this.settings.centerLabel.font.italic.value ? "italic" : "normal",
         };
 
         let centerText: d3Selection<SVGTextElement, null, HTMLElement, null> = mainGroupElement.select<SVGTextElement>(DataRenderService.CenterLabelClass.selectorName);
@@ -188,12 +188,12 @@ export class DataRenderService {
         centerText
             .style("line-height", 1)
             .style("font-weight", centerTextProperties.fontWeight)
-            .style("font-size", this.settings.label.font.fontSize.value)
-            .style("font-family", this.settings.label.font.fontFamily.value || dataLabelUtils.StandardFontFamily)
-            .style("font-weight", this.settings.label.font.bold.value ? "bold" : "normal")
-            .style("font-style", this.settings.label.font.italic.value ? "italic" : "normal")
-            .style("text-decoration", this.settings.label.font.underline.value ? "underline" : "none")
-            .style("fill", this.settings.label.color.value.value)
+            .style("font-size", this.settings.centerLabel.font.fontSize.value)
+            .style("font-family", this.settings.centerLabel.font.fontFamily.value || dataLabelUtils.StandardFontFamily)
+            .style("font-weight", this.settings.centerLabel.font.bold.value ? "bold" : "normal")
+            .style("font-style", this.settings.centerLabel.font.italic.value ? "italic" : "normal")
+            .style("text-decoration", this.settings.centerLabel.font.underline.value ? "underline" : "none")
+            .style("fill", this.settings.centerLabel.color.value.value)
             .attr("dy", "0.35em")
             .attr("text-anchor", "middle")
             .text(textMeasurementService.getTailoredTextOrDefault(centerTextProperties, this.innerRadius * DataRenderService.CenterTextFontWidthCoefficient));
@@ -206,7 +206,7 @@ export class DataRenderService {
             .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Label.name)
             .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.Label.displayNameKey))
             .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text)
-            .classed(HtmlSubSelectableClass, this.formatMode && this.settings.label.show.value);
+            .classed(HtmlSubSelectableClass, this.formatMode && this.settings.centerLabel.show.value);
     }
 
 
@@ -509,7 +509,7 @@ export class DataRenderService {
         }
 
         // The chart should shrink if data labels are on
-        let heightIsLabelsOn = this.innerRadius + (this.settings.labels.show.value ? height * DataRenderService.AsterRadiusRatio : height);
+        let heightIsLabelsOn = this.innerRadius + (this.settings.detailLabels.show.value ? height * DataRenderService.AsterRadiusRatio : height);
         // let heightIsLabelsOn = this.innerRadius + height;
         if (this.ticksOptions) {
             heightIsLabelsOn /= this.ticksOptions.diffPercent;
@@ -537,7 +537,7 @@ export class DataRenderService {
                 }
 
                 // The chart should shrink if data labels are on
-                let heightIsLabelsOn = innerRadius + (this.settings.labels.show.value ? height * DataRenderService.AsterRadiusRatio : height);
+                let heightIsLabelsOn = innerRadius + (this.settings.detailLabels.show.value ? height * DataRenderService.AsterRadiusRatio : height);
                 // let heightIsLabelsOn = innerRadius + height;
                 if (this.ticksOptions) {
                     heightIsLabelsOn /= this.ticksOptions.diffPercent;
@@ -564,7 +564,7 @@ export class DataRenderService {
         const dataPoints: d3AsterDataPoint[] = isHighlight ? this.highlightedDataPoints : this.dataPoints;
         if (!this.data.hasHighlights || (this.data.hasHighlights && isHighlight)) {
            
-            const isLabelInside: boolean = this.settings.labels.labelsOptionsGroup.position.value.value === "inside";
+            const isLabelInside: boolean = this.settings.detailLabels.labelsOptionsGroup.position.value.value === "inside";
 
             const labelArcRadius = (d: d3PieArcDatum<AsterDataPoint>): number => {
                 if (isLabelInside) {
@@ -613,12 +613,12 @@ export class DataRenderService {
         ];
 
         const lineBreakPoint: [number, number] = [
-            lineStartPoint[0] + Math.cos(angle) * DataRenderService.LableLineHeight,
-            lineStartPoint[1] + Math.sin(angle) * DataRenderService.LableLineHeight
+            lineStartPoint[0] + Math.cos(angle) * DataRenderService.LabelLineHeight,
+            lineStartPoint[1] + Math.sin(angle) * DataRenderService.LabelLineHeight
         ];
 
         const lineEndPoint: [number, number] = [
-            lineBreakPoint[0] + direction * DataRenderService.LableLineLegHeight,
+            lineBreakPoint[0] + direction * DataRenderService.LabelLineLegHeight,
             lineBreakPoint[1]
         ];
 
@@ -665,7 +665,7 @@ export class DataRenderService {
                 .enter()
                 .append("text")
                 .classed(DataRenderService.DataLabels.className, true))
-                .classed(HtmlSubSelectableClass, this.formatMode && this.settings.labels.show.value)
+                .classed(HtmlSubSelectableClass, this.formatMode && this.settings.detailLabels.show.value)
                 .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Labels.name)
                 .attr(SubSelectableDisplayNameAttribute, AsterPlotObjectNames.Labels.name)
                 .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text);
@@ -701,12 +701,12 @@ export class DataRenderService {
             })
             .text((d: LabelEnabledDataPoint) => d.labeltext)
             .style("text-anchor", layout.style["text-anchor"])
-            .style("fill", this.settings.labels.labelsValuesGroup.color.value.value)
-            .style("font-family", this.settings.labels.labelsValuesGroup.font.fontFamily.value || dataLabelUtils.StandardFontFamily)
-            .style("font-weight", this.settings.labels.labelsValuesGroup.font.bold.value ? "bold" : "normal")
-            .style("font-style", this.settings.labels.labelsValuesGroup.font.italic.value ? "italic" : "normal")
-            .style("text-decoration", this.settings.labels.labelsValuesGroup.font.underline.value ? "underline" : "none")
-            .style("font-size", PixelConverter.fromPoint(this.settings.labels.labelsValuesGroup.font.fontSize.value));
+            .style("fill", this.settings.detailLabels.labelsValuesGroup.color.value.value)
+            .style("font-family", this.settings.detailLabels.labelsValuesGroup.font.fontFamily.value || dataLabelUtils.StandardFontFamily)
+            .style("font-weight", this.settings.detailLabels.labelsValuesGroup.font.bold.value ? "bold" : "normal")
+            .style("font-style", this.settings.detailLabels.labelsValuesGroup.font.italic.value ? "italic" : "normal")
+            .style("text-decoration", this.settings.detailLabels.labelsValuesGroup.font.underline.value ? "underline" : "none")
+            .style("font-size", PixelConverter.fromPoint(this.settings.detailLabels.labelsValuesGroup.font.fontSize.value));
 
         this.applyOnObjectStylesToLabels(labels);
 
@@ -752,7 +752,7 @@ export class DataRenderService {
             })
             .style("opacity", 0.5)
             .style("fill-opacity", 0)
-            .style("stroke", () => this.settings.labels.labelsValuesGroup.color.value.value);
+            .style("stroke", () => this.settings.detailLabels.labelsValuesGroup.color.value.value);
     }
 
     private applyOnObjectStylesToLabels(labelsSelection: d3Selection<SVGTextElement, d3PieArcDatum<AsterDataPoint> & LabelEnabledDataPoint, SVGGElement, null>): void{
@@ -761,20 +761,20 @@ export class DataRenderService {
             .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Labels.name)
             .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.Labels.displayNameKey))
             .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text)
-            .classed(HtmlSubSelectableClass, this.formatMode && this.settings.labels.show.value);
+            .classed(HtmlSubSelectableClass, this.formatMode && this.settings.detailLabels.show.value);
     }
 
     private getLabelLayout(arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>, viewport: IViewport,isLabelInside: boolean): ILabelLayout {
     
         const textProperties: TextProperties = {
             text: "",
-            fontFamily: this.settings.labels.labelsValuesGroup.font.fontFamily.value || dataLabelUtils.StandardFontFamily,
-            fontSize: PixelConverter.fromPoint(this.settings.labels.labelsValuesGroup.font.fontSize.value),
-            fontWeight: this.settings.labels.labelsValuesGroup.font.bold ? "bold" : "normal",
-            fontStyle: this.settings.labels.labelsValuesGroup.font.italic ? "italic" : "normal",
+            fontFamily: this.settings.detailLabels.labelsValuesGroup.font.fontFamily.value || dataLabelUtils.StandardFontFamily,
+            fontSize: PixelConverter.fromPoint(this.settings.detailLabels.labelsValuesGroup.font.fontSize.value),
+            fontWeight: this.settings.detailLabels.labelsValuesGroup.font.bold ? "bold" : "normal",
+            fontStyle: this.settings.detailLabels.labelsValuesGroup.font.italic ? "italic" : "normal",
         };
 
-        const getLabelDimensions = (d: d3PieArcDatum<AsterDataPoint>) => {
+        const setTextAndGetLabelDimensions = (d: d3PieArcDatum<AsterDataPoint>) => {
             textProperties.text = d.data.label;
             return {
                 labelWidth: textMeasurementService.measureSvgTextWidth(textProperties),
@@ -786,9 +786,9 @@ export class DataRenderService {
         if (isLabelInside) {
             return {
                 labelText: (d: d3PieArcDatum<AsterDataPoint>) => {
-                   const { labelWidth, labelHeight } = getLabelDimensions(d);
+                   const { labelWidth, labelHeight } = setTextAndGetLabelDimensions(d);
                     const radius = arc.outerRadius().call(this, d);
-                    const maxLabelRadius = (radius - this.innerRadius) * DataRenderService.InsideLableSizeRatio;
+                    const maxLabelRadius = (radius - this.innerRadius) * DataRenderService.InsideLabelSizeRatio;
                     
                     if (labelWidth > maxLabelRadius || labelHeight > maxLabelRadius) {
                         const tailoredText = textMeasurementService.getTailoredTextOrDefault(textProperties, maxLabelRadius);                        
@@ -810,7 +810,7 @@ export class DataRenderService {
 
         const isLabelsHasConflict = (d: d3PieArcDatum<AsterDataPoint>) => {
             const pos = arc.centroid(d);
-            const { labelWidth, labelHeight } = getLabelDimensions(d);
+            const { labelWidth, labelHeight } = setTextAndGetLabelDimensions(d);
             const horizontalSpaceAvailableForLabels = viewport.width / 2 - Math.abs(pos[0]);
             const verticalSpaceAvailableForLabels = viewport.height / 2 - Math.abs(pos[1]);
             d.data.isLabelHasConflict = labelWidth > horizontalSpaceAvailableForLabels || labelHeight > verticalSpaceAvailableForLabels;

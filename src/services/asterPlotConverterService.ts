@@ -117,12 +117,12 @@ export class AsterPlotConverterService {
         this.percentageFormatter = valueFormatter.create({ format: "0.0%" });
         this.labelFormatter = this.createFormatter(
             this.categoricalColumns.Y[0].source,
-            settings.labels.labelsValuesGroup.precision.value,
-            (Number(settings.labels.labelsValuesGroup.displayUnits.value.valueOf()) === 0) && (this.maxValue != null)
+            settings.detailLabels.labelsValuesGroup.precision.value,
+            (Number(settings.detailLabels.labelsValuesGroup.displayUnits.value.valueOf()) === 0) && (this.maxValue != null)
                 ? this.maxValue
-                : Number(settings.labels.labelsValuesGroup.displayUnits.value.valueOf()));
+                : Number(settings.detailLabels.labelsValuesGroup.displayUnits.value.valueOf()));
 
-        this.fontSizeInPx = PixelConverter.fromPointToPixel(settings.labels.labelsValuesGroup.font.fontSize.value);
+        this.fontSizeInPx = PixelConverter.fromPointToPixel(settings.detailLabels.labelsValuesGroup.font.fontSize.value);
 
         this.dataPoints = [];
         this.highlightedDataPoints = [];
@@ -149,9 +149,9 @@ export class AsterPlotConverterService {
     }
 
     private getLabelText(categoryValue: PrimitiveValue, currentValue: number): string {
-        const showCategory = this.settings.labels.labelsOptionsGroup.showCategory.value;
-        const showDataValue = this.settings.labels.labelsOptionsGroup.showDataValue.value;
-        const showPercentOfTotal = this.settings.labels.labelsOptionsGroup.showPercentOfTotal.value;
+        const showCategory = this.settings.detailLabels.labelsOptionsGroup.showCategory.value;
+        const showDataValue = this.settings.detailLabels.labelsOptionsGroup.showDataValue.value;
+        const showPercentOfTotal = this.settings.detailLabels.labelsOptionsGroup.showPercentOfTotal.value;
 
         const labelContents: string[] = [];
 

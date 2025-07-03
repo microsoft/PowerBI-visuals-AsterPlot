@@ -221,7 +221,7 @@ class LabelsOptionsSettingsGroup extends BaseFontCardSettings {
     slices: formattingSettings.Slice[] = [this.position, this.showCategory, this.showDataValue, this.showPercentOfTotal];
 }
 
-class LablesValuesSettingsGroup extends BaseFontCardSettings {
+class LabelsValuesSettingsGroup extends BaseFontCardSettings {
     color = new formattingSettings.ColorPicker({
         name: "color",
         displayName: "Color",
@@ -264,7 +264,7 @@ class LabelsCardSettings extends formattingSettings.CompositeCard {
     topLevelSlice = this.show;
 
     public labelsOptionsGroup: LabelsOptionsSettingsGroup = new LabelsOptionsSettingsGroup();
-    public labelsValuesGroup: LablesValuesSettingsGroup = new LablesValuesSettingsGroup();
+    public labelsValuesGroup: LabelsValuesSettingsGroup = new LabelsValuesSettingsGroup();
 
     name: string = AsterPlotObjectNames.Labels.name;
     displayName: string = AsterPlotObjectNames.Labels.displayName;
@@ -362,16 +362,15 @@ export class OuterLineCardSettings extends BaseFontCardSettings {
 
 export class AsterPlotSettingsModel extends Model {
     legend = new LegendCardSettings();
-    label = new CenterLabelCardSettings();
-    labels = new LabelsCardSettings();
-    labelsValues = new LablesValuesSettingsGroup();
+    centerLabel = new CenterLabelCardSettings();
+    detailLabels = new LabelsCardSettings();
     pies = new PiesCardSettings();
     outerLine = new OuterLineCardSettings();
 
     cards = [
         this.legend,
-        this.label,
-        this.labels,
+        this.centerLabel,
+        this.detailLabels,
         this.pies,
         this.outerLine,
     ];
@@ -424,11 +423,11 @@ export class AsterPlotSettingsModel extends Model {
         this.legend.labelColor.visible = !isHighContrast;
         this.legend.labelColor.value.value = isHighContrast ? colorPalette.foreground.value : this.legend.labelColor.value.value;
 
-        this.label.color.visible = !isHighContrast;
-        this.label.color.value.value = isHighContrast ? colorPalette.foreground.value : this.label.color.value.value;
+        this.centerLabel.color.visible = !isHighContrast;
+        this.centerLabel.color.value.value = isHighContrast ? colorPalette.foreground.value : this.centerLabel.color.value.value;
 
-        this.labels.labelsValuesGroup.color.visible = !isHighContrast;
-        this.labels.labelsValuesGroup.color.value.value = isHighContrast ? colorPalette.foreground.value : this.labels.labelsValuesGroup.color.value.value;
+        this.detailLabels.labelsValuesGroup.color.visible = !isHighContrast;
+        this.detailLabels.labelsValuesGroup.color.value.value = isHighContrast ? colorPalette.foreground.value : this.detailLabels.labelsValuesGroup.color.value.value;
 
         this.pies.visible = !isHighContrast;
 
