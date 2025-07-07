@@ -119,7 +119,7 @@
                 }
             }
         },
-        "label": {
+        "centerLabel": {
             "properties": {
                 "show": {
                     "type": {
@@ -166,7 +166,7 @@
                 }
             }
         },
-        "labels": {
+        "detailLabels": {
             "properties": {
                 "show": {
                     "type": {

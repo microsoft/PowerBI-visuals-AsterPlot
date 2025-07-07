@@ -203,8 +203,8 @@ export class DataRenderService {
 
     private applyOnObjectStylesToCenterLabel(labelsSelection: d3Selection<SVGTextElement, null, HTMLElement, null>): void{
         labelsSelection
-            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Label.name)
-            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.Label.displayNameKey))
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.CenterLabel.name)
+            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.CenterLabel.displayNameKey))
             .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text)
             .classed(HtmlSubSelectableClass, this.formatMode && this.settings.centerLabel.show.value);
     }
@@ -666,8 +666,8 @@ export class DataRenderService {
                 .append("text")
                 .classed(DataRenderService.DataLabels.className, true))
                 .classed(HtmlSubSelectableClass, this.formatMode && this.settings.detailLabels.show.value)
-                .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Labels.name)
-                .attr(SubSelectableDisplayNameAttribute, AsterPlotObjectNames.Labels.name)
+                .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.DetailLabels.name)
+                .attr(SubSelectableDisplayNameAttribute, AsterPlotObjectNames.DetailLabels.name)
                 .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text);
 
         if (!labels) {
@@ -758,8 +758,8 @@ export class DataRenderService {
     private applyOnObjectStylesToLabels(labelsSelection: d3Selection<SVGTextElement, d3PieArcDatum<AsterDataPoint> & LabelEnabledDataPoint, SVGGElement, null>): void{
         labelsSelection
             .style("pointer-events", this.formatMode ? "auto" : "none")
-            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Labels.name)
-            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.Labels.displayNameKey))
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.DetailLabels.name)
+            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.DetailLabels.displayNameKey))
             .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text)
             .classed(HtmlSubSelectableClass, this.formatMode && this.settings.detailLabels.show.value);
     }

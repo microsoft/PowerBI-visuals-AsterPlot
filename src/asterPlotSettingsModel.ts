@@ -33,22 +33,17 @@ import {AsterDataPoint} from "./dataInterfaces";
 import Card = formattingSettings.SimpleCard;
 import Model = formattingSettings.Model;
 import FormattingSettingsSlice = formattingSettings.Slice;
-import IEnumMember = powerbi.IEnumMember;
 import ILocalizedItemMember = formattingSettingsInterfaces.ILocalizedItemMember;
-import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import ValidatorType = powerbi.visuals.ValidatorType;
 import ISelectionId = powerbi.visuals.ISelectionId;
 import { isEmpty } from "lodash-es";
 
-interface IEnumMemberWithDisplayNameKey extends IEnumMember{
-    key: string;
-}
 
 export const AsterPlotObjectNames = {
     Legend: { name: "legend", displayName: "Legend", displayNameKey: "Visual_Legend" },
     LegendTitle: { name: "legendTitle", displayName: "Legend title", displayNameKey: "Visual_LegendTitle" },
-    Label: { name: "label", displayName: "Center Label", displayNameKey: "Visual_CenterLabel" },
-    Labels: { name: "labels", displayName: "Detail Labels", displayNameKey: "Visual_DetailLabels" },
+    CenterLabel: { name: "centerLabel", displayName: "Center Label", displayNameKey: "Visual_CenterLabel" },
+    DetailLabels: { name: "detailLabels", displayName: "Detail Labels", displayNameKey: "Visual_DetailLabels" },
     Pies: { name: "pies", displayName: "Pies colors", displayNameKey: "Visual_PiesColors" },
     OuterLine: { name: "outerLine", displayName: "Outer Line", displayNameKey: "Visual_Outerline" },
     Ticks: { name: "ticks", displayName: "Ticks", displayNameKey: "Visual_Ticks" },
@@ -71,9 +66,9 @@ const legendPositionOptions: ILocalizedItemMember[] = [
     { value: LegendPosition[LegendPosition.RightCenter], displayNameKey: "Visual_RightCenter" },
 ];
 
-const labelPositionOptions: IEnumMemberWithDisplayNameKey[] = [
-    { value: "outside", displayName: "Outside", key: "Visual_Outside" },
-    { value: "inside", displayName: "Inside", key: "Visual_Inside" }    
+const labelPositionOptions: ILocalizedItemMember[] = [
+    { value: "outside",  displayNameKey: "Visual_Outside" },
+    { value: "inside",  displayNameKey: "Visual_Inside" }    
 ];
 
 class BaseFontCardSettings extends Card {
@@ -180,9 +175,9 @@ class CenterLabelCardSettings extends BaseFontCardSettings {
         value: { value: "rgb(119, 119, 119)" },
     });
 
-    name: string = AsterPlotObjectNames.Label.name;
-    displayName: string = AsterPlotObjectNames.Label.displayName;
-    displayNameKey: string = AsterPlotObjectNames.Label.displayNameKey;
+    name: string = AsterPlotObjectNames.CenterLabel.name;
+    displayName: string = AsterPlotObjectNames.CenterLabel.displayName;
+    displayNameKey: string = AsterPlotObjectNames.CenterLabel.displayNameKey;
     slices = [ this.font, this.color];
 }
 
@@ -266,9 +261,9 @@ class LabelsCardSettings extends formattingSettings.CompositeCard {
     public labelsOptionsGroup: LabelsOptionsSettingsGroup = new LabelsOptionsSettingsGroup();
     public labelsValuesGroup: LabelsValuesSettingsGroup = new LabelsValuesSettingsGroup();
 
-    name: string = AsterPlotObjectNames.Labels.name;
-    displayName: string = AsterPlotObjectNames.Labels.displayName;
-    displayNameKey: string = AsterPlotObjectNames.Labels.displayNameKey;
+    name: string = AsterPlotObjectNames.DetailLabels.name;
+    displayName: string = AsterPlotObjectNames.DetailLabels.displayName;
+    displayNameKey: string = AsterPlotObjectNames.DetailLabels.displayNameKey;
     groups: formattingSettings.Group[] = [this.labelsOptionsGroup, this.labelsValuesGroup];
 }
 
@@ -374,16 +369,6 @@ export class AsterPlotSettingsModel extends Model {
         this.pies,
         this.outerLine,
     ];
-
-    setLocalizedOptions(localizationManager: ILocalizationManager): void {
-        this.setLocalizedDisplayName(labelPositionOptions, localizationManager);
-    }   
-
-    public setLocalizedDisplayName(options: IEnumMemberWithDisplayNameKey[], localizationManager: ILocalizationManager): void {
-        options.forEach(option => {
-            option.displayName = localizationManager.getDisplayName(option.key)
-        });
-    }
 
     public parse(colorPalette: ISandboxExtendedColorPalette, title: string){
         if (isEmpty(this.legend.titleText.value)) {

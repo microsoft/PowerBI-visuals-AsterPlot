@@ -57,9 +57,9 @@ export class AsterPlotOnObjectService implements VisualOnObjectFormatting {
             switch (visualObject.objectName) {
                 case AsterPlotObjectNames.Legend.name:
                     return SubSelectionStylesService.GetLegendStyles();
-                case AsterPlotObjectNames.Label.name:
+                case AsterPlotObjectNames.CenterLabel.name:
                     return SubSelectionStylesService.GetCenterLabelStyles();
-                case AsterPlotObjectNames.Labels.name:
+                case AsterPlotObjectNames.DetailLabels.name:
                     return SubSelectionStylesService.GetDetailLabelsStyles();
                 case AsterPlotObjectNames.Ticks.name:
                     return SubSelectionStylesService.GetTicksStyles();
@@ -79,9 +79,9 @@ export class AsterPlotOnObjectService implements VisualOnObjectFormatting {
                     return SubSelectionShortcutsService.GetLegendShortcuts(this.localizationManager);
                 case AsterPlotObjectNames.LegendTitle.name:
                     return SubSelectionShortcutsService.GetLegendTitleShortcuts(this.localizationManager);
-                case AsterPlotObjectNames.Label.name:
+                case AsterPlotObjectNames.CenterLabel.name:
                     return SubSelectionShortcutsService.GetCenterLabelShortcuts(this.localizationManager);
-                case AsterPlotObjectNames.Labels.name:
+                case AsterPlotObjectNames.DetailLabels.name:
                     return SubSelectionShortcutsService.GetDetailLabelsShortcuts(this.localizationManager);
                 case AsterPlotObjectNames.Ticks.name:
                     return SubSelectionShortcutsService.GetTicksShortcuts(this.localizationManager);
