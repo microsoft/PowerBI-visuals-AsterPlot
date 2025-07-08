@@ -173,6 +173,7 @@
                         "bool": true
                     }
                 },
+                
                 "color": {
                     "type": {
                         "fill": {
@@ -193,6 +194,29 @@
                     "placeHolderText": "Auto",
                     "type": {
                         "numeric": true
+                    }
+                },
+                "position": {
+                    "type": {
+                        "enumeration": [
+                            { "value": "Inside" },
+                            { "value": "Outside" }
+                        ]
+                    }
+                },
+                "showCategory": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "showDataValue": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "showPercentOfTotal": {
+                    "type": {
+                        "bool": true
                     }
                 },
                 "fontSize": {

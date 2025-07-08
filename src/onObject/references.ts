@@ -67,29 +67,29 @@ export const legendReferences: ILegendReference = {
 }
 
 export const centerLabelReferences: ICenterLabelReference = {
-    ...createBaseFontReference(AsterPlotObjectNames.Label.name),
+    ...createBaseFontReference(AsterPlotObjectNames.CenterLabel.name),
     cardUid: "Visual-label-card",
     groupUid: "label-group",
     show: {
-        objectName: AsterPlotObjectNames.Label.name,
+        objectName: AsterPlotObjectNames.CenterLabel.name,
         propertyName: "show"
     }
 }
 
 export const detailLabelsReferences: IDetailLabelsReference = {
-    ...createBaseFontReference(AsterPlotObjectNames.Labels.name),
+    ...createBaseFontReference(AsterPlotObjectNames.DetailLabels.name),
     cardUid: "Visual-labels-card",
     groupUid: "labels-group",
     displayUnits: {
-        objectName: AsterPlotObjectNames.Labels.name,
+        objectName: AsterPlotObjectNames.DetailLabels.name,
         propertyName: "displayUnits"
     },
     precision: {
-        objectName: AsterPlotObjectNames.Labels.name,
+        objectName: AsterPlotObjectNames.DetailLabels.name,
         propertyName: "precision"
     },
     show: {
-        objectName: AsterPlotObjectNames.Labels.name,
+        objectName: AsterPlotObjectNames.DetailLabels.name,
         propertyName: "show"
     }
 }
