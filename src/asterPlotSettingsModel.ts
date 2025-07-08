@@ -42,8 +42,8 @@ import { isEmpty } from "lodash-es";
 export const AsterPlotObjectNames = {
     Legend: { name: "legend", displayName: "Legend", displayNameKey: "Visual_Legend" },
     LegendTitle: { name: "legendTitle", displayName: "Legend title", displayNameKey: "Visual_LegendTitle" },
-    CenterLabel: { name: "centerLabel", displayName: "Center Label", displayNameKey: "Visual_CenterLabel" },
-    DetailLabels: { name: "detailLabels", displayName: "Detail Labels", displayNameKey: "Visual_DetailLabels" },
+    CenterLabel: { name: "label", displayName: "Center Label", displayNameKey: "Visual_CenterLabel" },
+    DetailLabels: { name: "labels", displayName: "Detail Labels", displayNameKey: "Visual_DetailLabels" },
     Pies: { name: "pies", displayName: "Pies colors", displayNameKey: "Visual_PiesColors" },
     OuterLine: { name: "outerLine", displayName: "Outer Line", displayNameKey: "Visual_Outerline" },
     Ticks: { name: "ticks", displayName: "Ticks", displayNameKey: "Visual_Ticks" },
