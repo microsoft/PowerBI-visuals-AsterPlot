@@ -332,25 +332,25 @@ export class DataRenderService {
 
             this.applyOnObjectStylesToCircleText(text);
 
-        } else {            
+        } else {
             element.selectAll(DataRenderService.CircleText.selectorName).remove();
         }
     }
 
     private applyOnObjectStylesToCircleText(text: d3Selection<SVGTextElement, number, SVGGElement, number>): void{
         text
-        .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Ticks.name)
-        .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.Ticks.displayNameKey))
-        .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text)
-        .classed(HtmlSubSelectableClass, this.formatMode && this.settings.outerLine.showGridTicksValues.value);
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.Ticks.name)
+            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.Ticks.displayNameKey))
+            .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Text)
+            .classed(HtmlSubSelectableClass, this.formatMode && this.settings.outerLine.showGridTicksValues.value);
     }
 
-    private drawArcCircles(
+    private drawInnerAndOuterCircles(
         element: d3Selection<SVGGElement, null, HTMLElement, null>,
         circleClassName: ClassAndSelector,
-        radius: number,
+        radius: number
     ): void {
-        const selection = element.selectAll<SVGPathElement, d3PieArcDatum<AsterDataPoint>>(circleClassName.selectorName).data([this.dataPoints[0]]);
+        const selection = element.selectAll<SVGCircleElement, d3PieArcDatum<AsterDataPoint>>(circleClassName.selectorName).data([this.dataPoints[0]]);
        
         if (!this.settings.outerLine.showStraightLines.value && circleClassName === DataRenderService.InnerCircleBorder) {
             element.selectAll(circleClassName.selectorName).remove();
@@ -358,22 +358,13 @@ export class DataRenderService {
         }
         
         selection.exit().remove();
-        const mergedCircle = selection.enter().append("path").merge(selection)
-        .attr("class", circleClassName.className)
-        .attr("fill", "none")
-        .attr("opacity", 0.5)
-        .attr("stroke", this.settings.outerLine.color.value.value)
-        .attr("stroke-width", this.settings.outerLine.thickness.value + "px")
-        .attr("d", () => {
-            return d3CreateArc()
-            .innerRadius(radius)
-            .outerRadius(radius)({
-                startAngle: 0,
-                endAngle: 2 * Math.PI,
-                innerRadius: radius,
-                outerRadius: radius
-            });
-        });
+        const mergedCircle = selection.enter().append("circle").merge(selection)
+            .attr("class", circleClassName.className)
+            .attr("fill", "none")
+            .attr("opacity", 0.5)
+            .attr("stroke", this.settings.outerLine.color.value.value)
+            .attr("stroke-width", this.settings.outerLine.thickness.value + "px")
+            .attr("r", radius);
 
         this.applyOnObjectStylesToOuterLines(mergedCircle);
     }
@@ -391,20 +382,20 @@ export class DataRenderService {
         lines.exit().remove();
 
         const mergedԼines = lines.enter().append("path").merge(lines)
-        .attr("class", DataRenderService.OuterLine.className)
-        .attr("fill", "none")
-        .attr("opacity", 0.5)
-        .attr("stroke", this.settings.outerLine.color.value.value)
-        .attr("stroke-width", outerThickness)
-        .attr("d", (angle: number) => {
-            const angleRad = angle - Math.PI / 2;
-            const [cos, sin] = [Math.cos(angleRad), Math.sin(angleRad)];
-            const halfStrokeWidth = parseInt(outerThickness) / 2;
-            const [x1, y1] = [cos * this.innerRadius, sin * this.innerRadius];
-            const [x2, y2] = [cos * (this.outerRadius - halfStrokeWidth), sin * (this.outerRadius - halfStrokeWidth)];
+            .attr("class", DataRenderService.OuterLine.className)
+            .attr("fill", "none")
+            .attr("opacity", 0.5)
+            .attr("stroke", this.settings.outerLine.color.value.value)
+            .attr("stroke-width", outerThickness)
+            .attr("d", (angle: number) => {
+                const angleRad = angle - Math.PI / 2;
+                const [cos, sin] = [Math.cos(angleRad), Math.sin(angleRad)];
+                const halfStrokeWidth = parseInt(outerThickness) / 2;
+                const [x1, y1] = [cos * (this.innerRadius + halfStrokeWidth), sin * (this.innerRadius + halfStrokeWidth)];
+                const [x2, y2] = [cos * (this.outerRadius - halfStrokeWidth), sin * (this.outerRadius - halfStrokeWidth)];
 
-            return `M${x1},${y1} L${x2},${y2}`;
-        });
+                return `M${x1},${y1} L${x2},${y2}`;
+            });
 
         this.applyOnObjectStylesToOuterLines(mergedԼines);
     }
@@ -413,16 +404,16 @@ export class DataRenderService {
         selection: d3Selection<SVGPathElement, unknown, SVGGElement, null>
     ): void {
         selection
-        .classed(HtmlSubSelectableClass, this.formatMode && this.settings.outerLine.show.value)
-        .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.OuterLine.name)
-        .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.OuterLine.displayNameKey))
-        .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Shape);
+            .classed(HtmlSubSelectableClass, this.formatMode && this.settings.outerLine.show.value)
+            .attr(SubSelectableObjectNameAttribute, AsterPlotObjectNames.OuterLine.name)
+            .attr(SubSelectableDisplayNameAttribute, this.localizationManager.getDisplayName(AsterPlotObjectNames.OuterLine.displayNameKey))
+            .attr(SubSelectableTypeAttribute, SubSelectionStylesType.Shape);
     }
   
     public drawOuterLines(element: d3Selection<SVGGElement, null, HTMLElement, null>): void {
         this.drawOuterStreightLines(element); 
-        this.drawArcCircles(element, DataRenderService.InnerCircleBorder, this.innerRadius);
-        this.drawArcCircles(element, DataRenderService.OuterCircleBorder, this.outerRadius);   
+        this.drawInnerAndOuterCircles(element, DataRenderService.InnerCircleBorder, this.innerRadius);
+        this.drawInnerAndOuterCircles(element, DataRenderService.OuterCircleBorder, this.outerRadius);   
         const settings: AsterPlotSettingsModel = this.settings;
         if (settings.outerLine.showGrid.value || settings.outerLine.showGridTicksValues.value) {
             this.drawGrid(element, settings.outerLine);
@@ -434,7 +425,6 @@ export class DataRenderService {
     private cleanGrid(element: d3Selection<SVGGElement, null, HTMLElement, null>): void {
         element.selectAll(DataRenderService.CircleLine.selectorName).remove();
         element.selectAll(DataRenderService.CircleText.selectorName).remove();
-        element.selectAll("circle").remove();
     }
 
     public cleanOuterLinesAndCircles(element: d3Selection<SVGGElement, null, HTMLElement, null>): void {    
@@ -461,7 +451,6 @@ export class DataRenderService {
         }
 
         const step = Math.pow(10, val.toString().length - 1);
-
         const allTicksCount: number = Math.ceil((val) / step);
         const endPoint: number = allTicksCount * step / modifier;
         const diffPercent: number = endPoint / value;
