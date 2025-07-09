@@ -81,8 +81,10 @@ export class AsterPlotConverterService {
     private hasHighlights: boolean;
 
     private maxValue: number;
+    private totalValue: number;
 
     private labelFormatter: IValueFormatter;
+    private percentageFormatter: IValueFormatter;
     private fontSizeInPx: number
 
     constructor(dataView: DataView,
@@ -110,15 +112,17 @@ export class AsterPlotConverterService {
 
         this.hasHighlights = this.containsHighlights(this.categoricalColumns);
         this.maxValue = this.getMaxValue(this.categoricalColumns);
+        this.totalValue = this.getTotalValue(this.categoricalColumns);
 
+        this.percentageFormatter = valueFormatter.create({ format: "0.0%" });
         this.labelFormatter = this.createFormatter(
             this.categoricalColumns.Y[0].source,
-            settings.labels.precision.value,
-            (Number(settings.labels.displayUnits.value.valueOf()) === 0) && (this.maxValue != null)
+            settings.detailLabels.labelsValuesGroup.precision.value,
+            (Number(settings.detailLabels.labelsValuesGroup.displayUnits.value.valueOf()) === 0) && (this.maxValue != null)
                 ? this.maxValue
-                : Number(settings.labels.displayUnits.value.valueOf()));
+                : Number(settings.detailLabels.labelsValuesGroup.displayUnits.value.valueOf()));
 
-        this.fontSizeInPx = PixelConverter.fromPointToPixel(settings.labels.font.fontSize.value);
+        this.fontSizeInPx = PixelConverter.fromPointToPixel(settings.detailLabels.labelsValuesGroup.font.fontSize.value);
 
         this.dataPoints = [];
         this.highlightedDataPoints = [];
@@ -138,6 +142,34 @@ export class AsterPlotConverterService {
 
     private getMaxValue(categorical: CategoricalColumns): number {
         return Math.max.apply(null, <number[]>categorical.Y[0].values);
+    }
+
+    private getTotalValue(categorical: CategoricalColumns | undefined): number {
+        return  (<number[]>categorical.Y[0].values).reduce((a, b) => a + (b || 0), 0);
+    }
+
+    private getLabelText(categoryValue: PrimitiveValue, currentValue: number): string {
+        const showCategory = this.settings.detailLabels.labelsOptionsGroup.showCategory.value;
+        const showDataValue = this.settings.detailLabels.labelsOptionsGroup.showDataValue.value;
+        const showPercentOfTotal = this.settings.detailLabels.labelsOptionsGroup.showPercentOfTotal.value;
+
+        const labelContents: string[] = [];
+
+        if (showCategory) {
+            labelContents.push(categoryValue.toString());
+        }
+
+        if (showDataValue) {
+            labelContents.push(this.labelFormatter.format(currentValue));
+        }
+
+       if (showPercentOfTotal) {
+            const percentage = this.totalValue > 0 ? currentValue / this.totalValue : 0;
+            const formattedPercentage = this.percentageFormatter.format(percentage);
+            labelContents.push(formattedPercentage);
+        }
+
+        return labelContents.join(" ");
     }
 
     private createFormatter(column: DataViewMetadataColumn, precision?: number, value?: number): IValueFormatter {
@@ -205,11 +237,13 @@ export class AsterPlotConverterService {
                 .withMeasure(category.source.queryName)
                 .createSelectionId();
 
+            const labelText = this.getLabelText(formattedCategoryValue, currentValue);
+
             if (sliceWidth > 0) {
                 this.dataPoints.push({
                     sliceHeight: values[i],
                     sliceWidth,
-                    label: this.labelFormatter.format(currentValue),
+                    label: labelText,
                     fillColor,
                     strokeColor,
                     strokeWidth,
@@ -253,10 +287,11 @@ export class AsterPlotConverterService {
 
                 const height: number = highlightValueIsNotNull ? highlightValues[i] : null;
                 const width: number = Math.max(0, (categoricalColumns.Y.length > 1 && secondHighlightValue !== null) ? secondHighlightValue : sliceWidth)
+                const highlightLabelText = this.getLabelText(formattedCategoryValue, currentValue);
                 this.highlightedDataPoints.push({
                     sliceHeight: height,
                     sliceWidth: width,
-                    label: this.labelFormatter.format(currentValue),
+                    label: highlightLabelText,
                     fillColor,
                     strokeColor,
                     strokeWidth,
