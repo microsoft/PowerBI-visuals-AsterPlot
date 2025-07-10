@@ -155,7 +155,7 @@ export class DataRenderService {
         this.innerRadius = 0.3 * (this.settings.labels.show.value
             ? this.viewportRadius * DataRenderService.AsterRadiusRatio
             : this.viewportRadius);
-        const showOuterLine: boolean = settings.outerLine.show.value;
+        const showOuterLine: boolean = settings.outerLine.show.value;  
         if (showOuterLine) {
             this.ticksOptions = this.calcTickOptions(this.maxHeight);
             this.innerRadius /= this.ticksOptions.diffPercent;
@@ -345,15 +345,15 @@ export class DataRenderService {
             .classed(HtmlSubSelectableClass, this.formatMode && this.settings.outerLine.showGridTicksValues.value);
     }
 
-    private drawInnerAndOuterCircles(
+    private drawBorderCircle(
         element: d3Selection<SVGGElement, null, HTMLElement, null>,
         circleClassName: ClassAndSelector,
         radius: number
     ): void {
-        const selection = element.selectAll<SVGCircleElement, d3PieArcDatum<AsterDataPoint>>(circleClassName.selectorName).data([this.dataPoints[0]]);
+        const selection = element.selectAll<SVGCircleElement, number>(circleClassName.selectorName).data([radius]);
        
         if (!this.settings.outerLine.showStraightLines.value && circleClassName === DataRenderService.InnerCircleBorder) {
-            element.selectAll(circleClassName.selectorName).remove();
+            selection.remove();
             return;
         }
         
@@ -370,38 +370,39 @@ export class DataRenderService {
     }
 
     private drawOuterStreightLines(element: d3Selection<SVGGElement, null, HTMLElement, null>) {
-        const outerThickness: string = this.settings.outerLine.thickness.value + "px";
         const uniqueAngles = Array.from(new Set(this.dataPoints.map(d => d.startAngle)));
         const lines = element.selectAll<SVGPathElement,d3PieArcDatum<AsterDataPoint>>("path." + DataRenderService.OuterLine.className).data(uniqueAngles);
+        const strokeValue = this.settings.outerLine.thickness.value;
+        const strokeWidth = strokeValue + "px";
 
         if (this.dataPoints.length <= 1 || !this.settings.outerLine.showStraightLines.value) {
-            element.selectAll(DataRenderService.OuterLine.selectorName).remove();
+            lines.remove();
             return;
         }
 
         lines.exit().remove();
 
-        const mergedԼines = lines.enter().append("path").merge(lines)
+        const mergedLines = lines.enter().append("path").merge(lines)
             .attr("class", DataRenderService.OuterLine.className)
             .attr("fill", "none")
             .attr("opacity", 0.5)
             .attr("stroke", this.settings.outerLine.color.value.value)
-            .attr("stroke-width", outerThickness)
+            .attr("stroke-width", strokeWidth)
             .attr("d", (angle: number) => {
                 const angleRad = angle - Math.PI / 2;
+                const halfStrokeWidth = strokeValue / 2;
                 const [cos, sin] = [Math.cos(angleRad), Math.sin(angleRad)];
-                const halfStrokeWidth = parseInt(outerThickness) / 2;
                 const [x1, y1] = [cos * (this.innerRadius + halfStrokeWidth), sin * (this.innerRadius + halfStrokeWidth)];
                 const [x2, y2] = [cos * (this.outerRadius - halfStrokeWidth), sin * (this.outerRadius - halfStrokeWidth)];
 
                 return `M${x1},${y1} L${x2},${y2}`;
             });
 
-        this.applyOnObjectStylesToOuterLines(mergedԼines);
+        this.applyOnObjectStylesToOuterLines(mergedLines);
     }
 
-    private applyOnObjectStylesToOuterLines(
-        selection: d3Selection<SVGPathElement, unknown, SVGGElement, null>
+    private applyOnObjectStylesToOuterLines<T extends SVGElement>(
+        selection: d3Selection<T, unknown, SVGGElement, null>
     ): void {
         selection
             .classed(HtmlSubSelectableClass, this.formatMode && this.settings.outerLine.show.value)
@@ -412,8 +413,8 @@ export class DataRenderService {
   
     public drawOuterLines(element: d3Selection<SVGGElement, null, HTMLElement, null>): void {
         this.drawOuterStreightLines(element); 
-        this.drawInnerAndOuterCircles(element, DataRenderService.InnerCircleBorder, this.innerRadius);
-        this.drawInnerAndOuterCircles(element, DataRenderService.OuterCircleBorder, this.outerRadius);   
+        this.drawBorderCircle(element, DataRenderService.InnerCircleBorder, this.innerRadius);
+        this.drawBorderCircle(element, DataRenderService.OuterCircleBorder, this.outerRadius);   
         const settings: AsterPlotSettingsModel = this.settings;
         if (settings.outerLine.showGrid.value || settings.outerLine.showGridTicksValues.value) {
             this.drawGrid(element, settings.outerLine);
