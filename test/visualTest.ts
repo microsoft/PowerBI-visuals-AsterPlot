@@ -375,7 +375,8 @@ describe("AsterPlot", () => {
             beforeEach(() => {
                 dataView.metadata.objects = {
                     outerLine: {
-                        show: true
+                        show: true,
+                        showStraightLines: true
                     }
                 };
             });
@@ -398,6 +399,132 @@ describe("AsterPlot", () => {
                         expect(elementThickness).toBe(thickness);
                     })
             });
+
+            
+            it("should apply correct styling to circles", () => {
+                const color = "#ff0000";
+                const thickness = 3;
+
+                (<any>dataView.metadata.objects).outerLine.color = { solid: { color: color } };
+                (<any>dataView.metadata.objects).outerLine.thickness = thickness;
+
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                const outerCircles = visualBuilder.outerCircles;
+                const innerCircles = visualBuilder.innerCircles;
+
+                outerCircles.forEach((circle: HTMLElement) => {
+                    expect(circle.getAttribute("stroke")).toBe(color);
+                    expect(circle.getAttribute("stroke-width")).toBe(thickness + "px");
+                    expect(circle.getAttribute("fill")).toBe("none");
+                    expect(circle.getAttribute("opacity")).toBe("0.5");
+                });
+
+                innerCircles.forEach((circle: HTMLElement) => {
+                    expect(circle.getAttribute("stroke")).toBe(color);
+                    expect(circle.getAttribute("stroke-width")).toBe(thickness + "px");
+                    expect(circle.getAttribute("fill")).toBe("none");
+                    expect(circle.getAttribute("opacity")).toBe("0.5");
+                });
+            });
+
+            it("should render correct number of straight lines based on data points", () => {
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                const straightLines = visualBuilder.straightLines;
+                const dataPointCount = dataView.categorical!.categories![0].values.length;
+
+                expect(straightLines.length).toBe(dataPointCount);
+            });
+
+            it("should not render straight lines when showStraightLines is false", () => {
+                (<any>dataView.metadata.objects).outerLine.showStraightLines = false;
+
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                const straightLines = visualBuilder.straightLines;
+                expect(straightLines.length).toBe(0);
+            });
+
+            it("should not render straight lines when there is only one data point", () => {
+                // Create dataview with only one data point
+                const singleDataView = defaultDataViewBuilder.getDataView();
+                singleDataView.categorical!.categories![0].values = [singleDataView.categorical!.categories![0].values[0]];
+                singleDataView.categorical!.values![0].values = [singleDataView.categorical!.values![0].values[0]];
+                singleDataView.categorical!.values![1].values = [singleDataView.categorical!.values![1].values[0]];
+
+                singleDataView.metadata.objects = {
+                    outerLine: {
+                        show: true,
+                        showStraightLines: true
+                    }
+                };
+
+                visualBuilder.updateFlushAllD3Transitions(singleDataView);
+
+                const straightLines = visualBuilder.straightLines;
+                expect(straightLines.length).toBe(0);
+            });
+
+            it("should apply correct styling to straight lines", () => {
+                const color = "#00ff00";
+                const thickness = 4;
+
+                (<any>dataView.metadata.objects).outerLine.color = { solid: { color: color } };
+                (<any>dataView.metadata.objects).outerLine.thickness = thickness;
+
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                const straightLines = visualBuilder.straightLines;
+
+                straightLines.forEach((line: HTMLElement) => {
+                    expect(line.getAttribute("stroke")).toBe(color);
+                    expect(line.getAttribute("stroke-width")).toBe(thickness + "px");
+                    expect(line.getAttribute("fill")).toBe("none");
+                    expect(line.getAttribute("opacity")).toBe("0.5");
+                });
+            });
+
+          
+            it("should clean up circles and lines when outer line is disabled", () => {
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                expect(visualBuilder.outerCircles.length).toBeGreaterThan(0);
+                expect(visualBuilder.innerCircles.length).toBeGreaterThan(0);
+                expect(visualBuilder.straightLines.length).toBeGreaterThan(0);
+
+                (<any>dataView.metadata.objects).outerLine.show = false;
+
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                expect(visualBuilder.outerCircles.length).toBe(0);
+                expect(visualBuilder.innerCircles.length).toBe(0);
+                expect(visualBuilder.straightLines.length).toBe(0);
+            });
+
+
+            it("should render outer and inner circles when outer line is enabled", () => {
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                const outerCircles = visualBuilder.outerCircles;
+                const innerCircles = visualBuilder.innerCircles;
+
+                expect(outerCircles.length).toBe(1);
+                expect(innerCircles.length).toBe(1);
+            });
+
+            it("should not render inner circle when showStraightLines is false", () => {
+                (<any>dataView.metadata.objects).outerLine.showStraightLines = false;
+
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                const outerCircles = visualBuilder.outerCircles;
+                const innerCircles = visualBuilder.innerCircles;
+
+                expect(outerCircles.length).toBe(1);
+                expect(innerCircles.length).toBe(0);
+            });
+
 
             it("Grid line", () => {
                 (<any>dataView.metadata.objects).outerLine.showGrid = true;

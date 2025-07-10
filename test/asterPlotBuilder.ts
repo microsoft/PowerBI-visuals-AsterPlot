@@ -109,4 +109,16 @@ export class AsterPlotBuilder extends VisualBuilderBase<AsterPlot> {
     public get outerLineGrid(): NodeListOf<HTMLElement> {
         return this.mainElement.querySelectorAll("g.circleLine");
     }
+
+    public get outerCircles(): NodeListOf<HTMLElement> {
+        return this.mainElement.querySelectorAll("circle.outerCircle");
+    }
+
+    public get innerCircles(): NodeListOf<HTMLElement> {
+        return this.mainElement.querySelectorAll("circle.innerCircle");
+    }
+
+    public get straightLines(): NodeListOf<HTMLElement> {
+        return this.mainElement.querySelectorAll("path.outerLine");
+    }
 }
