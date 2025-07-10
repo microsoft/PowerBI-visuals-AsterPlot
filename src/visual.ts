@@ -276,13 +276,13 @@ export class AsterPlot implements IVisual {
                 this.renderService.renderArcs(this.slicesElement, true);
             }
 
-            if (this.formattingSettings.labels.show.value) {
+            if (this.formattingSettings.detailLabels.show.value) {
                 this.renderService.renderLabels(this.mainLabelsElement, this.data.hasHighlights);
             } else {
                 this.renderService.cleanLabels(this.mainLabelsElement);
             }
 
-            if (this.formattingSettings.label.show.value) {
+            if (this.formattingSettings.centerLabel.show.value) {
                 this.renderService.drawCenterText(this.mainGroupElement);
             } else {
                 this.renderService.cleanCenterText(this.mainGroupElement);

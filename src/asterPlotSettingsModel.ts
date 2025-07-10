@@ -38,11 +38,12 @@ import ValidatorType = powerbi.visuals.ValidatorType;
 import ISelectionId = powerbi.visuals.ISelectionId;
 import { isEmpty } from "lodash-es";
 
+
 export const AsterPlotObjectNames = {
     Legend: { name: "legend", displayName: "Legend", displayNameKey: "Visual_Legend" },
     LegendTitle: { name: "legendTitle", displayName: "Legend title", displayNameKey: "Visual_LegendTitle" },
-    Label: { name: "label", displayName: "Center Label", displayNameKey: "Visual_CenterLabel" },
-    Labels: { name: "labels", displayName: "Detail Labels", displayNameKey: "Visual_DetailLabels" },
+    CenterLabel: { name: "label", displayName: "Center Label", displayNameKey: "Visual_CenterLabel" },
+    DetailLabels: { name: "labels", displayName: "Detail Labels", displayNameKey: "Visual_DetailLabels" },
     Pies: { name: "pies", displayName: "Pies colors", displayNameKey: "Visual_PiesColors" },
     OuterLine: { name: "outerLine", displayName: "Outer Line", displayNameKey: "Visual_Outerline" },
     Ticks: { name: "ticks", displayName: "Ticks", displayNameKey: "Visual_Ticks" },
@@ -65,6 +66,10 @@ const legendPositionOptions: ILocalizedItemMember[] = [
     { value: LegendPosition[LegendPosition.RightCenter], displayNameKey: "Visual_RightCenter" },
 ];
 
+const labelPositionOptions: ILocalizedItemMember[] = [
+    { value: "outside",  displayNameKey: "Visual_Outside" },
+    { value: "inside",  displayNameKey: "Visual_Inside" }    
+];
 
 class BaseFontCardSettings extends Card {
     font = new formattingSettings.FontControl({
@@ -170,23 +175,48 @@ class CenterLabelCardSettings extends BaseFontCardSettings {
         value: { value: "rgb(119, 119, 119)" },
     });
 
-    name: string = AsterPlotObjectNames.Label.name;
-    displayName: string = AsterPlotObjectNames.Label.displayName;
-    displayNameKey: string = AsterPlotObjectNames.Label.displayNameKey;
+    name: string = AsterPlotObjectNames.CenterLabel.name;
+    displayName: string = AsterPlotObjectNames.CenterLabel.displayName;
+    displayNameKey: string = AsterPlotObjectNames.CenterLabel.displayNameKey;
     slices = [ this.font, this.color];
 }
 
-
-class LabelsCardSettings extends BaseFontCardSettings {
-    show = new formattingSettings.ToggleSwitch({
-        name: "show",
-        displayName: "Show",
-        displayNameKey: "Visual_Show",
+class LabelsOptionsSettingsGroup extends BaseFontCardSettings {
+     position = new formattingSettings.ItemDropdown({
+        name: "position",
+        displayName: "Position",
+        displayNameKey: "Visual_Position",
+        value: labelPositionOptions[0],
+        items: labelPositionOptions
+    });
+    showCategory = new formattingSettings.ToggleSwitch({
+        name: "showCategory",
+        displayName: "Display Category",
+        displayNameKey: "Visual_DisplayCategory",
         value: false,
     });
 
-    topLevelSlice = this.show;
+    showDataValue = new formattingSettings.ToggleSwitch({
+        name: "showDataValue",
+        displayName: "Display value",
+        displayNameKey: "Visual_DisplayValue",
+        value: true,
+    });
 
+    showPercentOfTotal = new formattingSettings.ToggleSwitch({
+        name: "showPercentOfTotal",
+        displayName: "Display Percent",
+        displayNameKey: "Visual_DisplayPercent",
+        value: false,
+    });
+
+    name: string = "options";
+    displayName: string = "Options";
+    displayNameKey: string = "Visual_Options";
+    slices: formattingSettings.Slice[] = [this.position, this.showCategory, this.showDataValue, this.showPercentOfTotal];
+}
+
+class LabelsValuesSettingsGroup extends BaseFontCardSettings {
     color = new formattingSettings.ColorPicker({
         name: "color",
         displayName: "Color",
@@ -211,11 +241,30 @@ class LabelsCardSettings extends BaseFontCardSettings {
             maxValue: { value: 17, type: ValidatorType.Max },
         }
     });
-
-    name: string = AsterPlotObjectNames.Labels.name;
-    displayName: string = AsterPlotObjectNames.Labels.displayName;
-    displayNameKey: string = AsterPlotObjectNames.Labels.displayNameKey;
+    
+    name: string = "values";
+    displayName: string = "Values";
+    displayNameKey: string = "Visual_Values";
     slices = [this.displayUnits, this.precision, this.font, this.color];
+}
+
+class LabelsCardSettings extends formattingSettings.CompositeCard {
+    show = new formattingSettings.ToggleSwitch({
+        name: "show",
+        displayName: "Show",
+        displayNameKey: "Visual_Show",
+        value: false,
+    });
+
+    topLevelSlice = this.show;
+
+    public labelsOptionsGroup: LabelsOptionsSettingsGroup = new LabelsOptionsSettingsGroup();
+    public labelsValuesGroup: LabelsValuesSettingsGroup = new LabelsValuesSettingsGroup();
+
+    name: string = AsterPlotObjectNames.DetailLabels.name;
+    displayName: string = AsterPlotObjectNames.DetailLabels.displayName;
+    displayNameKey: string = AsterPlotObjectNames.DetailLabels.displayNameKey;
+    groups: formattingSettings.Group[] = [this.labelsOptionsGroup, this.labelsValuesGroup];
 }
 
 class PiesCardSettings extends Card {
@@ -308,15 +357,15 @@ export class OuterLineCardSettings extends BaseFontCardSettings {
 
 export class AsterPlotSettingsModel extends Model {
     legend = new LegendCardSettings();
-    label = new CenterLabelCardSettings();
-    labels = new LabelsCardSettings();
+    centerLabel = new CenterLabelCardSettings();
+    detailLabels = new LabelsCardSettings();
     pies = new PiesCardSettings();
     outerLine = new OuterLineCardSettings();
 
     cards = [
         this.legend,
-        this.label,
-        this.labels,
+        this.centerLabel,
+        this.detailLabels,
         this.pies,
         this.outerLine,
     ];
@@ -359,11 +408,11 @@ export class AsterPlotSettingsModel extends Model {
         this.legend.labelColor.visible = !isHighContrast;
         this.legend.labelColor.value.value = isHighContrast ? colorPalette.foreground.value : this.legend.labelColor.value.value;
 
-        this.label.color.visible = !isHighContrast;
-        this.label.color.value.value = isHighContrast ? colorPalette.foreground.value : this.label.color.value.value;
+        this.centerLabel.color.visible = !isHighContrast;
+        this.centerLabel.color.value.value = isHighContrast ? colorPalette.foreground.value : this.centerLabel.color.value.value;
 
-        this.labels.color.visible = !isHighContrast;
-        this.labels.color.value.value = isHighContrast ? colorPalette.foreground.value : this.labels.color.value.value;
+        this.detailLabels.labelsValuesGroup.color.visible = !isHighContrast;
+        this.detailLabels.labelsValuesGroup.color.value.value = isHighContrast ? colorPalette.foreground.value : this.detailLabels.labelsValuesGroup.color.value.value;
 
         this.pies.visible = !isHighContrast;
 
