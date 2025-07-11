@@ -290,7 +290,7 @@ export class AsterPlot implements IVisual {
             if (this.formattingSettings.outerLine.show.value) {
                 this.renderService.drawOuterLines(this.mainGroupElement);
             } else {
-                this.renderService.cleanOuterLines(this.mainGroupElement);
+                this.renderService.cleanOuterLinesAndCircles(this.mainGroupElement);
             }
 
             this.bindBehaviorOptions(formatMode);
