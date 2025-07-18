@@ -27,9 +27,9 @@
 import powerbi from "powerbi-visuals-api";
 import ISandboxExtendedColorPalette = powerbi.extensibility.ISandboxExtendedColorPalette;
 
-import {formattingSettings, formattingSettingsInterfaces} from "powerbi-visuals-utils-formattingmodel"
-import {LegendPosition} from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
-import {AsterDataPoint} from "./dataInterfaces";
+import { formattingSettings, formattingSettingsInterfaces } from "powerbi-visuals-utils-formattingmodel"
+import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
+import { AsterDataPoint } from "./dataInterfaces";
 import Card = formattingSettings.SimpleCard;
 import Model = formattingSettings.Model;
 import FormattingSettingsSlice = formattingSettings.Slice;
@@ -38,6 +38,9 @@ import ValidatorType = powerbi.visuals.ValidatorType;
 import ISelectionId = powerbi.visuals.ISelectionId;
 import { isEmpty } from "lodash-es";
 
+interface ILocalizedFlagsSelectionItemMember extends ILocalizedItemMember {
+    value: number;
+}
 
 export const AsterPlotObjectNames = {
     Legend: { name: "legend", displayName: "Legend", displayNameKey: "Visual_Legend" },
@@ -67,8 +70,14 @@ const legendPositionOptions: ILocalizedItemMember[] = [
 ];
 
 const labelPositionOptions: ILocalizedItemMember[] = [
-    { value: "outside",  displayNameKey: "Visual_Outside" },
-    { value: "inside",  displayNameKey: "Visual_Inside" }    
+    { value: "outside", displayNameKey: "Visual_Outside" },
+    { value: "inside", displayNameKey: "Visual_Inside" }
+];
+
+export const detailLabelsContentOptions: ILocalizedFlagsSelectionItemMember[] = [
+    { value: 1, displayNameKey: "Visual_Category" },
+    { value: 2, displayNameKey: "Visual_Value" },
+    { value: 4, displayNameKey: "Visual_PercentageRatio" }
 ];
 
 class BaseFontCardSettings extends Card {
@@ -178,42 +187,29 @@ class CenterLabelCardSettings extends BaseFontCardSettings {
     name: string = AsterPlotObjectNames.CenterLabel.name;
     displayName: string = AsterPlotObjectNames.CenterLabel.displayName;
     displayNameKey: string = AsterPlotObjectNames.CenterLabel.displayNameKey;
-    slices = [ this.font, this.color];
+    slices = [this.font, this.color];
 }
 
 class LabelsOptionsSettingsGroup extends BaseFontCardSettings {
-     position = new formattingSettings.ItemDropdown({
+    position = new formattingSettings.ItemDropdown({
         name: "position",
         displayName: "Position",
         displayNameKey: "Visual_Position",
         value: labelPositionOptions[0],
         items: labelPositionOptions
     });
-    showCategory = new formattingSettings.ToggleSwitch({
-        name: "showCategory",
-        displayName: "Display Category",
-        displayNameKey: "Visual_DisplayCategory",
-        value: false,
-    });
 
-    showDataValue = new formattingSettings.ToggleSwitch({
-        name: "showDataValue",
-        displayName: "Display value",
-        displayNameKey: "Visual_DisplayValue",
-        value: true,
-    });
-
-    showPercentOfTotal = new formattingSettings.ToggleSwitch({
-        name: "showPercentOfTotal",
-        displayName: "Display Percent",
-        displayNameKey: "Visual_DisplayPercent",
-        value: false,
+    public detailLabelsContent: formattingSettings.ItemFlagsSelection = new formattingSettings.ItemFlagsSelection({
+        name: "detailLabelsContent",
+        displayNameKey: "Visual_LabelsContent",
+        items: detailLabelsContentOptions,
+        value: 2
     });
 
     name: string = "options";
     displayName: string = "Options";
     displayNameKey: string = "Visual_Options";
-    slices: formattingSettings.Slice[] = [this.position, this.showCategory, this.showDataValue, this.showPercentOfTotal];
+    slices: formattingSettings.Slice[] = [this.position, this.detailLabelsContent];
 }
 
 class LabelsValuesSettingsGroup extends BaseFontCardSettings {
@@ -241,7 +237,7 @@ class LabelsValuesSettingsGroup extends BaseFontCardSettings {
             maxValue: { value: 17, type: ValidatorType.Max },
         }
     });
-    
+
     name: string = "values";
     displayName: string = "Values";
     displayNameKey: string = "Visual_Values";
@@ -370,7 +366,7 @@ export class AsterPlotSettingsModel extends Model {
         this.outerLine,
     ];
 
-    public parse(colorPalette: ISandboxExtendedColorPalette, title: string){
+    public parse(colorPalette: ISandboxExtendedColorPalette, title: string) {
         if (isEmpty(this.legend.titleText.value)) {
             this.legend.titleText.value = title;
         }
