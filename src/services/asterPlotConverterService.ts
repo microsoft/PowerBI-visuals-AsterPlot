@@ -41,7 +41,6 @@ import { AsterDataPoint, AsterPlotData } from "../dataInterfaces";
 import { createTooltipInfo } from "../tooltipBuilder";
 
 import DataView = powerbi.DataView;
-import DataViewObjectPropertyIdentifier = powerbi.DataViewObjectPropertyIdentifier;
 import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
@@ -63,9 +62,11 @@ export type CategoricalColumns = { Category: powerbi.DataViewCategoryColumn; Y: 
 export type CategoricalValueColumns = { Category: powerbi.PrimitiveValue[]; Y: powerbi.PrimitiveValue[]; };
 
 export class AsterPlotConverterService {
-    private static PiesPropertyIdentifier: DataViewObjectPropertyIdentifier = {
-        objectName: "pies",
-        propertyName: "fill"
+    private static PiesPropertyIdentifier = {
+        pies: {
+            defaultColor: { objectName: "pies", propertyName: "defaultColor" },
+            fill: { objectName: "pies", propertyName: "fill" }
+        }
     };
 
     private dataView: DataView;
@@ -96,7 +97,7 @@ export class AsterPlotConverterService {
         this.categoricalColumns = categorical || AsterPlotColumns.getCategoricalColumns(dataView);
         this.categoricalValueColumns = AsterPlotColumns.getCategoricalValues(dataView);
         this.settings = settings;
-        this.colorHelper = new ColorHelper(colors, AsterPlotConverterService.PiesPropertyIdentifier, "");
+        this.colorHelper = new ColorHelper(colors, AsterPlotConverterService.PiesPropertyIdentifier.pies.defaultColor, settings.pies.defaultColor.value.value);
         this.visualHost = visualHost;
 
         this.legendData = {
@@ -205,6 +206,45 @@ export class AsterPlotConverterService {
         return tooltipInfo;
     }
 
+    private static getDataPointColor(
+        categoryIndex: number,
+        colorHelper: ColorHelper,
+        useConditionalFormatting: boolean,
+        categoryDataPointObjects?: powerbi.DataViewObjects[],
+        categorySourceObjects?: powerbi.DataViewObjects): string {
+
+        if (useConditionalFormatting && categorySourceObjects) {
+            const defaultColor = dataViewObjects.getFillColor(
+                categorySourceObjects,
+                AsterPlotConverterService.PiesPropertyIdentifier.pies.defaultColor
+            );
+
+            const fillColorFromFx = dataViewObjects.getFillColor(
+                categorySourceObjects,
+                AsterPlotConverterService.PiesPropertyIdentifier.pies.fill
+            );
+
+            return defaultColor ?? fillColorFromFx;;
+        }
+
+        if (!useConditionalFormatting && categoryDataPointObjects && categoryDataPointObjects[categoryIndex]) {
+            const colorOverride: string = dataViewObjects.getFillColor(
+                categoryDataPointObjects[categoryIndex],
+                AsterPlotConverterService.PiesPropertyIdentifier.pies.fill);
+
+            if (colorOverride) {
+                return colorOverride;
+            }
+        }
+
+        const paletteColor = colorHelper.getColorForMeasure(
+            categoryDataPointObjects?.[categoryIndex], 
+            categoryIndex
+        );
+        
+        return paletteColor;
+    }
+
     public getConvertedData(localizationManager: ILocalizationManager): AsterPlotData {
         const categoryValue = this.categoricalValueColumns.Category,
             category: DataViewCategoryColumn = this.categoricalColumns.Category,
@@ -224,10 +264,16 @@ export class AsterPlotConverterService {
                 tooltipInfo = this.buildOneMeasureTooltip(formattedCategoryValue, currentValue, localizationManager);
             }
 
-            const colorFromPalette = this.colorHelper.getColorForMeasure(category.objects?.[i], (category.identity[i] as { identityIndex: number }).identityIndex)
-            const dataPointFillColor: string = dataViewObjects.getFillColor(category.objects?.[i] || category.source.objects, AsterPlotConverterService.PiesPropertyIdentifier);
-            const fillColor: string = this.colorHelper.getHighContrastColor("background", dataPointFillColor || colorFromPalette);
 
+            const effectiveColor = AsterPlotConverterService.getDataPointColor(
+                i,
+                this.colorHelper,
+                this.settings.pies.useConditionalFormatting.value,
+                category.objects, 
+                category.source.objects
+            );
+
+            const fillColor = this.colorHelper.getHighContrastColor("background", effectiveColor);
             const strokeColor = this.colorHelper.getHighContrastColor("foreground", fillColor);
             const strokeWidth = this.colorHelper.isHighContrast ? maxStrokeWidth : minStrokeWidth;
             const sliceWidth = Math.max(0, categoricalColumns.Y.length > 1 ? <number>categoricalColumns.Y[1].values[i] : 1);

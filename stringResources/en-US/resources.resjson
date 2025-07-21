@@ -37,6 +37,8 @@
 	"Visual_Outerline": "Outer line",
 	"Visual_Thickness": "Thickness",
 	"Visual_PiesColors": "Pies colors",
+	"Visual_DefaultColor": "Default Color",
+	"Visual_UseConditionalFormatting": "Use Conditional Formatting",
 	"Visual_ShowGrid": "Show Grid",
 	"Visual_HideGrid": "Hide Grid",
 	"Visual_ShowGridTicksValues": "Show Grid Ticks Values",
