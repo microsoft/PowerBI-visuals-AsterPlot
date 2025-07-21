@@ -57,14 +57,30 @@
                 "position": {
                     "type": {
                         "enumeration": [
-                            { "value": "Top" },
-                            { "value": "Bottom" },
-                            { "value": "Left" },
-                            { "value": "Right" },
-                            { "value": "TopCenter" },
-                            { "value": "BottomCenter" },
-                            { "value": "LeftCenter" },
-                            { "value": "RightCenter" }
+                            {
+                                "value": "Top"
+                            },
+                            {
+                                "value": "Bottom"
+                            },
+                            {
+                                "value": "Left"
+                            },
+                            {
+                                "value": "Right"
+                            },
+                            {
+                                "value": "TopCenter"
+                            },
+                            {
+                                "value": "BottomCenter"
+                            },
+                            {
+                                "value": "LeftCenter"
+                            },
+                            {
+                                "value": "RightCenter"
+                            }
                         ]
                     }
                 },
@@ -198,8 +214,12 @@
                 "position": {
                     "type": {
                         "enumeration": [
-                            { "value": "Inside" },
-                            { "value": "Outside" }
+                            {
+                                "value": "Inside"
+                            },
+                            {
+                                "value": "Outside"
+                            }
                         ]
                     }
                 },
@@ -216,6 +236,11 @@
                 "showPercentOfTotal": {
                     "type": {
                         "bool": true
+                    }
+                },
+                "detailLabelsContent": {
+                    "type": {
+                        "enumeration": []
                     }
                 },
                 "fontSize": {
@@ -361,7 +386,9 @@
             "default": true,
             "canvas": true
         },
-        "roles": ["tooltips"]
+        "roles": [
+            "tooltips"
+        ]
     },
     "supportsHighlight": true,
     "supportsKeyboardFocus": true,

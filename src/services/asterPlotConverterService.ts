@@ -36,7 +36,7 @@ import { ColorHelper } from "powerbi-visuals-utils-colorutils";
 import { legendInterfaces } from "powerbi-visuals-utils-chartutils"
 
 import { AsterPlotColumns } from "../asterPlotColumns";
-import { AsterPlotSettingsModel } from "../asterPlotSettingsModel";
+import { AsterPlotSettingsModel, detailLabelsContentOptions } from "../asterPlotSettingsModel";
 import { AsterDataPoint, AsterPlotData } from "../dataInterfaces";
 import { createTooltipInfo } from "../tooltipBuilder";
 
@@ -146,30 +146,34 @@ export class AsterPlotConverterService {
     }
 
     private getTotalValue(categorical: CategoricalColumns | undefined): number {
-        return  (<number[]>categorical.Y[0].values).reduce((a, b) => a + (b || 0), 0);
+        return (<number[]>categorical.Y[0].values).reduce((a, b) => a + (b || 0), 0);
     }
 
-    private getLabelText(categoryValue: PrimitiveValue, currentValue: number): string {
-        const showCategory = this.settings.detailLabels.labelsOptionsGroup.showCategory.value;
-        const showDataValue = this.settings.detailLabels.labelsOptionsGroup.showDataValue.value;
-        const showPercentOfTotal = this.settings.detailLabels.labelsOptionsGroup.showPercentOfTotal.value;
+    public getLabelText(categoryValue: PrimitiveValue, currentValue: number): string {
+        // selectFlags is a bitmask representing selected flags for detail labels
+        const selectedFlags: number = this.settings.detailLabels.labelsOptionsGroup.detailLabelsContent.value;
+        
+        // Early return if no flags are selected
+        if (selectedFlags === 0) {
+            return '';
+        }
 
         const labelContents: string[] = [];
-
-        if (showCategory) {
+        // If the Category flag is set, add the category value to the label
+        if (selectedFlags & Number(detailLabelsContentOptions[0].value)) {
             labelContents.push(categoryValue.toString());
         }
-
-        if (showDataValue) {
+        // If the Value flag is set, add the formatted value to the label
+        if (selectedFlags & Number(detailLabelsContentOptions[1].value)) {
             labelContents.push(this.labelFormatter.format(currentValue));
         }
-
-       if (showPercentOfTotal) {
+        // If the Percent flag is set, add the formatted percentage to the label
+        if (selectedFlags & Number(detailLabelsContentOptions[2].value)) {
             const percentage = this.totalValue > 0 ? currentValue / this.totalValue : 0;
             const formattedPercentage = this.percentageFormatter.format(percentage);
             labelContents.push(formattedPercentage);
         }
-
+        //TODO: Add "Delimiter" formatting setting.
         return labelContents.join(" ");
     }
 
