@@ -281,7 +281,7 @@
                         "bool": true
                     }
                 },
-                "defaultColor": {
+                "color": {
                     "type": {
                         "fill": {
                             "solid": {

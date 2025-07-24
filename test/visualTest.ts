@@ -418,10 +418,8 @@ describe("AsterPlot", () => {
                 const useConditionalFormatting = visualBuilder.asterPlot.formattingSettings.pies.useConditionalFormatting.value;
 
                 if (!useConditionalFormatting) {
-                    // When conditional formatting is OFF: toggle + defaultColor + individual colors
                     expect(pies.length).toBe(slices.length + 2);
                 } else {
-                    // When conditional formatting is ON: toggle + defaultColor only
                     expect(pies.length).toBe(2);
                 }
             });
@@ -432,12 +430,12 @@ describe("AsterPlot", () => {
                 const formattingSettings = visualBuilder.asterPlot.formattingSettings;
                 
                 expect(formattingSettings.pies.useConditionalFormatting.value).toBe(false);
-                expect(formattingSettings.pies.defaultColor.visible).toBe(false);
+                expect(formattingSettings.pies.color.visible).toBe(false);
                 
                 formattingSettings.pies.useConditionalFormatting.value = true;
                 formattingSettings.pies.onPreProcess();
                 
-                expect(formattingSettings.pies.defaultColor.visible).toBe(true);
+                expect(formattingSettings.pies.color.visible).toBe(true);
             });
         });
 

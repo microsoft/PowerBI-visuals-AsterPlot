@@ -273,10 +273,10 @@ export class PiesCardSettings extends formattingSettings.SimpleCard {
         visible: true,
     });
 
-    defaultColor = new formattingSettings.ColorPicker({
-        name: "defaultColor",
-        displayName: "Default Color",
-        displayNameKey: "Visual_DefaultColor",
+    color = new formattingSettings.ColorPicker({
+        name: "color",
+        displayName: "Color",
+        displayNameKey: "Visual_Color",
         value: {value: "#01B8AA"},
         visible: false,
         instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule,
@@ -290,11 +290,11 @@ export class PiesCardSettings extends formattingSettings.SimpleCard {
 
     slices: FormattingSettingsSlice[] = [
         this.useConditionalFormatting,
-        this.defaultColor
+        this.color
     ];
 
     onPreProcess(): void {
-        this.defaultColor.visible = this.useConditionalFormatting.value;
+        this.color.visible = this.useConditionalFormatting.value;
     }
 }
 
@@ -402,7 +402,7 @@ export class AsterPlotSettingsModel extends Model {
         }
         
         if (!this.pies.useConditionalFormatting.value) {
-            this.pies.slices = [this.pies.useConditionalFormatting, this.pies.defaultColor];
+            this.pies.slices = [this.pies.useConditionalFormatting, this.pies.color];
 
             for (const pie of pies) {
                 const identity: ISelectionId = <ISelectionId>pie.identity;

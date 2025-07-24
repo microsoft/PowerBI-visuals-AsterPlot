@@ -64,7 +64,7 @@ export type CategoricalValueColumns = { Category: powerbi.PrimitiveValue[]; Y: p
 export class AsterPlotConverterService {
     private static PiesPropertyIdentifier = {
         pies: {
-            defaultColor: { objectName: "pies", propertyName: "defaultColor" },
+            color: { objectName: "pies", propertyName: "color" },
             fill: { objectName: "pies", propertyName: "fill" }
         }
     };
@@ -97,7 +97,7 @@ export class AsterPlotConverterService {
         this.categoricalColumns = categorical || AsterPlotColumns.getCategoricalColumns(dataView);
         this.categoricalValueColumns = AsterPlotColumns.getCategoricalValues(dataView);
         this.settings = settings;
-        this.colorHelper = new ColorHelper(colors, AsterPlotConverterService.PiesPropertyIdentifier.pies.defaultColor, settings.pies.defaultColor.value.value);
+        this.colorHelper = new ColorHelper(colors, AsterPlotConverterService.PiesPropertyIdentifier.pies.fill, "");
         this.visualHost = visualHost;
 
         this.legendData = {
@@ -213,39 +213,30 @@ export class AsterPlotConverterService {
     private static getDataPointColor(
         categoryIndex: number,
         colorHelper: ColorHelper,
-        useConditionalFormatting: boolean,
         categoryDataPointObjects?: powerbi.DataViewObjects[],
-        categorySourceObjects?: powerbi.DataViewObjects): string {
+        settings?: AsterPlotSettingsModel
+        ): string {
+            if (settings.pies.useConditionalFormatting.value) {
+                const overriddenColor = dataViewObjects.getFillColor(
+                    categoryDataPointObjects?.[categoryIndex],
+                    AsterPlotConverterService.PiesPropertyIdentifier.pies.color
+                );
 
-        if (useConditionalFormatting && categorySourceObjects) {
-            const defaultColor = dataViewObjects.getFillColor(
-                categorySourceObjects,
-                AsterPlotConverterService.PiesPropertyIdentifier.pies.defaultColor
-            );
+                if (overriddenColor){
+                    return overriddenColor
+                }
 
-            const fillColorFromFx = dataViewObjects.getFillColor(
-                categorySourceObjects,
-                AsterPlotConverterService.PiesPropertyIdentifier.pies.fill
-            );
-
-            return defaultColor ?? fillColorFromFx;;
-        }
-
-        if (!useConditionalFormatting && categoryDataPointObjects && categoryDataPointObjects[categoryIndex]) {
-            const colorOverride: string = dataViewObjects.getFillColor(
-                categoryDataPointObjects[categoryIndex],
-                AsterPlotConverterService.PiesPropertyIdentifier.pies.fill);
-
-            if (colorOverride) {
-                return colorOverride;
-            }
-        }
+                const defaultColorOverride = settings.pies.color.value.value;
+                if (defaultColorOverride) {
+                    return defaultColorOverride;
+                }
+            } 
 
         const paletteColor = colorHelper.getColorForMeasure(
-            categoryDataPointObjects?.[categoryIndex], 
+            categoryDataPointObjects?.[categoryIndex],
             categoryIndex
         );
-        
+
         return paletteColor;
     }
 
@@ -272,9 +263,8 @@ export class AsterPlotConverterService {
             const effectiveColor = AsterPlotConverterService.getDataPointColor(
                 i,
                 this.colorHelper,
-                this.settings.pies.useConditionalFormatting.value,
-                category.objects, 
-                category.source.objects
+                category.objects,
+                this.settings
             );
 
             const fillColor = this.colorHelper.getHighContrastColor("background", effectiveColor);
