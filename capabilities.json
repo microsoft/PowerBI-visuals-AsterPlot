@@ -276,6 +276,20 @@
         },
         "pies": {
             "properties": {
+                "useConditionalFormatting": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "conditionalColor": {
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
                 "fill": {
                     "type": {
                         "fill": {
