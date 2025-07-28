@@ -64,7 +64,7 @@ export type CategoricalValueColumns = { Category: powerbi.PrimitiveValue[]; Y: p
 export class AsterPlotConverterService {
     private static PiesPropertyIdentifier = {
         pies: {
-            color: { objectName: "pies", propertyName: "color" },
+            conditionalColor: { objectName: "pies", propertyName: "conditionalColor" },
             fill: { objectName: "pies", propertyName: "fill" }
         }
     };
@@ -219,14 +219,14 @@ export class AsterPlotConverterService {
             if (settings.pies.useConditionalFormatting.value) {
                 const overriddenColor = dataViewObjects.getFillColor(
                     categoryDataPointObjects?.[categoryIndex],
-                    AsterPlotConverterService.PiesPropertyIdentifier.pies.color
+                    AsterPlotConverterService.PiesPropertyIdentifier.pies.conditionalColor
                 );
 
                 if (overriddenColor){
                     return overriddenColor
                 }
 
-                const defaultColorOverride = settings.pies.color.value.value;
+                const defaultColorOverride = settings.pies.conditionalColor.value.value;
                 if (defaultColorOverride) {
                     return defaultColorOverride;
                 }

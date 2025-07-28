@@ -430,12 +430,12 @@ describe("AsterPlot", () => {
                 const formattingSettings = visualBuilder.asterPlot.formattingSettings;
                 
                 expect(formattingSettings.pies.useConditionalFormatting.value).toBe(false);
-                expect(formattingSettings.pies.color.visible).toBe(false);
+                expect(formattingSettings.pies.conditionalColor.visible).toBe(false);
                 
                 formattingSettings.pies.useConditionalFormatting.value = true;
                 formattingSettings.pies.onPreProcess();
                 
-                expect(formattingSettings.pies.color.visible).toBe(true);
+                expect(formattingSettings.pies.conditionalColor.visible).toBe(true);
             });
         });
 

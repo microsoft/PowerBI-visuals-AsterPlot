@@ -273,8 +273,8 @@ export class PiesCardSettings extends formattingSettings.SimpleCard {
         visible: true,
     });
 
-    color = new formattingSettings.ColorPicker({
-        name: "color",
+    conditionalColor = new formattingSettings.ColorPicker({
+        name: "conditionalColor",
         displayName: "Color",
         displayNameKey: "Visual_Color",
         value: {value: "#01B8AA"},
@@ -290,11 +290,11 @@ export class PiesCardSettings extends formattingSettings.SimpleCard {
 
     slices: FormattingSettingsSlice[] = [
         this.useConditionalFormatting,
-        this.color
+        this.conditionalColor
     ];
 
     onPreProcess(): void {
-        this.color.visible = this.useConditionalFormatting.value;
+        this.conditionalColor.visible = this.useConditionalFormatting.value;
     }
 }
 
@@ -402,7 +402,7 @@ export class AsterPlotSettingsModel extends Model {
         }
         
         if (!this.pies.useConditionalFormatting.value) {
-            this.pies.slices = [this.pies.useConditionalFormatting, this.pies.color];
+            this.pies.slices = [this.pies.useConditionalFormatting, this.pies.conditionalColor];
 
             for (const pie of pies) {
                 const identity: ISelectionId = <ISelectionId>pie.identity;

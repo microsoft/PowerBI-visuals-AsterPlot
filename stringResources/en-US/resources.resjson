@@ -38,7 +38,6 @@
     "Visual_Outside": "Outside",
     "Visual_PercentageRatio": "Percentage ratio",
     "Visual_PiesColors": "Pies colors",
-	"Visual_UseConditionalFormatting": "Use Conditional Formatting",
     "Visual_Position": "Position",
     "Visual_Right": "Right",
     "Visual_RightCenter": "Right Center",
@@ -57,6 +56,7 @@
     "Visual_Title": "Title",
     "Visual_Top": "Top",
     "Visual_TopCenter": "Top Center",
+    "Visual_UseConditionalFormatting": "Use Conditional Formatting",
     "Visual_Value": "Value",
     "Visual_Values": "Values",
     "Visual_YAxis": "Y Axis"

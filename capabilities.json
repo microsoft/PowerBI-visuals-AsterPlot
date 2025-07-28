@@ -281,7 +281,7 @@
                         "bool": true
                     }
                 },
-                "color": {
+                "conditionalColor": {
                     "type": {
                         "fill": {
                             "solid": {
