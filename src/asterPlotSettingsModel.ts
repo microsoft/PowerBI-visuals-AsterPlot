@@ -30,6 +30,7 @@ import ISandboxExtendedColorPalette = powerbi.extensibility.ISandboxExtendedColo
 import { formattingSettings, formattingSettingsInterfaces } from "powerbi-visuals-utils-formattingmodel"
 import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
 import { AsterDataPoint } from "./dataInterfaces";
+import {dataViewWildcard} from "powerbi-visuals-utils-dataviewutils"; 
 import Card = formattingSettings.SimpleCard;
 import Model = formattingSettings.Model;
 import FormattingSettingsSlice = formattingSettings.Slice;
@@ -263,18 +264,38 @@ class LabelsCardSettings extends formattingSettings.CompositeCard {
     groups: formattingSettings.Group[] = [this.labelsOptionsGroup, this.labelsValuesGroup];
 }
 
-class PiesCardSettings extends Card {
-    fill = new formattingSettings.ColorPicker({
-        name: "fill",
-        displayName: "Fill",
-        displayNameKey: "Visual_Fill",
-        value: { value: "" },
+export class PiesCardSettings extends formattingSettings.SimpleCard {
+    useConditionalFormatting = new formattingSettings.ToggleSwitch({
+        name: "useConditionalFormatting",
+        displayName: "Use Conditional Formatting",
+        displayNameKey: "Visual_UseConditionalFormatting",
+        value: false,
+        visible: true,
+    });
+
+    conditionalColor = new formattingSettings.ColorPicker({
+        name: "conditionalColor",
+        displayName: "Color",
+        displayNameKey: "Visual_Color",
+        value: {value: "#01B8AA"},
+        visible: false,
+        instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule,
+        selector: dataViewWildcard.createDataViewWildcardSelector(dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals),
+        altConstantSelector: null
     });
 
     name: string = AsterPlotObjectNames.Pies.name;
     displayName: string = AsterPlotObjectNames.Pies.displayName;
     displayNameKey: string = AsterPlotObjectNames.Pies.displayNameKey;
-    slices: FormattingSettingsSlice[] = [this.fill];
+
+    slices: FormattingSettingsSlice[] = [
+        this.useConditionalFormatting,
+        this.conditionalColor
+    ];
+
+    onPreProcess(): void {
+        this.conditionalColor.visible = this.useConditionalFormatting.value;
+    }
 }
 
 export class OuterLineCardSettings extends BaseFontCardSettings {
@@ -379,22 +400,25 @@ export class AsterPlotSettingsModel extends Model {
         if (!pies || pies.length === 0) {
             return;
         }
+        
+        if (!this.pies.useConditionalFormatting.value) {
+            this.pies.slices = [this.pies.useConditionalFormatting, this.pies.conditionalColor];
 
-        this.pies.slices = [];
+            for (const pie of pies) {
+                const identity: ISelectionId = <ISelectionId>pie.identity;
+                const displayName: string = pie.categoryName;
+                const selector = identity.getSelector();
 
-        for (const pie of pies) {
-            const identity: ISelectionId = <ISelectionId>pie.identity;
-            const displayName: string = pie.categoryName;
-            const selector = identity.getSelector();
-
-            this.pies.slices.push(
-                new formattingSettings.ColorPicker({
+                const colorPicker = new formattingSettings.ColorPicker({
                     name: "fill",
                     displayName,
                     selector,
                     value: { value: pie.fillColor },
-                })
-            );
+                    visible: true
+                });
+
+                this.pies.slices.push(colorPicker);
+            }
         }
     }
 
