@@ -303,12 +303,20 @@ describe("AsterPlot", () => {
             beforeEach(() => {
                 dataView.metadata.objects = {
                     labels: {
-                        show: true
+                        show: true,
+                        showCategory: false,
+                        showDataValue: true,
+                        showPercentOfTotal: false,
                     },
                 };
             });
+            
+            function updateAndGetFirstLabel() {
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+                return visualBuilder.dataLabels[0];
+            }
 
-            it("-> show", () => {
+            it("should hide labels when show is false", () => {
                 (<any>dataView.metadata.objects).labels.show = false;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
@@ -316,7 +324,66 @@ describe("AsterPlot", () => {
                 expect(visualBuilder.dataLabels.length).toBe(0);
             });
 
-            it("-> color", () => {
+            it("should show data value when only showDataValue is true", () => {
+                const label = updateAndGetFirstLabel();
+                expect(label.textContent).toMatch(/\$.*\d/);
+            });
+
+            it("should render labels inside when position is set to Inside", (done) => {
+                (<any>dataView.metadata.objects).labels = {
+                    position: "inside"
+                };
+
+                visualBuilder.updateRenderTimeout(dataView, () => {
+                const labels = visualBuilder.dataLabels;
+                const isInside = Array.from(labels).every(label => {
+                        const x = parseFloat(label.getAttribute("x") || "0");
+                        const y = parseFloat(label.getAttribute("y") || "0");
+                        const distance = Math.sqrt(x * x + y * y);
+                        return distance < 150;
+                    });
+                    expect(isInside).toBeTrue();
+                    done();
+                });
+            });
+
+            it("should show category when only showCategory is true", () => {
+                (dataView.metadata.objects as any).labels.showCategory = true;
+                (dataView.metadata.objects as any).labels.showDataValue = false;
+
+                const label = updateAndGetFirstLabel();
+                expect(label.textContent).toBe(defaultDataViewBuilder.valuesCategory[0]);
+            });
+
+            it("should show percent when only showPercentOfTotal is true", () => {
+                (dataView.metadata.objects as any).labels.showPercentOfTotal = true;
+                (dataView.metadata.objects as any).labels.showDataValue = false;
+                const label = updateAndGetFirstLabel();
+                expect(label.textContent).toContain("%");
+            });
+
+            it("should show all components when all toggles are true", () => {
+                Object.assign((dataView.metadata.objects as any).labels, {
+                    showCategory: true,
+                    showPercentOfTotal: true
+                });
+
+                const label = updateAndGetFirstLabel();
+                const text = label.textContent!;
+
+                expect(text).toContain(defaultDataViewBuilder.valuesCategory[0]);
+                expect(text).toMatch(/\$/);
+                expect(text).toContain("%");
+                expect(text.split(" ").length).toBeGreaterThanOrEqual(3);
+            });
+
+            it("should show empty labels when all toggles are false", () => {
+                (dataView.metadata.objects as any).labels.showDataValue = false;
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+                expect(visualBuilder.dataLabels.length).toBe(0);
+            });
+
+            it("color", () => {
                 const color: string = "#649731";
 
                 (<any>dataView.metadata.objects).labels.color = getSolidColorStructuralObject(color);
