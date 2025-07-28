@@ -27,9 +27,9 @@
 import powerbi from "powerbi-visuals-api";
 import ISandboxExtendedColorPalette = powerbi.extensibility.ISandboxExtendedColorPalette;
 
-import {formattingSettings, formattingSettingsInterfaces} from "powerbi-visuals-utils-formattingmodel"
-import {LegendPosition} from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
-import {AsterDataPoint} from "./dataInterfaces";
+import { formattingSettings, formattingSettingsInterfaces } from "powerbi-visuals-utils-formattingmodel"
+import { LegendPosition } from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
+import { AsterDataPoint } from "./dataInterfaces";
 import Card = formattingSettings.SimpleCard;
 import Model = formattingSettings.Model;
 import FormattingSettingsSlice = formattingSettings.Slice;
@@ -38,11 +38,15 @@ import ValidatorType = powerbi.visuals.ValidatorType;
 import ISelectionId = powerbi.visuals.ISelectionId;
 import { isEmpty } from "lodash-es";
 
+interface ILocalizedFlagsSelectionItemMember extends ILocalizedItemMember {
+    value: number;
+}
+
 export const AsterPlotObjectNames = {
     Legend: { name: "legend", displayName: "Legend", displayNameKey: "Visual_Legend" },
     LegendTitle: { name: "legendTitle", displayName: "Legend title", displayNameKey: "Visual_LegendTitle" },
-    Label: { name: "label", displayName: "Center Label", displayNameKey: "Visual_CenterLabel" },
-    Labels: { name: "labels", displayName: "Detail Labels", displayNameKey: "Visual_DetailLabels" },
+    CenterLabel: { name: "label", displayName: "Center Label", displayNameKey: "Visual_CenterLabel" },
+    DetailLabels: { name: "labels", displayName: "Detail Labels", displayNameKey: "Visual_DetailLabels" },
     Pies: { name: "pies", displayName: "Pies colors", displayNameKey: "Visual_PiesColors" },
     OuterLine: { name: "outerLine", displayName: "Outer Line", displayNameKey: "Visual_Outerline" },
     Ticks: { name: "ticks", displayName: "Ticks", displayNameKey: "Visual_Ticks" },
@@ -65,6 +69,16 @@ const legendPositionOptions: ILocalizedItemMember[] = [
     { value: LegendPosition[LegendPosition.RightCenter], displayNameKey: "Visual_RightCenter" },
 ];
 
+const labelPositionOptions: ILocalizedItemMember[] = [
+    { value: "outside", displayNameKey: "Visual_Outside" },
+    { value: "inside", displayNameKey: "Visual_Inside" }
+];
+
+export const detailLabelsContentOptions: ILocalizedFlagsSelectionItemMember[] = [
+    { value: 1, displayNameKey: "Visual_Category" },
+    { value: 2, displayNameKey: "Visual_Value" },
+    { value: 4, displayNameKey: "Visual_PercentageRatio" }
+];
 
 class BaseFontCardSettings extends Card {
     font = new formattingSettings.FontControl({
@@ -170,23 +184,35 @@ class CenterLabelCardSettings extends BaseFontCardSettings {
         value: { value: "rgb(119, 119, 119)" },
     });
 
-    name: string = AsterPlotObjectNames.Label.name;
-    displayName: string = AsterPlotObjectNames.Label.displayName;
-    displayNameKey: string = AsterPlotObjectNames.Label.displayNameKey;
-    slices = [ this.font, this.color];
+    name: string = AsterPlotObjectNames.CenterLabel.name;
+    displayName: string = AsterPlotObjectNames.CenterLabel.displayName;
+    displayNameKey: string = AsterPlotObjectNames.CenterLabel.displayNameKey;
+    slices = [this.font, this.color];
 }
 
-
-class LabelsCardSettings extends BaseFontCardSettings {
-    show = new formattingSettings.ToggleSwitch({
-        name: "show",
-        displayName: "Show",
-        displayNameKey: "Visual_Show",
-        value: false,
+class LabelsOptionsSettingsGroup extends BaseFontCardSettings {
+    position = new formattingSettings.ItemDropdown({
+        name: "position",
+        displayName: "Position",
+        displayNameKey: "Visual_Position",
+        value: labelPositionOptions[0],
+        items: labelPositionOptions
     });
 
-    topLevelSlice = this.show;
+    public detailLabelsContent: formattingSettings.ItemFlagsSelection = new formattingSettings.ItemFlagsSelection({
+        name: "detailLabelsContent",
+        displayNameKey: "Visual_LabelsContent",
+        items: detailLabelsContentOptions,
+        value: 2
+    });
 
+    name: string = "options";
+    displayName: string = "Options";
+    displayNameKey: string = "Visual_Options";
+    slices: formattingSettings.Slice[] = [this.position, this.detailLabelsContent];
+}
+
+class LabelsValuesSettingsGroup extends BaseFontCardSettings {
     color = new formattingSettings.ColorPicker({
         name: "color",
         displayName: "Color",
@@ -212,10 +238,29 @@ class LabelsCardSettings extends BaseFontCardSettings {
         }
     });
 
-    name: string = AsterPlotObjectNames.Labels.name;
-    displayName: string = AsterPlotObjectNames.Labels.displayName;
-    displayNameKey: string = AsterPlotObjectNames.Labels.displayNameKey;
+    name: string = "values";
+    displayName: string = "Values";
+    displayNameKey: string = "Visual_Values";
     slices = [this.displayUnits, this.precision, this.font, this.color];
+}
+
+class LabelsCardSettings extends formattingSettings.CompositeCard {
+    show = new formattingSettings.ToggleSwitch({
+        name: "show",
+        displayName: "Show",
+        displayNameKey: "Visual_Show",
+        value: false,
+    });
+
+    topLevelSlice = this.show;
+
+    public labelsOptionsGroup: LabelsOptionsSettingsGroup = new LabelsOptionsSettingsGroup();
+    public labelsValuesGroup: LabelsValuesSettingsGroup = new LabelsValuesSettingsGroup();
+
+    name: string = AsterPlotObjectNames.DetailLabels.name;
+    displayName: string = AsterPlotObjectNames.DetailLabels.displayName;
+    displayNameKey: string = AsterPlotObjectNames.DetailLabels.displayNameKey;
+    groups: formattingSettings.Group[] = [this.labelsOptionsGroup, this.labelsValuesGroup];
 }
 
 class PiesCardSettings extends Card {
@@ -308,20 +353,20 @@ export class OuterLineCardSettings extends BaseFontCardSettings {
 
 export class AsterPlotSettingsModel extends Model {
     legend = new LegendCardSettings();
-    label = new CenterLabelCardSettings();
-    labels = new LabelsCardSettings();
+    centerLabel = new CenterLabelCardSettings();
+    detailLabels = new LabelsCardSettings();
     pies = new PiesCardSettings();
     outerLine = new OuterLineCardSettings();
 
     cards = [
         this.legend,
-        this.label,
-        this.labels,
+        this.centerLabel,
+        this.detailLabels,
         this.pies,
         this.outerLine,
     ];
 
-    public parse(colorPalette: ISandboxExtendedColorPalette, title: string){
+    public parse(colorPalette: ISandboxExtendedColorPalette, title: string) {
         if (isEmpty(this.legend.titleText.value)) {
             this.legend.titleText.value = title;
         }
@@ -359,11 +404,11 @@ export class AsterPlotSettingsModel extends Model {
         this.legend.labelColor.visible = !isHighContrast;
         this.legend.labelColor.value.value = isHighContrast ? colorPalette.foreground.value : this.legend.labelColor.value.value;
 
-        this.label.color.visible = !isHighContrast;
-        this.label.color.value.value = isHighContrast ? colorPalette.foreground.value : this.label.color.value.value;
+        this.centerLabel.color.visible = !isHighContrast;
+        this.centerLabel.color.value.value = isHighContrast ? colorPalette.foreground.value : this.centerLabel.color.value.value;
 
-        this.labels.color.visible = !isHighContrast;
-        this.labels.color.value.value = isHighContrast ? colorPalette.foreground.value : this.labels.color.value.value;
+        this.detailLabels.labelsValuesGroup.color.visible = !isHighContrast;
+        this.detailLabels.labelsValuesGroup.color.value.value = isHighContrast ? colorPalette.foreground.value : this.detailLabels.labelsValuesGroup.color.value.value;
 
         this.pies.visible = !isHighContrast;
 

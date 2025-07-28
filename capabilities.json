@@ -57,14 +57,30 @@
                 "position": {
                     "type": {
                         "enumeration": [
-                            { "value": "Top" },
-                            { "value": "Bottom" },
-                            { "value": "Left" },
-                            { "value": "Right" },
-                            { "value": "TopCenter" },
-                            { "value": "BottomCenter" },
-                            { "value": "LeftCenter" },
-                            { "value": "RightCenter" }
+                            {
+                                "value": "Top"
+                            },
+                            {
+                                "value": "Bottom"
+                            },
+                            {
+                                "value": "Left"
+                            },
+                            {
+                                "value": "Right"
+                            },
+                            {
+                                "value": "TopCenter"
+                            },
+                            {
+                                "value": "BottomCenter"
+                            },
+                            {
+                                "value": "LeftCenter"
+                            },
+                            {
+                                "value": "RightCenter"
+                            }
                         ]
                     }
                 },
@@ -193,6 +209,38 @@
                     "placeHolderText": "Auto",
                     "type": {
                         "numeric": true
+                    }
+                },
+                "position": {
+                    "type": {
+                        "enumeration": [
+                            {
+                                "value": "Inside"
+                            },
+                            {
+                                "value": "Outside"
+                            }
+                        ]
+                    }
+                },
+                "showCategory": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "showDataValue": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "showPercentOfTotal": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "detailLabelsContent": {
+                    "type": {
+                        "enumeration": []
                     }
                 },
                 "fontSize": {
@@ -324,7 +372,9 @@
             "default": true,
             "canvas": true
         },
-        "roles": ["tooltips"]
+        "roles": [
+            "tooltips"
+        ]
     },
     "supportsHighlight": true,
     "supportsKeyboardFocus": true,
