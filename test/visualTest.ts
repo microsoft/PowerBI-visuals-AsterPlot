@@ -304,9 +304,7 @@ describe("AsterPlot", () => {
                 dataView.metadata.objects = {
                     labels: {
                         show: true,
-                        showCategory: false,
-                        showDataValue: true,
-                        showPercentOfTotal: false,
+                        detailLabelsContent: 2,
                     },
                 };
             });
@@ -330,9 +328,7 @@ describe("AsterPlot", () => {
             });
 
             it("should render labels inside when position is set to Inside", (done) => {
-                (<any>dataView.metadata.objects).labels = {
-                    position: "inside"
-                };
+                (<any>dataView.metadata.objects).labels.position = "inside";
 
                 visualBuilder.updateRenderTimeout(dataView, () => {
                 const labels = visualBuilder.dataLabels;
@@ -348,25 +344,20 @@ describe("AsterPlot", () => {
             });
 
             it("should show category when only showCategory is true", () => {
-                (dataView.metadata.objects as any).labels.showCategory = true;
-                (dataView.metadata.objects as any).labels.showDataValue = false;
+                (dataView.metadata.objects as any).labels.detailLabelsContent = 1;
 
                 const label = updateAndGetFirstLabel();
                 expect(label.textContent).toBe(defaultDataViewBuilder.valuesCategory[0]);
             });
 
             it("should show percent when only showPercentOfTotal is true", () => {
-                (dataView.metadata.objects as any).labels.showPercentOfTotal = true;
-                (dataView.metadata.objects as any).labels.showDataValue = false;
+                (dataView.metadata.objects as any).labels.detailLabelsContent = 4;
                 const label = updateAndGetFirstLabel();
                 expect(label.textContent).toContain("%");
             });
 
             it("should show all components when all toggles are true", () => {
-                Object.assign((dataView.metadata.objects as any).labels, {
-                    showCategory: true,
-                    showPercentOfTotal: true
-                });
+                (dataView.metadata.objects as any).labels.detailLabelsContent = 7;
 
                 const label = updateAndGetFirstLabel();
                 const text = label.textContent!;
@@ -378,7 +369,7 @@ describe("AsterPlot", () => {
             });
 
             it("should show empty labels when all toggles are false", () => {
-                (dataView.metadata.objects as any).labels.showDataValue = false;
+                (dataView.metadata.objects as any).labels.detailLabelsContent = 0;
                 visualBuilder.updateFlushAllD3Transitions(dataView);
                 expect(visualBuilder.dataLabels.length).toBe(0);
             });
