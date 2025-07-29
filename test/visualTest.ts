@@ -429,14 +429,33 @@ describe("AsterPlot", () => {
             });
         });
 
-        describe("-> Pie colors", () => {
-            it("-> Pie colors options created for all pies", () => {
+        describe("Pie colors", () => {
+            it("Pie colors options created for all pies when conditional formatting is OFF", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 const slices = visualBuilder.slices;
                 const pies = visualBuilder.asterPlot.formattingSettings.pies.slices;
+                const useConditionalFormatting = visualBuilder.asterPlot.formattingSettings.pies.useConditionalFormatting.value;
 
-                expect(pies.length).toBe(slices.length);
+                if (!useConditionalFormatting) {
+                    expect(pies.length).toBe(slices.length + 2);
+                } else {
+                    expect(pies.length).toBe(2);
+                }
+            });
+
+            it("Pie colors visibility changes based on conditional formatting toggle", () => {
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                const formattingSettings = visualBuilder.asterPlot.formattingSettings;
+                
+                expect(formattingSettings.pies.useConditionalFormatting.value).toBe(false);
+                expect(formattingSettings.pies.conditionalColor.visible).toBe(false);
+                
+                formattingSettings.pies.useConditionalFormatting.value = true;
+                formattingSettings.pies.onPreProcess();
+                
+                expect(formattingSettings.pies.conditionalColor.visible).toBe(true);
             });
         });
 
