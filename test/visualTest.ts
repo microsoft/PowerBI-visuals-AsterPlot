@@ -298,6 +298,14 @@ describe("AsterPlot", () => {
                 };
             });
 
+            it("-> show", () => {
+                (<any>dataView.metadata.objects).labels.show = false;
+
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                expect(visualBuilder.dataLabels.length).toBe(0);
+            });
+
             it("-> should render labels in slice center when position is inside", (done) => {
                 dataView.metadata.objects!.labels.position = "inside";
                 visualBuilder.updateRenderTimeout(dataView, () => {
