@@ -308,12 +308,11 @@ describe("AsterPlot", () => {
                 };
             });
 
-            it("-> should render labels inside", (done) => {
-                (dataView.metadata.objects as any).labels.position = "inside";
-
+            it("-> should render labels in slice center when position is inside", (done) => {
+                dataView.metadata.objects!.labels.position = "inside";
                 visualBuilder.updateRenderTimeout(dataView, () => {
                     const labels = visualBuilder.dataLabels;
-                    const renderService = (visualBuilder.asterPlot as any).renderService;
+                    const renderService = (<any>visualBuilder.asterPlot).renderService;
                     const arcDataPoints = renderService.getDataPoints(false);
 
                     expect(labels.length).toBe(arcDataPoints.length);
@@ -350,7 +349,7 @@ describe("AsterPlot", () => {
             it("-> display units", () => {
                 const displayUnits: number = 1000;
 
-                (<any>dataView.metadata.objects).labels.displayUnits = displayUnits;
+                dataView.metadata.objects!.labels.displayUnits = displayUnits;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
