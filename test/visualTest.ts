@@ -303,8 +303,7 @@ describe("AsterPlot", () => {
             beforeEach(() => {
                 dataView.metadata.objects = {
                     labels: {
-                        show: true,
-                        detailLabelsContent: 2,
+                        show: true
                     },
                 };
             });
