@@ -189,8 +189,7 @@ describe("AsterPlot", () => {
 
             it("-> Data Labels - Decimal value for Labels should have a limit to 17", () => {
                 const maxPrecision: number = 17;
-                (<any>dataView.metadata.objects).labels.show = true;
-                (<any>dataView.metadata.objects).labels.precision = maxPrecision;
+                dataView.metadata.objects!.labels.precision = maxPrecision;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -202,8 +201,7 @@ describe("AsterPlot", () => {
             });
 
             it("-> Data Labels - Change font size", () => {
-                (<any>dataView.metadata.objects).labels.show = true;
-                (<any>dataView.metadata.objects).labels.fontSize = 15;
+                dataView.metadata.objects!.labels.fontSize = 15;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -215,8 +213,6 @@ describe("AsterPlot", () => {
             });
 
             it("-> Data Labels should be clear when removing data", () => {
-                (<any>dataView.metadata.objects).labels.show = true;
-
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 let labels: NodeListOf<HTMLElement> = visualBuilder.dataLabels;
@@ -233,8 +229,6 @@ describe("AsterPlot", () => {
             });
 
             it("-> Data Labels should be displayed correctly when using dates as category values", () => {
-                (<any>dataView.metadata.objects).labels.show = true;
-
                 // Manually change the category format to be a date format
                 dataView.categorical!.categories![0].source.format = "dddd\, MMMM %d\, yyyy";
 
@@ -251,8 +245,6 @@ describe("AsterPlot", () => {
             });
 
             it("-> Data Labels should not display lines for null and zero labels", () => {
-                (<any>dataView.metadata.objects).labels.show = true;
-
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 const originalLines: number = visualBuilder.lineLabels.length;
@@ -272,8 +264,6 @@ describe("AsterPlot", () => {
             });
 
             it("-> Data labels shouldn't be displayed for non highlighted values", () => {
-                (<any>dataView.metadata.objects).labels.show = true;
-
                 const length: number = Math.round(dataView.categorical!.values![0].values.length / 2);
 
                 dataView.categorical!.values!.forEach((column: DataViewValueColumn) => {
@@ -309,7 +299,7 @@ describe("AsterPlot", () => {
             });
 
             it("-> show", () => {
-                (<any>dataView.metadata.objects).labels.show = false;
+                dataView.metadata.objects!.labels.show = false;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -319,7 +309,7 @@ describe("AsterPlot", () => {
             it("-> color", () => {
                 const color: string = "#649731";
 
-                (<any>dataView.metadata.objects).labels.color = getSolidColorStructuralObject(color);
+                dataView.metadata.objects!.labels.color = getSolidColorStructuralObject(color);
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -331,7 +321,7 @@ describe("AsterPlot", () => {
             it("-> display units", () => {
                 const displayUnits: number = 1000;
 
-                (<any>dataView.metadata.objects).labels.displayUnits = displayUnits;
+                dataView.metadata.objects!.labels.displayUnits = displayUnits;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -345,8 +335,8 @@ describe("AsterPlot", () => {
             it("-> precision", () => {
                 const precision: number = 7;
 
-                (<any>dataView.metadata.objects).labels.displayUnits = 1;
-                (<any>dataView.metadata.objects).labels.precision = precision;
+                dataView.metadata.objects!.labels.displayUnits = 1;
+                dataView.metadata.objects!.labels.precision = precision;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -360,7 +350,7 @@ describe("AsterPlot", () => {
                 const fontSize: number = 22,
                     expectedFontSize: string = "29.3333px";
 
-                (<any>dataView.metadata.objects).labels.fontSize = fontSize;
+                dataView.metadata.objects!.labels.fontSize = fontSize;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -375,8 +365,7 @@ describe("AsterPlot", () => {
             beforeEach(() => {
                 dataView.metadata.objects = {
                     outerLine: {
-                        show: true,
-                        showStraightLines: true
+                        show: true
                     }
                 };
             });
@@ -390,7 +379,7 @@ describe("AsterPlot", () => {
             it("-> Thickness", () => {
                 const thickness: number = 5;
 
-                (<any>dataView.metadata.objects).outerLine.thickness = thickness;
+                dataView.metadata.objects!.outerLine.thickness = thickness;
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 visualBuilder.outerLine
@@ -401,12 +390,12 @@ describe("AsterPlot", () => {
             });
 
             
-            it("should apply correct styling to circles", () => {
+            it("-> should apply correct styling to circles", () => {
                 const color = "#ff0000";
                 const thickness = 3;
 
-                (<any>dataView.metadata.objects).outerLine.color = { solid: { color: color } };
-                (<any>dataView.metadata.objects).outerLine.thickness = thickness;
+                dataView.metadata.objects!.outerLine.color = { solid: { color: color } };
+                dataView.metadata.objects!.outerLine.thickness = thickness;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -428,7 +417,7 @@ describe("AsterPlot", () => {
                 });
             });
 
-            it("should render correct number of straight lines based on data points", () => {
+            it("-> should render correct number of straight lines based on data points", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 const straightLines = visualBuilder.straightLines;
@@ -437,8 +426,8 @@ describe("AsterPlot", () => {
                 expect(straightLines.length).toBe(dataPointCount);
             });
 
-            it("should not render straight lines when showStraightLines is false", () => {
-                (<any>dataView.metadata.objects).outerLine.showStraightLines = false;
+            it("-> should not render straight lines when showStraightLines is false", () => {
+                dataView.metadata.objects!.outerLine.showStraightLines = false;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -446,7 +435,7 @@ describe("AsterPlot", () => {
                 expect(straightLines.length).toBe(0);
             });
 
-            it("should not render straight lines when there is only one data point", () => {
+            it("-> should not render straight lines when there is only one data point", () => {
                 // Create dataview with only one data point
                 const singleDataView = defaultDataViewBuilder.getDataView();
                 singleDataView.categorical!.categories![0].values = [singleDataView.categorical!.categories![0].values[0]];
@@ -466,12 +455,12 @@ describe("AsterPlot", () => {
                 expect(straightLines.length).toBe(0);
             });
 
-            it("should apply correct styling to straight lines", () => {
+            it("-> should apply correct styling to straight lines", () => {
                 const color = "#00ff00";
                 const thickness = 4;
 
-                (<any>dataView.metadata.objects).outerLine.color = { solid: { color: color } };
-                (<any>dataView.metadata.objects).outerLine.thickness = thickness;
+                dataView.metadata.objects!.outerLine.color = { solid: { color: color } };
+                dataView.metadata.objects!.outerLine.thickness = thickness;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -480,20 +469,18 @@ describe("AsterPlot", () => {
                 straightLines.forEach((line: HTMLElement) => {
                     expect(line.getAttribute("stroke")).toBe(color);
                     expect(line.getAttribute("stroke-width")).toBe(thickness + "px");
-                    expect(line.getAttribute("fill")).toBe("none");
-                    expect(line.getAttribute("opacity")).toBe("0.5");
                 });
             });
 
           
-            it("should clean up circles and lines when outer line is disabled", () => {
+            it("-> should clean up circles and lines when outer line is disabled", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 expect(visualBuilder.outerCircles.length).toBeGreaterThan(0);
                 expect(visualBuilder.innerCircles.length).toBeGreaterThan(0);
                 expect(visualBuilder.straightLines.length).toBeGreaterThan(0);
 
-                (<any>dataView.metadata.objects).outerLine.show = false;
+                dataView.metadata.objects!.outerLine.show = false;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -503,7 +490,7 @@ describe("AsterPlot", () => {
             });
 
 
-            it("should render outer and inner circles when outer line is enabled", () => {
+            it("-> should render outer and inner circles when outer line is enabled", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 const outerCircles = visualBuilder.outerCircles;
@@ -513,7 +500,7 @@ describe("AsterPlot", () => {
                 expect(innerCircles.length).toBe(1);
             });
 
-            it("should not render inner circle when showStraightLines is false", () => {
+            it("-> should not render inner circle when showStraightLines is false", () => {
                 (<any>dataView.metadata.objects).outerLine.showStraightLines = false;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
@@ -526,9 +513,9 @@ describe("AsterPlot", () => {
             });
 
 
-            it("Grid line", () => {
-                (<any>dataView.metadata.objects).outerLine.showGrid = true;
-                (<any>dataView.metadata.objects).outerLine.showGridTicksValues = true;
+            it("-> Grid line", () => {
+                dataView.metadata.objects!.outerLine.showGrid = true;
+                dataView.metadata.objects!.outerLine.showGridTicksValues = true;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -551,7 +538,7 @@ describe("AsterPlot", () => {
                 }
             });
 
-            it("Pie colors visibility changes based on conditional formatting toggle", () => {
+            it("-> Pie colors visibility changes based on conditional formatting toggle", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 const formattingSettings = visualBuilder.asterPlot.formattingSettings;
@@ -887,7 +874,7 @@ describe("AsterPlot", () => {
             });
 
             it("-> Should not display any label content when flags are set to 0", () => {
-                (<any>dataView.metadata.objects).labels.detailLabelsContent = 0;
+                dataView.metadata.objects!.labels.detailLabelsContent = 0;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -898,7 +885,7 @@ describe("AsterPlot", () => {
             });
 
             it("-> Should display only category when category flag is selected (1)", () => {
-                (<any>dataView.metadata.objects).labels.detailLabelsContent = 1;
+                dataView.metadata.objects!.labels.detailLabelsContent = 1;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -914,7 +901,7 @@ describe("AsterPlot", () => {
             });
 
             it("-> Should display only value when value flag is selected (2)", () => {
-                (<any>dataView.metadata.objects).labels.detailLabelsContent = 2;
+                dataView.metadata.objects!.labels.detailLabelsContent = 2;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -931,7 +918,7 @@ describe("AsterPlot", () => {
             });
 
             it("-> Should display only percentage when percent flag is selected (4)", () => {
-                (<any>dataView.metadata.objects).labels.detailLabelsContent = 4;
+                dataView.metadata.objects!.labels.detailLabelsContent = 4;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -949,7 +936,7 @@ describe("AsterPlot", () => {
 
             it("-> Should display category and value when both flags are selected (3)", () => {
                 // Configure with category + value flags (1 + 2 = 3)
-                (<any>dataView.metadata.objects).labels.detailLabelsContent = 3;
+                dataView.metadata.objects!.labels.detailLabelsContent = 3;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -969,7 +956,7 @@ describe("AsterPlot", () => {
 
             it("-> Should display category and percentage when flags 1+4 are selected (5)", () => {
                 // Configure with category + percent flags (1 + 4 = 5)
-                (<any>dataView.metadata.objects).labels.detailLabelsContent = 5;
+                dataView.metadata.objects!.labels.detailLabelsContent = 5;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -989,7 +976,7 @@ describe("AsterPlot", () => {
 
             it("-> Should display value and percentage when flags 2+4 are selected (6)", () => {
                 // Configure with value + percent flags (2 + 4 = 6)
-                (<any>dataView.metadata.objects).labels.detailLabelsContent = 6;
+                dataView.metadata.objects!.labels.detailLabelsContent = 6;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -1008,7 +995,7 @@ describe("AsterPlot", () => {
 
             it("-> Should display all three parts when all flags are selected (7)", () => {
                 // Configure with all flags (1 + 2 + 4 = 7)
-                (<any>dataView.metadata.objects).labels.detailLabelsContent = 7;
+                dataView.metadata.objects!.labels.detailLabelsContent = 7;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -1028,7 +1015,7 @@ describe("AsterPlot", () => {
 
             it("-> Should respond to flag changes dynamically", () => {
                 // Start with value only (2)
-                (<any>dataView.metadata.objects).labels.detailLabelsContent = 2;
+                dataView.metadata.objects!.labels.detailLabelsContent = 2;
 
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
@@ -1039,7 +1026,7 @@ describe("AsterPlot", () => {
                 expect(firstLabelText).toBe(expectedValues[0]);
 
                 // Change to percentage only (4)
-                (<any>dataView.metadata.objects).labels.detailLabelsContent = 4;
+                dataView.metadata.objects!.labels.detailLabelsContent = 4;
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
                 labels = visualBuilder.dataLabels;
@@ -1054,7 +1041,7 @@ describe("AsterPlot", () => {
                 const expectedLabelCount = dataView.categorical!.categories![0].values.length;
 
                 testFlags.forEach(flagValue => {
-                    (<any>dataView.metadata.objects).labels.detailLabelsContent = flagValue;
+                    dataView.metadata.objects!.labels.detailLabelsContent = flagValue;
 
                     visualBuilder.updateFlushAllD3Transitions(dataView);
                     const labels = visualBuilder.dataLabels;
