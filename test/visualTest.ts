@@ -298,14 +298,32 @@ describe("AsterPlot", () => {
                 };
             });
 
-            it("-> show", () => {
-                dataView.metadata.objects!.labels.show = false;
+            it("-> should render labels in slice center when position is inside", (done) => {
+                dataView.metadata.objects!.labels.position = "inside";
+                visualBuilder.updateRenderTimeout(dataView, () => {
+                    const labels = visualBuilder.dataLabels;
+                    const renderService = (<any>visualBuilder.asterPlot).renderService;
+                    const arcDataPoints = renderService.getDataPoints(false);
 
-                visualBuilder.updateFlushAllD3Transitions(dataView);
+                    expect(labels.length).toBe(arcDataPoints.length);
 
-                expect(visualBuilder.dataLabels.length).toBe(0);
-            });
+                    const labelsAreAtCentroid = Array.from(labels).every((label, index) => {
+                        if (index >= arcDataPoints.length) return false;
 
+                        const [actualX, actualY] = [
+                            parseFloat(label.getAttribute("x") || "0"),
+                            parseFloat(label.getAttribute("y") || "0")
+                        ];
+                        const [expectedX, expectedY] = renderService.arcSvg.centroid(arcDataPoints[index]);
+
+                        return actualX === expectedX && actualY === expectedY;
+                    });
+
+                    expect(labelsAreAtCentroid).toBeTrue();
+                    done();
+                });
+            })
+        
             it("-> color", () => {
                 const color: string = "#649731";
 
