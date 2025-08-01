@@ -169,12 +169,12 @@ describe("AsterPlot", () => {
                 expect(linesAfterResize.length).toBeLessThanOrEqual(numOfLabels);
                 expect(labelsAfterResize.length).toBeLessThanOrEqual(numOfLabels);
 
-                const firstLabel = labels.at(0)!;
-                const lastLabel = labels.at(-1)!;
-                const firstResizeLabel = labelsAfterResize.at(0)!;
-                const lastResizeLabel = labelsAfterResize.at(-1)!;
+                const firstLabel = labels[0]!;
+                const lastLabel = labels[labels.length - 1]!;
+                const firstResizeLabel = labelsAfterResize[0]!;
+                const lastResizeLabel = labelsAfterResize[labelsAfterResize.length - 1]!;
 
-                const firstLabelX: string = firstLabel.getAttribute("x")!;
+                const firstLabelX: string = firstLabel.getAttribute("x")!
                 const firstLabelY: string = firstLabel.getAttribute("y")!;
                 const lastLabelY: string = lastLabel.getAttribute("y")!;
                 const firstResizeLabelX: string = firstResizeLabel.getAttribute("x")!;
