@@ -217,6 +217,16 @@ export class SubSelectionShortcutsService {
                 disabledLabel: localizationManager.getDisplayName("Visual_Delete")
             },
             {
+                type: VisualShortcutType.Picker,
+                ...detailLabelsReferences.position,
+                label: localizationManager.getDisplayName("Visual_Position")
+            },
+            {
+                type: VisualShortcutType.Picker,
+                ...detailLabelsReferences.detailLabelsContent,
+                label: localizationManager.getDisplayName("Visual_LabelsContent")
+            },
+            {
                 type: VisualShortcutType.Divider,
             },
             {
@@ -230,7 +240,9 @@ export class SubSelectionShortcutsService {
                     detailLabelsReferences.color,
                     detailLabelsReferences.show,
                     detailLabelsReferences.precision,
-                    detailLabelsReferences.displayUnits
+                    detailLabelsReferences.displayUnits,
+                    detailLabelsReferences.position,
+                    detailLabelsReferences.detailLabelsContent
                 ]
             },
             {

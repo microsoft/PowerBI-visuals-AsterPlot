@@ -27,6 +27,8 @@ export interface IDetailLabelsReference extends IFontReference {
     displayUnits: FormattingId;
     precision: FormattingId;
     show: FormattingId;
+    position: FormattingId;
+    detailLabelsContent: FormattingId;
 }
 
 export interface IOuterLineReference extends IFontReference {
