@@ -79,7 +79,7 @@ export const centerLabelReferences: ICenterLabelReference = {
 export const detailLabelsReferences: IDetailLabelsReference = {
     ...createBaseFontReference(AsterPlotObjectNames.DetailLabels.name),
     cardUid: "Visual-labels-card",
-    groupUid: "labels-group",
+    groupUid: "options-group",
     displayUnits: {
         objectName: AsterPlotObjectNames.DetailLabels.name,
         propertyName: "displayUnits"
@@ -91,6 +91,14 @@ export const detailLabelsReferences: IDetailLabelsReference = {
     show: {
         objectName: AsterPlotObjectNames.DetailLabels.name,
         propertyName: "show"
+    },
+    position: {
+        objectName: AsterPlotObjectNames.DetailLabels.name,
+        propertyName: "position"
+    },
+    detailLabelsContent: {
+        objectName: AsterPlotObjectNames.DetailLabels.name,
+        propertyName: "detailLabelsContent"
     }
 }
 
