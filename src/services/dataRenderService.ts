@@ -841,33 +841,30 @@ export class DataRenderService {
             };
         }
 
-        const isLabelsHasConflict = (d: d3PieArcDatum<AsterDataPoint>) => {
-            const pos = arc.centroid(d);
-            const { labelWidth, labelHeight } = setTextAndGetLabelDimensions(d);
-            const horizontalSpaceAvailableForLabels = viewport.width / 2 - Math.abs(pos[0]);
-            const verticalSpaceAvailableForLabels = viewport.height / 2 - Math.abs(pos[1]);
-            d.data.isLabelHasConflict = labelWidth > horizontalSpaceAvailableForLabels || labelHeight > verticalSpaceAvailableForLabels;
-            return d.data.isLabelHasConflict;
+      const isLabelsHasConflict = (d: d3PieArcDatum<AsterDataPoint>) => {
+        const { labelWidth, labelHeight } = setTextAndGetLabelDimensions(d);
+        const [ positionX, positionY ] = this.computeLabelLinePoints(d).lineEndPoint;
+        const horizontalSpaceAvailableForLabels = Math.max(0, viewport.width / 2 - Math.abs(positionX) - DataRenderService.LabelLinePadding);
+        const verticalSpaceAvailableForLabels = Math.max(0, viewport.height / 2 - Math.abs(positionY) - DataRenderService.LabelLinePadding);
+        d.data.isLabelHasConflict = labelWidth > horizontalSpaceAvailableForLabels || labelHeight > verticalSpaceAvailableForLabels;;
+        return {spaceAvailableForLabels: horizontalSpaceAvailableForLabels};
         };
 
         return {
             labelText: (d: d3PieArcDatum<AsterDataPoint>) => {
-                textProperties.text = d.data.label;
-                const pos = arc.centroid(d);
-                const xPos = isLabelsHasConflict(d) ? pos[0] * DataRenderService.AsterConflictRatio : pos[0];
-                const spaceAvailableForLabels = viewport.width / 2 - Math.abs(xPos);
-                return textMeasurementService.getTailoredTextOrDefault(textProperties, spaceAvailableForLabels);
+            textProperties.text = d.data.label;
+            const {spaceAvailableForLabels } = isLabelsHasConflict(d);
+            return textMeasurementService.getTailoredTextOrDefault(textProperties, spaceAvailableForLabels);
             },
             labelLayout: {
                 x: (d: d3PieArcDatum<AsterDataPoint>) => {
-                    const pos = arc.centroid(d);
-                    textProperties.text = d.data.label;
-                    return d.data.isLabelHasConflict ? pos[0] * DataRenderService.AsterConflictRatio : pos[0];
-                },
-                y: (d: d3PieArcDatum<AsterDataPoint>) => {
-                    const pos: [number, number] = arc.centroid(d);
-                    return d.data.isLabelHasConflict ? pos[1] * DataRenderService.AsterConflictRatio : pos[1];
-                },
+                const lineEndPointX= this.computeLabelLinePoints(d).lineEndPoint[0];
+                return d.data.isLabelHasConflict ? lineEndPointX * DataRenderService.AsterConflictRatio : lineEndPointX;
+            },
+            y: (d: d3PieArcDatum<AsterDataPoint>) => {
+                const lineEndPointY= this.computeLabelLinePoints(d).lineEndPoint[1];
+                return d.data.isLabelHasConflict ? lineEndPointY * DataRenderService.AsterConflictRatio : lineEndPointY;
+            },
             },
             filter: (d: d3PieArcDatum<AsterDataPoint>) => (d != null && !isEmpty(d.data.label + "")),
             style: {
