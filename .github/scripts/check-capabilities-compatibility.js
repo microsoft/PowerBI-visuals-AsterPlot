@@ -21,8 +21,8 @@ const allowlistFile = args.allowlist ? path.resolve(args.allowlist) : path.resol
 function readJson(file) {
   try {
     const content = fs.readFileSync(file, 'utf8').trim();
-    if (!content) {
-      console.warn(`Warning: ${file} is empty, treating as empty object`);
+    if (!content || content.toLowerCase() === 'null') {
+      console.warn(`Warning: ${file} is empty or 'null', treating as empty object`);
       return {};
     }
     return JSON.parse(content);
