@@ -25,7 +25,12 @@ function readJson(file) {
       console.warn(`Warning: ${file} is empty, treating as empty object`);
       return {};
     }
-    return JSON.parse(content);
+    const parsed = JSON.parse(content);
+    if (parsed === null) {
+      console.warn(`Warning: ${file} contains JSON null, treating as empty object`);
+      return {};
+    }
+    return parsed;
   } catch (e) {
     console.error(`Failed to read or parse JSON file: ${file}\n${e.message}`);
     process.exit(2);
@@ -35,9 +40,9 @@ function readJson(file) {
 const base = readJson(baseFile);
 const pr = readJson(prFile);
 
-// Special case: if base is null (missing file), only validate PR structure
-if (base === null || (typeof base === 'object' && Object.keys(base).length === 0)) {
-  console.log('Base capabilities.json is missing or empty - treating as new file addition.');
+// Special case: if base is empty object (missing file), only validate PR structure
+if (typeof base === 'object' && base !== null && Object.keys(base).length === 0) {
+  console.log('Base capabilities.json is missing - treating as new file addition.');
   console.log('Performing basic validation of new capabilities.json structure...');
   
   // Basic validation for required properties in new capabilities.json
@@ -60,7 +65,12 @@ if (base === null || (typeof base === 'object' && Object.keys(base).length === 0
 
 let allowlist = [];
 if (fs.existsSync(allowlistFile)) {
-  try { allowlist = JSON.parse(fs.readFileSync(allowlistFile, 'utf8')); } catch (e) { console.warn('Warning: failed to parse allowlist, continuing without it'); }
+  try {
+    const allowlistContent = fs.readFileSync(allowlistFile, 'utf8');
+    allowlist = JSON.parse(allowlistContent);
+  } catch (e) {
+    console.warn('Warning: failed to parse allowlist, continuing without it');
+  }
 }
 
 function isPrimitive(val) {
