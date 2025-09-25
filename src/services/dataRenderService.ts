@@ -840,14 +840,24 @@ export class DataRenderService {
                 }
             };
         }
+       
+        const labelLinePointsCache = new Map();
+        const getCachedLinePoints = (d: d3PieArcDatum<AsterDataPoint>): [number, number] => {
+            if (!labelLinePointsCache.has(d)) {
+                console.log(';ijij')
+                const { lineEndPoint } = this.computeLabelLinePoints(d);
+                labelLinePointsCache.set(d, lineEndPoint);
+            }
+            return labelLinePointsCache.get(d)!;
+        };
 
       const isLabelsHasConflict = (d: d3PieArcDatum<AsterDataPoint>) => {
-        const { labelWidth, labelHeight } = setTextAndGetLabelDimensions(d);
-        const [ positionX, positionY ] = this.computeLabelLinePoints(d).lineEndPoint;
-        const horizontalSpaceAvailableForLabels = Math.max(0, viewport.width / 2 - Math.abs(positionX) - DataRenderService.LabelLinePadding);
-        const verticalSpaceAvailableForLabels = Math.max(0, viewport.height / 2 - Math.abs(positionY) - DataRenderService.LabelLinePadding);
-        d.data.isLabelHasConflict = labelWidth > horizontalSpaceAvailableForLabels || labelHeight > verticalSpaceAvailableForLabels;;
-        return {spaceAvailableForLabels: horizontalSpaceAvailableForLabels};
+            const { labelWidth, labelHeight } = setTextAndGetLabelDimensions(d);
+            const [ positionX, positionY ] = getCachedLinePoints(d);
+            const horizontalSpaceAvailableForLabels = Math.max(0, viewport.width / 2 - Math.abs(positionX) - DataRenderService.LabelLinePadding);
+            const verticalSpaceAvailableForLabels = Math.max(0, viewport.height / 2 - Math.abs(positionY) - DataRenderService.LabelLinePadding);
+            d.data.isLabelHasConflict = labelWidth > horizontalSpaceAvailableForLabels || labelHeight > verticalSpaceAvailableForLabels;
+            return {spaceAvailableForLabels: horizontalSpaceAvailableForLabels};
         };
 
         return {
@@ -858,11 +868,11 @@ export class DataRenderService {
             },
             labelLayout: {
                 x: (d: d3PieArcDatum<AsterDataPoint>) => {
-                const lineEndPointX= this.computeLabelLinePoints(d).lineEndPoint[0];
+                const [lineEndPointX] = getCachedLinePoints(d);
                 return d.data.isLabelHasConflict ? lineEndPointX * DataRenderService.AsterConflictRatio : lineEndPointX;
             },
             y: (d: d3PieArcDatum<AsterDataPoint>) => {
-                const lineEndPointY= this.computeLabelLinePoints(d).lineEndPoint[1];
+                const [,lineEndPointY] = getCachedLinePoints(d);
                 return d.data.isLabelHasConflict ? lineEndPointY * DataRenderService.AsterConflictRatio : lineEndPointY;
             },
             },
