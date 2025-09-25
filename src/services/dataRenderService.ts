@@ -844,7 +844,6 @@ export class DataRenderService {
         const labelLinePointsCache = new Map();
         const getCachedLinePoints = (d: d3PieArcDatum<AsterDataPoint>): [number, number] => {
             if (!labelLinePointsCache.has(d)) {
-                console.log(';ijij')
                 const { lineEndPoint } = this.computeLabelLinePoints(d);
                 labelLinePointsCache.set(d, lineEndPoint);
             }
