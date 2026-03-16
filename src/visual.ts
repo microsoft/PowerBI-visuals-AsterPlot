@@ -226,10 +226,10 @@ export class AsterPlot implements IVisual {
     }
 
     public update(options: VisualUpdateOptions): void {
-        this.events.renderingFinished(options);
-        this.visualHost.eventService.renderingStarted(options);
+        this.events.renderingStarted(options);
         try {
             if (!this.areValidOptions(options)) {
+                this.events.renderingFinished(options);
                 return;
             }
 
@@ -246,6 +246,7 @@ export class AsterPlot implements IVisual {
             );
             if (!data) {
                 this.clear();
+                this.events.renderingFinished(options);
                 return;
             }
 

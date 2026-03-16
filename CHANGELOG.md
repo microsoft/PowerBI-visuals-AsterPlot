@@ -1,3 +1,7 @@
+## 1.8.1
+### Fixes
+* Fix rendering events issue
+
 ## 1.8.0
 ### New features
 * Add Position setting for detail labels (Inside / Outside)
