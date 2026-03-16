@@ -1,7 +1,7 @@
 {
   "name": "@microsoft/powerbi-visuals-asterplot",
   "description": "An Aster plot is a twist on a standard donut chart, using a second value to drive sweep angle.",
-  "version": "1.8.1.0",
+  "version": "1.8.2.0",
   "private": true,
   "author": {
     "name": "Microsoft",

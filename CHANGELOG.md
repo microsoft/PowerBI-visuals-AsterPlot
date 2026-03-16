@@ -1,4 +1,4 @@
-## 1.8.1
+## 1.8.2
 ### Fixes
 * Fix rendering events issue
 
