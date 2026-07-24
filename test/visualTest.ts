@@ -38,6 +38,7 @@ import { pixelConverter as PixelConverter } from "powerbi-visuals-utils-typeutil
 import { legendData } from "powerbi-visuals-utils-chartutils";
 
 // powerbi.extensibility.visual.test
+import { AsterPlot } from "../src/visual";
 import { AsterPlotData } from "./asterPlotData";
 import { AsterPlotBuilder } from "./asterPlotBuilder";
 import { getSolidColorStructuralObject, isColorAppliedToElements, getFormattedValues, calculateExpectedPercentages } from "./helpers/helpers";
@@ -848,6 +849,57 @@ describe("AsterPlot", () => {
 
                 expect(visualBuilder.lineLabels[0]).toBeUndefined();
                 expect(visualBuilder.dataLabels[0]).toBeUndefined();
+            });
+        });
+
+        describe("-> rendering events", () => {
+            let renderingStartedSpy: jasmine.Spy,
+                renderingFinishedSpy: jasmine.Spy,
+                renderingFailedSpy: jasmine.Spy;
+
+            beforeEach(() => {
+                renderingStartedSpy = spyOn(visualBuilder.visualHost.eventService, "renderingStarted").and.callThrough();
+                renderingFinishedSpy = spyOn(visualBuilder.visualHost.eventService, "renderingFinished").and.callThrough();
+                renderingFailedSpy = spyOn(visualBuilder.visualHost.eventService, "renderingFailed").and.callThrough();
+            });
+
+            it("-> should call renderingStarted and renderingFinished in order on a successful render", () => {
+                visualBuilder.update(dataView);
+
+                expect(renderingStartedSpy).toHaveBeenCalledTimes(1);
+                expect(renderingFinishedSpy).toHaveBeenCalledTimes(1);
+                expect(renderingFailedSpy).not.toHaveBeenCalled();
+                expect(renderingStartedSpy).toHaveBeenCalledBefore(renderingFinishedSpy);
+            });
+
+            it("-> should call renderingFinished when update options are invalid", () => {
+                visualBuilder.update([]);
+
+                expect(renderingStartedSpy).toHaveBeenCalledTimes(1);
+                expect(renderingFinishedSpy).toHaveBeenCalledTimes(1);
+                expect(renderingFailedSpy).not.toHaveBeenCalled();
+                expect(renderingStartedSpy).toHaveBeenCalledBefore(renderingFinishedSpy);
+            });
+
+            it("-> should call renderingFinished when required fields are missing", () => {
+                dataView = defaultDataViewBuilder.getDataView([AsterPlotData.ColumnCategory]);
+                visualBuilder.update(dataView);
+
+                expect(renderingStartedSpy).toHaveBeenCalledTimes(1);
+                expect(renderingFinishedSpy).toHaveBeenCalledTimes(1);
+                expect(renderingFailedSpy).not.toHaveBeenCalled();
+                expect(renderingStartedSpy).toHaveBeenCalledBefore(renderingFinishedSpy);
+            });
+
+            it("-> should call renderingFailed and not renderingFinished when rendering throws", () => {
+                spyOn(AsterPlot, "converter").and.throwError("forced test error");
+
+                visualBuilder.update(dataView);
+
+                expect(renderingStartedSpy).toHaveBeenCalledTimes(1);
+                expect(renderingFailedSpy).toHaveBeenCalledTimes(1);
+                expect(renderingFinishedSpy).not.toHaveBeenCalled();
+                expect(renderingStartedSpy).toHaveBeenCalledBefore(renderingFailedSpy);
             });
         });
 
