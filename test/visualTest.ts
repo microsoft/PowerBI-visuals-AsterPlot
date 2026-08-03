@@ -41,7 +41,7 @@ import { legendData } from "powerbi-visuals-utils-chartutils";
 import { AsterPlot } from "../src/visual";
 import { AsterPlotData } from "./asterPlotData";
 import { AsterPlotBuilder } from "./asterPlotBuilder";
-import { getSolidColorStructuralObject, isColorAppliedToElements, getFormattedValues, calculateExpectedPercentages } from "./helpers/helpers";
+import { getSolidColorStructuralObject, isColorAppliedToElements, getFormattedValues, calculateExpectedPercentages, flushMicrotasks } from "./helpers/helpers";
 
 // powerbi.extensibility.utils.test
 import { clickElement, assertColorsMatch } from "powerbi-visuals-utils-testutils";
@@ -863,8 +863,9 @@ describe("AsterPlot", () => {
                 renderingFailedSpy = spyOn(visualBuilder.visualHost.eventService, "renderingFailed").and.callThrough();
             });
 
-            it("-> should call renderingStarted and renderingFinished in order on a successful render", () => {
-                visualBuilder.update(dataView);
+            it("-> should call renderingStarted and renderingFinished in order on a successful render", async () => {
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+                await flushMicrotasks();
 
                 expect(renderingStartedSpy).toHaveBeenCalledTimes(1);
                 expect(renderingFinishedSpy).toHaveBeenCalledTimes(1);
@@ -872,18 +873,25 @@ describe("AsterPlot", () => {
                 expect(renderingStartedSpy).toHaveBeenCalledBefore(renderingFinishedSpy);
             });
 
-            it("-> should call renderingFinished when update options are invalid", () => {
+            it("-> should not call renderingFinished before the arc transitions settle", () => {
+                visualBuilder.update(dataView);
+
+                expect(renderingStartedSpy).toHaveBeenCalledTimes(1);
+                expect(renderingFinishedSpy).not.toHaveBeenCalled();
+            });
+
+            it("-> should not emit any rendering event when update options are invalid", () => {
                 visualBuilder.update([]);
 
-                expect(renderingStartedSpy).toHaveBeenCalledTimes(1);
-                expect(renderingFinishedSpy).toHaveBeenCalledTimes(1);
+                expect(renderingStartedSpy).not.toHaveBeenCalled();
+                expect(renderingFinishedSpy).not.toHaveBeenCalled();
                 expect(renderingFailedSpy).not.toHaveBeenCalled();
-                expect(renderingStartedSpy).toHaveBeenCalledBefore(renderingFinishedSpy);
             });
 
-            it("-> should call renderingFinished when required fields are missing", () => {
+            it("-> should call renderingFinished when required fields are missing", async () => {
                 dataView = defaultDataViewBuilder.getDataView([AsterPlotData.ColumnCategory]);
-                visualBuilder.update(dataView);
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+                await flushMicrotasks();
 
                 expect(renderingStartedSpy).toHaveBeenCalledTimes(1);
                 expect(renderingFinishedSpy).toHaveBeenCalledTimes(1);

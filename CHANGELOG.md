@@ -1,6 +1,8 @@
 ## 1.8.2
 ### Fixes
 * Fix rendering events issue
+* Delay `renderingFinished` until arc transitions complete
+* Remove unused `powerbi-models` dependency
 
 ## 1.8.0
 ### New features

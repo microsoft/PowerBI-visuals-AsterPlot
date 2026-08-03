@@ -39,6 +39,7 @@ import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
 
 // d3
 import "d3-transition";
+import { Transition as d3Transition } from "d3-transition";
 import { Selection as d3Selection } from 'd3-selection';
 import { sum as d3Sum, max as d3Max } from "d3-array";
 import {
@@ -216,7 +217,7 @@ export class DataRenderService {
         mainGroupElement.select<SVGTextElement>(DataRenderService.CenterLabelClass.selectorName).remove();
     }
 
-    public renderArcs(slicesElement: d3Selection<SVGGElement, null, HTMLElement, null>, isHighlighted: boolean) {
+    public renderArcs(slicesElement: d3Selection<SVGGElement, null, HTMLElement, null>, isHighlighted: boolean): Promise<void> {
         const arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>> = this.arcSvg;
         const classSelector: ClassAndSelector = this.getClassAndSelector(isHighlighted);
 
@@ -259,17 +260,21 @@ export class DataRenderService {
         selection
             .attr("fill", d => d.data.fillColor)
             .attr("stroke", d => d.data.strokeColor)
-            .attr("stroke-width", d => d.data.strokeWidth)
-            .call(selection => {
-                return this.layout.viewportChanged
-                    ? selection
-                        .transition()
-                        .duration(DataRenderService.AnimationDuration)
-                        .attrTween("d", interpolateArc(this, arc))
-                    : selection.attr("d", (d) => arc.call(this, d));
-            });
+            .attr("stroke-width", d => d.data.strokeWidth);
+
+        let arcsTransition: d3Transition<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null>;
+        if (this.layout.viewportChanged) {
+            arcsTransition = selection
+                .transition()
+                .duration(DataRenderService.AnimationDuration)
+                .attrTween("d", interpolateArc(this, arc));
+        } else {
+            selection.attr("d", (d) => arc.call(this, d));
+        }
 
         this.applyTooltipToSelection(selection);
+
+        return arcsTransition ? arcsTransition.end() : Promise.resolve();
     }
 
     private applyOnObjectStylesToPies(selection: d3Selection<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null>): void{

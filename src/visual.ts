@@ -226,13 +226,14 @@ export class AsterPlot implements IVisual {
     }
 
     public update(options: VisualUpdateOptions): void {
-        this.events.renderingStarted(options);
-        try {
-            if (!this.areValidOptions(options)) {
-                this.events.renderingFinished(options);
-                return;
-            }
+        if (!this.areValidOptions(options)) {
+            return;
+        }
 
+        this.events.renderingStarted(options);
+        let failed = false;
+        const transitions: Promise<void>[] = [];
+        try {
             const formatMode = options.formatMode ?? false;
             this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(AsterPlotSettingsModel, options.dataViews[0]);
 
@@ -246,7 +247,6 @@ export class AsterPlot implements IVisual {
             );
             if (!data) {
                 this.clear();
-                this.events.renderingFinished(options);
                 return;
             }
 
@@ -269,12 +269,12 @@ export class AsterPlot implements IVisual {
                 this.localizationManager,
                 formatMode);
 
-            this.renderService.renderArcs(this.slicesElement, false);
+            transitions.push(this.renderService.renderArcs(this.slicesElement, false));
 
             if (!this.data.hasHighlights) {
                 this.removeHighlightedSlice();
             } else {
-                this.renderService.renderArcs(this.slicesElement, true);
+                transitions.push(this.renderService.renderArcs(this.slicesElement, true));
             }
 
             if (this.formattingSettings.detailLabels.show.value) {
@@ -297,12 +297,18 @@ export class AsterPlot implements IVisual {
             this.bindBehaviorOptions(formatMode);
 
             this.applyOnObjectFormatting(options);
-
-            this.events.renderingFinished(options);
         }
         catch (e) {
+            failed = true;
             this.events.renderingFailed(options, e);
-            console.log(e);
+            console.error(e);
+        }
+        finally {
+            if (!failed) {
+                // arcs are animated: the chart is fully rendered only once their transitions settle or get interrupted by a newer update
+                Promise.allSettled(transitions)
+                    .then(() => this.events.renderingFinished(options));
+            }
         }
     }
 
