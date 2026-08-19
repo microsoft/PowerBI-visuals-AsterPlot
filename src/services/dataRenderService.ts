@@ -262,7 +262,7 @@ export class DataRenderService {
             .attr("stroke", d => d.data.strokeColor)
             .attr("stroke-width", d => d.data.strokeWidth);
 
-        let arcsTransition: d3Transition<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null>;
+        let arcsTransition: d3Transition<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null> | undefined;
         if (this.layout.viewportChanged) {
             arcsTransition = selection
                 .transition()
