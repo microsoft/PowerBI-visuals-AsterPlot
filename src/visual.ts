@@ -232,7 +232,6 @@ export class AsterPlot implements IVisual {
 
         this.events.renderingStarted(options);
         let failed = false;
-        const transitions: Promise<void>[] = [];
         try {
             const formatMode = options.formatMode ?? false;
             this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(AsterPlotSettingsModel, options.dataViews[0]);
@@ -269,12 +268,12 @@ export class AsterPlot implements IVisual {
                 this.localizationManager,
                 formatMode);
 
-            transitions.push(this.renderService.renderArcs(this.slicesElement, false));
+            this.renderService.renderArcs(this.slicesElement, false);
 
             if (!this.data.hasHighlights) {
                 this.removeHighlightedSlice();
             } else {
-                transitions.push(this.renderService.renderArcs(this.slicesElement, true));
+                this.renderService.renderArcs(this.slicesElement, true);
             }
 
             if (this.formattingSettings.detailLabels.show.value) {
@@ -305,9 +304,7 @@ export class AsterPlot implements IVisual {
         }
         finally {
             if (!failed) {
-                // arcs are animated: the chart is fully rendered only once their transitions settle or get interrupted by a newer update
-                Promise.allSettled(transitions)
-                    .then(() => this.events.renderingFinished(options));
+                this.events.renderingFinished(options);
             }
         }
     }

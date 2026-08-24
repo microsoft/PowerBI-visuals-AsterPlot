@@ -38,11 +38,6 @@ export function getSolidColorStructuralObject(color: string) {
     return { solid: { color } };
 }
 
-// resolves after the microtask queue is drained, so promise-based rendering callbacks have already run
-export function flushMicrotasks(): Promise<void> {
-    return new Promise<void>((resolve) => setTimeout(resolve));
-}
-
 export function areColorsEqual(firstColor: string, secondColor: string): boolean {
     const firstConvertedColor: RgbColor = parseColorString(firstColor),
         secondConvertedColor: RgbColor = parseColorString(secondColor);
