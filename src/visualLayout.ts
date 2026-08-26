@@ -40,8 +40,6 @@ export class VisualLayout {
     private viewportValue: IViewport;
     private viewportInValue: IViewport;
     private minViewportValue: IViewport;
-    private originalViewportValue: IViewport;
-    private previousOriginalViewportValue: IViewport;
 
     public defaultMargin: IMargin;
     public defaultViewport: IViewport;
@@ -77,8 +75,6 @@ export class VisualLayout {
     }
 
     public set viewport(value: IViewport) {
-        this.previousOriginalViewportValue = _.clone(this.originalViewportValue);
-        this.originalViewportValue = _.clone(value);
         this.setUpdateObject(value,
             v => this.viewportValue = v,
             o => VisualLayout.restrictToMinMax(o, this.minViewport));
@@ -86,13 +82,6 @@ export class VisualLayout {
 
     public set margin(value: IMargin) {
         this.setUpdateObject(value, v => this.marginValue = v, VisualLayout.restrictToMinMax);
-    }
-
-    // Returns true if viewport has updated after last change.
-    public get viewportChanged(): boolean {
-        return !!this.originalViewportValue && (!this.previousOriginalViewportValue
-            || this.previousOriginalViewportValue.height !== this.originalViewportValue.height
-            || this.previousOriginalViewportValue.width !== this.originalViewportValue.width);
     }
 
     private update(): void {
