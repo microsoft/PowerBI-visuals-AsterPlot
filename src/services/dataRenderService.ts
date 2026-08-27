@@ -38,7 +38,6 @@ import ILabelLayout = dataLabelInterfaces.ILabelLayout;
 import LabelEnabledDataPoint = dataLabelInterfaces.LabelEnabledDataPoint;
 
 // d3
-import "d3-transition";
 import { Selection as d3Selection } from 'd3-selection';
 import { sum as d3Sum, max as d3Max } from "d3-array";
 import {
@@ -47,7 +46,6 @@ import {
     PieArcDatum as d3PieArcDatum,
     pie as d3Pie
 } from "d3-shape";
-import { interpolate as d3Interpolate } from "d3-interpolate";
 
 // powerbi.extensibility.utils.svg
 import { CssConstants } from "powerbi-visuals-utils-svgutils";
@@ -94,7 +92,6 @@ export class DataRenderService {
     private static AsterRadiusRatio: number = 0.9;
     private static AsterConflictRatio: number = 0.9;
     private static InsideLabelSizeRatio: number = 2.8;
-    private static AnimationDuration: number = 0;
     private static CenterTextFontWidthCoefficient: number = 1.9;
     private static AxisTextWidthCoefficient: number = 1.75;
     private static PixelsBelowAxis: number = 5;
@@ -216,7 +213,7 @@ export class DataRenderService {
         mainGroupElement.select<SVGTextElement>(DataRenderService.CenterLabelClass.selectorName).remove();
     }
 
-    public renderArcs(slicesElement: d3Selection<SVGGElement, null, HTMLElement, null>, isHighlighted: boolean) {
+    public renderArcs(slicesElement: d3Selection<SVGGElement, null, HTMLElement, null>, isHighlighted: boolean): void {
         const arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>> = this.arcSvg;
         const classSelector: ClassAndSelector = this.getClassAndSelector(isHighlighted);
 
@@ -243,31 +240,11 @@ export class DataRenderService {
 
         this.applyOnObjectStylesToPies(selection);
 
-        const interpolateArc = (dataRendererService: DataRenderService, arc: d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>>) => {
-            return function (data: d3PieArcDatum<AsterDataPoint>) {
-                if (!this.oldData) {
-                    this.oldData = data;
-                    return () => arc.call(dataRendererService, data);
-                }
-
-                const interpolation = d3Interpolate(this.oldData, data);
-                this.oldData = interpolation(0);
-                return (x: number) => arc.call(dataRendererService, interpolation(x));
-            }
-        }
-
         selection
             .attr("fill", d => d.data.fillColor)
             .attr("stroke", d => d.data.strokeColor)
             .attr("stroke-width", d => d.data.strokeWidth)
-            .call(selection => {
-                return this.layout.viewportChanged
-                    ? selection
-                        .transition()
-                        .duration(DataRenderService.AnimationDuration)
-                        .attrTween("d", interpolateArc(this, arc))
-                    : selection.attr("d", (d) => arc.call(this, d));
-            });
+            .attr("d", (d) => arc.call(this, d));
 
         this.applyTooltipToSelection(selection);
     }

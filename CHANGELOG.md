@@ -1,3 +1,9 @@
+## 1.8.2
+### Fixes
+* Fix rendering events issue
+* Remove the zero-duration arc transition so `renderingFinished` is emitted right after rendering completes
+* Remove unused `powerbi-models`, `d3-transition` and `d3-interpolate` dependencies
+
 ## 1.8.0
 ### New features
 * Add Position setting for detail labels (Inside / Outside)

@@ -226,13 +226,13 @@ export class AsterPlot implements IVisual {
     }
 
     public update(options: VisualUpdateOptions): void {
-        this.events.renderingFinished(options);
-        this.visualHost.eventService.renderingStarted(options);
-        try {
-            if (!this.areValidOptions(options)) {
-                return;
-            }
+        if (!this.areValidOptions(options)) {
+            return;
+        }
 
+        this.events.renderingStarted(options);
+        let failed = false;
+        try {
             const formatMode = options.formatMode ?? false;
             this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(AsterPlotSettingsModel, options.dataViews[0]);
 
@@ -296,12 +296,16 @@ export class AsterPlot implements IVisual {
             this.bindBehaviorOptions(formatMode);
 
             this.applyOnObjectFormatting(options);
-
-            this.events.renderingFinished(options);
         }
         catch (e) {
+            failed = true;
             this.events.renderingFailed(options, e);
-            console.log(e);
+            console.error(e);
+        }
+        finally {
+            if (!failed) {
+                this.events.renderingFinished(options);
+            }
         }
     }
 
