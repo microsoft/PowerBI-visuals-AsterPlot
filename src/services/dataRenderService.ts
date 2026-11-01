@@ -69,6 +69,7 @@ import ISelectionId = powerbi.visuals.ISelectionId;
 class CircleTicksOptions {
     public diffPercent: number;
     public maxHeight: number;
+    public modifier: number;
     public ticksCount: number;
 }
 
@@ -165,7 +166,7 @@ export class DataRenderService {
         if (showOuterLine) {
             this.outerRadius *= this.ticksOptions.diffPercent;
             this.ticksRadiusArray = this.calcTicksRadius(this.ticksOptions.ticksCount, this.outerRadius);
-            this.tickValuesArray = this.calcTicksValues(this.ticksOptions.ticksCount, this.ticksOptions.maxHeight);
+            this.tickValuesArray = this.calcTicksValues(this.ticksOptions.ticksCount, this.ticksOptions.maxHeight, this.ticksOptions.modifier);
         }
     }
 
@@ -429,6 +430,14 @@ export class DataRenderService {
             }
         }
 
+        if (value > 0) {
+            // Round up so the outer circle always encloses the tallest slice.
+            // toFixed(10) absorbs float noise in the aggregated value: a max of 0.1 + 0.2
+            // (0.30000000000000004) makes value * modifier 3.0000000000000004, which would
+            // otherwise ceil to 4 and put the circle at 0.4 instead of 0.3.
+            val = Math.ceil(Number((value * modifier).toFixed(10)));
+        }
+
         const step = Math.pow(10, val.toString().length - 1);
         const allTicksCount: number = Math.ceil((val) / step);
         const endPoint: number = allTicksCount * step / modifier;
@@ -438,7 +447,8 @@ export class DataRenderService {
 
         return {
             diffPercent,
-            maxHeight: allTicksCount * step * modifier,
+            maxHeight: allTicksCount * step,
+            modifier,
             ticksCount: allTicksCount % threeTicks === 0 ? threeTicks : twoTicks // 2 or 3 ticks only needed
         };
     }
@@ -455,16 +465,13 @@ export class DataRenderService {
         return array;
     }
 
-    private calcTicksValues(ticksCount: number, outerValue: number): number[] {
-        let array: number[];
+    private calcTicksValues(ticksCount: number, outerValue: number, modifier: number): number[] {
+        const array: number[] = ticksCount % 3 === 0
+            ? [outerValue / 3, outerValue / 3 * 2, outerValue]
+            : [outerValue / 2, outerValue];
 
-        if (ticksCount % 3 === 0) {
-            array = [outerValue / 3, outerValue / 3 * 2, outerValue];
-        } else {
-            array = [outerValue / 2, outerValue];
-        }
-
-        return array;
+        // Scale back only at the end: dividing earlier introduces float noise (0.3 / 3 = 0.09999999999999999)
+        return array.map(v => v / modifier);
     }
 
     private applyTooltipToSelection(selection: d3Selection<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null>): void {

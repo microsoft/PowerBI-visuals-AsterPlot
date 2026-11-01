@@ -517,6 +517,34 @@ describe("AsterPlot", () => {
             });
 
 
+            [3.3066, 0.5].forEach((maxValue: number) => {
+                it(`-> should enclose all slices when the max value is ${maxValue}`, () => {
+                    const values = dataView.categorical!.values![0].values;
+                    values.fill(maxValue / 2);
+                    values[0] = maxValue;
+
+                    visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                    const circle = visualBuilder.outerCircles[0] as unknown as SVGCircleElement;
+                    const radius = Number(circle.getAttribute("r"));
+                    expect(radius).toBeGreaterThan(0);
+
+                    let maxDistance = 0;
+
+                    visualBuilder.slices.forEach((slice: HTMLElement) => {
+                        const path = slice as unknown as SVGPathElement;
+                        const length = path.getTotalLength();
+
+                        for (let i = 0; i <= 100; i++) {
+                            const { x, y } = path.getPointAtLength(length * i / 100);
+                            maxDistance = Math.max(maxDistance, Math.hypot(x, y));
+                        }
+                    });
+
+                    expect(maxDistance).toBeLessThanOrEqual(radius + 0.5);
+                });
+            });
+
             it("-> should render outer and inner circles when outer line is enabled", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
