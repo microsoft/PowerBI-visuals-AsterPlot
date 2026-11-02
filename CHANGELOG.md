@@ -3,6 +3,8 @@
 * Fix outer line circle being smaller than the tallest slice when the max value is not a round number
 * Fix blank chart with the outer line enabled when the max value is below 1 (e.g. 0.5 or 0.05)
 * Fix tick labels being scaled incorrectly when the max value is below 1
+* Fix equal fractional maxima (e.g. 0.3 and 0.1 + 0.2) getting different outer circle scales
+* Fix small slices disappearing next to a much larger slice when the outer line is enabled
 * The outer circle limit is rounded up on the leading digit only, so a max just past a round value jumps a whole step (e.g. 1.005 gets a circle at 2)
 
 ## 1.8.2
