@@ -545,6 +545,52 @@ describe("AsterPlot", () => {
                 });
             });
 
+            it("-> should scale an exact fractional max the same as its float-noise equivalent", () => {
+                const getOuterCircleRadius = (maxValue: number): number => {
+                    const values = dataView.categorical!.values![0].values;
+                    values.fill(maxValue / 2);
+                    values[0] = maxValue;
+
+                    visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                    return Number(visualBuilder.outerCircles[0].getAttribute("r"));
+                };
+
+                const exactRadius = getOuterCircleRadius(0.3);
+                const aggregatedRadius = getOuterCircleRadius(0.1 + 0.2);
+
+                expect(exactRadius).toBeGreaterThan(0);
+                expect(exactRadius).toBeCloseTo(aggregatedRadius, 3);
+            });
+
+            it("-> should keep slices visible when their values are much smaller than the max", () => {
+                (dataView.metadata.objects as any).detailLabels = { show: false };
+
+                const values = dataView.categorical!.values![0].values;
+                values.fill(0.2);
+                values[0] = 3.3066;
+
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                const innerRadius = Number(visualBuilder.innerCircles[0].getAttribute("r"));
+                const outerRadius = Number(visualBuilder.outerCircles[0].getAttribute("r"));
+                expect(outerRadius).toBeGreaterThan(innerRadius);
+
+                visualBuilder.slices.forEach((slice: HTMLElement) => {
+                    const path = slice as unknown as SVGPathElement;
+                    const length = path.getTotalLength();
+                    let maxDistance = 0;
+
+                    for (let i = 0; i <= 100; i++) {
+                        const { x, y } = path.getPointAtLength(length * i / 100);
+                        maxDistance = Math.max(maxDistance, Math.hypot(x, y));
+                    }
+
+                    expect(maxDistance).toBeGreaterThan(innerRadius + 0.5);
+                    expect(maxDistance).toBeLessThanOrEqual(outerRadius + 0.5);
+                });
+            });
+
             it("-> should render outer and inner circles when outer line is enabled", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 

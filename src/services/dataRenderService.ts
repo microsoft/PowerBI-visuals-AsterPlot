@@ -157,14 +157,14 @@ export class DataRenderService {
         const showOuterLine: boolean = settings.outerLine.show.value;  
         if (showOuterLine) {
             this.ticksOptions = this.calcTickOptions(this.maxHeight);
-            this.innerRadius /= this.ticksOptions.diffPercent;
         }
 
         this.arcSvg = this.getArcSvg(this.innerRadius, this.viewportRadius, this.maxHeight);
         this.outerRadius = max(this.dataPoints.map(d => this.arcSvg.outerRadius().bind(this)(d)));
 
         if (showOuterLine) {
-            this.outerRadius *= this.ticksOptions.diffPercent;
+            // Slices are scaled down by diffPercent above the hole, so scale the circle back up from the hole edge
+            this.outerRadius = this.innerRadius + (this.outerRadius - this.innerRadius) * this.ticksOptions.diffPercent;
             this.ticksRadiusArray = this.calcTicksRadius(this.ticksOptions.ticksCount, this.outerRadius);
             this.tickValuesArray = this.calcTicksValues(this.ticksOptions.ticksCount, this.ticksOptions.maxHeight, this.ticksOptions.modifier);
         }
@@ -419,7 +419,7 @@ export class DataRenderService {
         let modifier = 1;
 
         if (val === 0) {
-            for (let i = 0; i < value.toString().length - 3; ++i) {
+            for (let i = 0; i < value.toString().length - 2; ++i) {
                 modifier *= 10;
                 val = value * modifier;
                 val = val > 0 ? Math.floor(val) : Math.ceil(val);
@@ -457,9 +457,9 @@ export class DataRenderService {
         let array: number[];
 
         if (ticksCount % 3 === 0) {
-            array = [(radius - this.innerRadius) / 3 + this.innerRadius / this.ticksOptions.diffPercent, (radius - this.innerRadius) / 3 * 2 + this.innerRadius / this.ticksOptions.diffPercent, radius];
+            array = [(radius - this.innerRadius) / 3 + this.innerRadius, (radius - this.innerRadius) / 3 * 2 + this.innerRadius, radius];
         } else {
-            array = [(radius - this.innerRadius) / 2 + this.innerRadius / this.ticksOptions.diffPercent, radius];
+            array = [(radius - this.innerRadius) / 2 + this.innerRadius, radius];
         }
 
         return array;
@@ -526,14 +526,14 @@ export class DataRenderService {
         }
 
         // The chart should shrink if data labels are on
-        let heightIsLabelsOn = this.innerRadius + (this.settings.detailLabels.show.value ? height * DataRenderService.AsterRadiusRatio : height);
-        // let heightIsLabelsOn = this.innerRadius + height;
+        let scaledHeight = this.settings.detailLabels.show.value ? height * DataRenderService.AsterRadiusRatio : height;
+        // Only the thickness above the hole is scaled, so the hole keeps its size
         if (this.ticksOptions) {
-            heightIsLabelsOn /= this.ticksOptions.diffPercent;
+            scaledHeight /= this.ticksOptions.diffPercent;
         }
 
         // Prevent from data to be inside the inner radius
-        return Math.max(heightIsLabelsOn, this.innerRadius);
+        return Math.max(this.innerRadius + scaledHeight, this.innerRadius);
     }
 
     private getArcSvg(innerRadius: number = this.innerRadius, viewportRadius: number = this.viewportRadius, maxHeight: number = this.maxHeight): d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>> {
@@ -554,14 +554,14 @@ export class DataRenderService {
                 }
 
                 // The chart should shrink if data labels are on
-                let heightIsLabelsOn = innerRadius + (this.settings.detailLabels.show.value ? height * DataRenderService.AsterRadiusRatio : height);
-                // let heightIsLabelsOn = innerRadius + height;
+                let scaledHeight = this.settings.detailLabels.show.value ? height * DataRenderService.AsterRadiusRatio : height;
+                // Only the thickness above the hole is scaled, so the hole keeps its size
                 if (this.ticksOptions) {
-                    heightIsLabelsOn /= this.ticksOptions.diffPercent;
+                    scaledHeight /= this.ticksOptions.diffPercent;
                 }
 
                 // Prevent from data to be inside the inner radius
-                return Math.max(heightIsLabelsOn, innerRadius);
+                return Math.max(innerRadius + scaledHeight, innerRadius);
             });
     }
 
