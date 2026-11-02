@@ -163,7 +163,6 @@ export class DataRenderService {
         this.outerRadius = max(this.dataPoints.map(d => this.arcSvg.outerRadius().bind(this)(d)));
 
         if (showOuterLine) {
-            // Slices are scaled down by diffPercent above the hole, so scale the circle back up from the hole edge
             this.outerRadius = this.innerRadius + (this.outerRadius - this.innerRadius) * this.ticksOptions.diffPercent;
             this.ticksRadiusArray = this.calcTicksRadius(this.ticksOptions.ticksCount, this.outerRadius);
             this.tickValuesArray = this.calcTicksValues(this.ticksOptions.ticksCount, this.ticksOptions.maxHeight, this.ticksOptions.modifier);
@@ -431,10 +430,7 @@ export class DataRenderService {
         }
 
         if (value > 0) {
-            // Round up so the outer circle always encloses the tallest slice.
-            // toFixed(10) absorbs float noise in the aggregated value: a max of 0.1 + 0.2
-            // (0.30000000000000004) makes value * modifier 3.0000000000000004, which would
-            // otherwise ceil to 4 and put the circle at 0.4 instead of 0.3.
+            // toFixed(10) absorbs float noise: 0.1 + 0.2 would otherwise scale to 3.0000000000000004 and ceil to 4
             val = Math.ceil(Number((value * modifier).toFixed(10)));
         }
 
