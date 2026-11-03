@@ -604,6 +604,19 @@ describe("AsterPlot", () => {
                 });
             });
 
+            it("-> should label grid ticks in data units when the max value is below 1", () => {
+                dataView.metadata.objects!.outerLine.showGridTicksValues = true;
+
+                const values = dataView.categorical!.values![0].values;
+                values.fill(0.1);
+                values[0] = 0.25;
+
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                const tickLabels = Array.from(visualBuilder.mainElement.querySelectorAll("text.circleText"), (text) => text.textContent);
+                expect(Array.from(new Set(tickLabels))).toEqual(["0.1", "0.2", "0.3"]);
+            });
+
             it("-> should render outer and inner circles when outer line is enabled", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 

@@ -5,6 +5,9 @@
 * Fix tick labels being scaled incorrectly when the max value is below 1
 * Fix equal fractional maxima (e.g. 0.3 and 0.1 + 0.2) getting different outer circle scales
 * Fix small slices disappearing next to a much larger slice when the outer line is enabled
+
+### Visual changes
+* With the outer line on, the inner hole now stays the same size as without it, so existing reports that use the outer line look slightly different
 * The outer circle limit is rounded up on the leading digit only, so a max just past a round value jumps a whole step (e.g. 1.005 gets a circle at 2)
 
 ## 1.8.2
