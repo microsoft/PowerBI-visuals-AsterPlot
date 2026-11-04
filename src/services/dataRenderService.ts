@@ -69,6 +69,7 @@ import ISelectionId = powerbi.visuals.ISelectionId;
 class CircleTicksOptions {
     public diffPercent: number;
     public maxHeight: number;
+    public modifier: number;
     public ticksCount: number;
 }
 
@@ -156,16 +157,15 @@ export class DataRenderService {
         const showOuterLine: boolean = settings.outerLine.show.value;  
         if (showOuterLine) {
             this.ticksOptions = this.calcTickOptions(this.maxHeight);
-            this.innerRadius /= this.ticksOptions.diffPercent;
         }
 
         this.arcSvg = this.getArcSvg(this.innerRadius, this.viewportRadius, this.maxHeight);
         this.outerRadius = max(this.dataPoints.map(d => this.arcSvg.outerRadius().bind(this)(d)));
 
         if (showOuterLine) {
-            this.outerRadius *= this.ticksOptions.diffPercent;
+            this.outerRadius = this.innerRadius + (this.outerRadius - this.innerRadius) * this.ticksOptions.diffPercent;
             this.ticksRadiusArray = this.calcTicksRadius(this.ticksOptions.ticksCount, this.outerRadius);
-            this.tickValuesArray = this.calcTicksValues(this.ticksOptions.ticksCount, this.ticksOptions.maxHeight);
+            this.tickValuesArray = this.calcTicksValues(this.ticksOptions.ticksCount, this.ticksOptions.maxHeight, this.ticksOptions.modifier);
         }
     }
 
@@ -418,7 +418,7 @@ export class DataRenderService {
         let modifier = 1;
 
         if (val === 0) {
-            for (let i = 0; i < value.toString().length - 3; ++i) {
+            for (let i = 0; i < value.toString().length - 2; ++i) {
                 modifier *= 10;
                 val = value * modifier;
                 val = val > 0 ? Math.floor(val) : Math.ceil(val);
@@ -427,6 +427,11 @@ export class DataRenderService {
                     break;
                 }
             }
+        }
+
+        if (value > 0) {
+            // toFixed(10) absorbs float noise: 0.1 + 0.2 would otherwise scale to 3.0000000000000004 and ceil to 4
+            val = Math.ceil(Number((value * modifier).toFixed(10)));
         }
 
         const step = Math.pow(10, val.toString().length - 1);
@@ -438,7 +443,8 @@ export class DataRenderService {
 
         return {
             diffPercent,
-            maxHeight: allTicksCount * step * modifier,
+            maxHeight: allTicksCount * step,
+            modifier,
             ticksCount: allTicksCount % threeTicks === 0 ? threeTicks : twoTicks // 2 or 3 ticks only needed
         };
     }
@@ -447,24 +453,21 @@ export class DataRenderService {
         let array: number[];
 
         if (ticksCount % 3 === 0) {
-            array = [(radius - this.innerRadius) / 3 + this.innerRadius / this.ticksOptions.diffPercent, (radius - this.innerRadius) / 3 * 2 + this.innerRadius / this.ticksOptions.diffPercent, radius];
+            array = [(radius - this.innerRadius) / 3 + this.innerRadius, (radius - this.innerRadius) / 3 * 2 + this.innerRadius, radius];
         } else {
-            array = [(radius - this.innerRadius) / 2 + this.innerRadius / this.ticksOptions.diffPercent, radius];
+            array = [(radius - this.innerRadius) / 2 + this.innerRadius, radius];
         }
 
         return array;
     }
 
-    private calcTicksValues(ticksCount: number, outerValue: number): number[] {
-        let array: number[];
+    private calcTicksValues(ticksCount: number, outerValue: number, modifier: number): number[] {
+        const array: number[] = ticksCount % 3 === 0
+            ? [outerValue / 3, outerValue / 3 * 2, outerValue]
+            : [outerValue / 2, outerValue];
 
-        if (ticksCount % 3 === 0) {
-            array = [outerValue / 3, outerValue / 3 * 2, outerValue];
-        } else {
-            array = [outerValue / 2, outerValue];
-        }
-
-        return array;
+        // Scale back only at the end: dividing earlier introduces float noise (0.3 / 3 = 0.09999999999999999)
+        return array.map(v => v / modifier);
     }
 
     private applyTooltipToSelection(selection: d3Selection<SVGPathElement, d3PieArcDatum<AsterDataPoint>, SVGGElement, null>): void {
@@ -519,14 +522,14 @@ export class DataRenderService {
         }
 
         // The chart should shrink if data labels are on
-        let heightIsLabelsOn = this.innerRadius + (this.settings.detailLabels.show.value ? height * DataRenderService.AsterRadiusRatio : height);
-        // let heightIsLabelsOn = this.innerRadius + height;
+        let scaledHeight = this.settings.detailLabels.show.value ? height * DataRenderService.AsterRadiusRatio : height;
+        // Only the thickness above the hole is scaled, so the hole keeps its size
         if (this.ticksOptions) {
-            heightIsLabelsOn /= this.ticksOptions.diffPercent;
+            scaledHeight /= this.ticksOptions.diffPercent;
         }
 
         // Prevent from data to be inside the inner radius
-        return Math.max(heightIsLabelsOn, this.innerRadius);
+        return Math.max(this.innerRadius + scaledHeight, this.innerRadius);
     }
 
     private getArcSvg(innerRadius: number = this.innerRadius, viewportRadius: number = this.viewportRadius, maxHeight: number = this.maxHeight): d3Arc<DataRenderService, d3PieArcDatum<AsterDataPoint>> {
@@ -547,14 +550,14 @@ export class DataRenderService {
                 }
 
                 // The chart should shrink if data labels are on
-                let heightIsLabelsOn = innerRadius + (this.settings.detailLabels.show.value ? height * DataRenderService.AsterRadiusRatio : height);
-                // let heightIsLabelsOn = innerRadius + height;
+                let scaledHeight = this.settings.detailLabels.show.value ? height * DataRenderService.AsterRadiusRatio : height;
+                // Only the thickness above the hole is scaled, so the hole keeps its size
                 if (this.ticksOptions) {
-                    heightIsLabelsOn /= this.ticksOptions.diffPercent;
+                    scaledHeight /= this.ticksOptions.diffPercent;
                 }
 
                 // Prevent from data to be inside the inner radius
-                return Math.max(heightIsLabelsOn, innerRadius);
+                return Math.max(innerRadius + scaledHeight, innerRadius);
             });
     }
 

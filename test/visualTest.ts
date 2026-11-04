@@ -517,6 +517,106 @@ describe("AsterPlot", () => {
             });
 
 
+            [3.3066, 0.5].forEach((maxValue: number) => {
+                it(`-> should enclose all slices when the max value is ${maxValue}`, () => {
+                    const values = dataView.categorical!.values![0].values;
+                    values.fill(maxValue / 2);
+                    values[0] = maxValue;
+
+                    visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                    const circle = visualBuilder.outerCircles[0] as unknown as SVGCircleElement;
+                    const radius = Number(circle.getAttribute("r"));
+                    expect(radius).toBeGreaterThan(0);
+
+                    let maxDistance = 0;
+
+                    visualBuilder.slices.forEach((slice: HTMLElement) => {
+                        const path = slice as unknown as SVGPathElement;
+                        const length = path.getTotalLength();
+
+                        for (let i = 0; i <= 100; i++) {
+                            const { x, y } = path.getPointAtLength(length * i / 100);
+                            maxDistance = Math.max(maxDistance, Math.hypot(x, y));
+                        }
+                    });
+
+                    expect(maxDistance).toBeLessThanOrEqual(radius + 0.5);
+                });
+            });
+
+            it("-> should scale an exact fractional max the same as its float-noise equivalent", () => {
+                const getTallestSliceRadius = (maxValue: number): number => {
+                    const values = dataView.categorical!.values![0].values;
+                    values.fill(maxValue / 2);
+                    values[0] = maxValue;
+
+                    visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                    let maxDistance = 0;
+
+                    visualBuilder.slices.forEach((slice: HTMLElement) => {
+                        const path = slice as unknown as SVGPathElement;
+                        const length = path.getTotalLength();
+
+                        for (let i = 0; i <= 100; i++) {
+                            const { x, y } = path.getPointAtLength(length * i / 100);
+                            maxDistance = Math.max(maxDistance, Math.hypot(x, y));
+                        }
+                    });
+
+                    return maxDistance;
+                };
+
+                // The circle radius is the same for any limit, so compare the rendered slices
+                const exactRadius = getTallestSliceRadius(0.3);
+                const aggregatedRadius = getTallestSliceRadius(0.1 + 0.2);
+
+                expect(exactRadius).toBeGreaterThan(0);
+                expect(exactRadius).toBeCloseTo(aggregatedRadius, 1);
+            });
+
+            it("-> should keep slices visible when their values are much smaller than the max", () => {
+                (dataView.metadata.objects as any).detailLabels = { show: false };
+
+                const values = dataView.categorical!.values![0].values;
+                values.fill(0.2);
+                values[0] = 3.3066;
+
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                const innerRadius = Number(visualBuilder.innerCircles[0].getAttribute("r"));
+                const outerRadius = Number(visualBuilder.outerCircles[0].getAttribute("r"));
+                expect(outerRadius).toBeGreaterThan(innerRadius);
+
+                visualBuilder.slices.forEach((slice: HTMLElement) => {
+                    const path = slice as unknown as SVGPathElement;
+                    const length = path.getTotalLength();
+                    let maxDistance = 0;
+
+                    for (let i = 0; i <= 100; i++) {
+                        const { x, y } = path.getPointAtLength(length * i / 100);
+                        maxDistance = Math.max(maxDistance, Math.hypot(x, y));
+                    }
+
+                    expect(maxDistance).toBeGreaterThan(innerRadius + 0.5);
+                    expect(maxDistance).toBeLessThanOrEqual(outerRadius + 0.5);
+                });
+            });
+
+            it("-> should label grid ticks in data units when the max value is below 1", () => {
+                dataView.metadata.objects!.outerLine.showGridTicksValues = true;
+
+                const values = dataView.categorical!.values![0].values;
+                values.fill(0.1);
+                values[0] = 0.25;
+
+                visualBuilder.updateFlushAllD3Transitions(dataView);
+
+                const tickLabels = Array.from(visualBuilder.mainElement.querySelectorAll("text.circleText"), (text) => text.textContent);
+                expect(Array.from(new Set(tickLabels))).toEqual(["0.1", "0.2", "0.3"]);
+            });
+
             it("-> should render outer and inner circles when outer line is enabled", () => {
                 visualBuilder.updateFlushAllD3Transitions(dataView);
 
